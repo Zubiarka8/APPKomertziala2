@@ -2,23 +2,25 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
-    <!-- Colores principales -->
-    <color name="primary_purple">#6A5ACD</color>
-    <color name="primary_purple_dark">#5B4AB8</color>
-    <color name="background_light_gray">#F5F5F7</color>
-    <color name="card_background">#FFFFFF</color>
-    
-    <!-- Colores de texto -->
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="text_hint">#9E9E9E</color>
-    
-    <!-- Colores de estados -->
-    <color name="error_red">#D32F2F</color>
-    <color name="divider_color">#E0E0E0</color>
-    
-    <!-- Colores para botones de acción -->
-    <color name="action_button_bg">#F0F0F0</color>
-    <color name="action_button_icon">#6A5ACD</color>
+
+    <!-- Fondo y superficies: blanco -->
+    <color name="background_light_gray">#FFFFFFFF</color>
+    <color name="card_background">#FFFFFFFF</color>
+
+    <!-- Texto: negro y grises claros -->
+    <color name="text_primary">#FF000000</color>
+    <color name="text_secondary">#FF424242</color>
+    <color name="text_hint">#FF757575</color>
+
+    <!-- Bordes y divisores -->
+    <color name="divider_color">#FFE0E0E0</color>
+
+    <!-- Botones: blanco y negro -->
+    <color name="primary_purple">#FF000000</color>
+    <color name="primary_purple_dark">#FF212121</color>
+    <color name="action_button_bg">#FFF5F5F5</color>
+    <color name="action_button_icon">#FF000000</color>
+
+    <!-- Estados (mantener rojo solo para errores) -->
+    <color name="error_red">#FFB00020</color>
 </resources>
