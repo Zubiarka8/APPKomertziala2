@@ -152,10 +152,12 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
                 .show();
     }
 
-    /** Bisita formularioa ireki (id >= 0 editatzeko, -1 berria gehitzeko). Gorde ondoren zerrenda eguneratzen da. */
+    /** Bisita formularioa ireki (id >= 0 editatzeko, -1 berria gehitzeko). Komertzialaren kodea bidaltzen da (sortzailearen ID erresolbatzeko). Gorde ondoren zerrenda eguneratzen da. */
     private void irekiFormularioa(long bisitaId) {
         Intent intent = new Intent(this, BisitaFormularioActivity.class);
         intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, bisitaId);
+        String komertzialKode = getIntent() != null ? getIntent().getStringExtra(MainActivity.EXTRA_KOMMERTZIALA_KODEA) : null;
+        if (komertzialKode != null) intent.putExtra(MainActivity.EXTRA_KOMMERTZIALA_KODEA, komertzialKode);
         bisitaFormularioLauncher.launch(intent);
     }
 
@@ -192,10 +194,10 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
         ArrayList<Uri> uriak = new ArrayList<>();
         try {
             String pakeIzena = getPackageName();
-            if (xmlFitx.exists()) {
+            if (xmlFitx.exists() && xmlFitx.length() > 0) {
                 uriak.add(androidx.core.content.FileProvider.getUriForFile(this, pakeIzena + ".fileprovider", xmlFitx));
             }
-            if (txtFitx.exists()) {
+            if (txtFitx.exists() && txtFitx.length() > 0) {
                 uriak.add(androidx.core.content.FileProvider.getUriForFile(this, pakeIzena + ".fileprovider", txtFitx));
             }
             if (uriak.isEmpty()) {

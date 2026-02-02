@@ -41,7 +41,7 @@ import com.example.appkomertziala.db.kontsultak.PartnerraDao;
         Logina.class,
         Agenda.class
     },
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -194,6 +194,24 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 8 -> 9: agenda_bisitak taulan partnerId eta komertzialaId eremuak (kanpo-gakoak).
+     * partnerId → Partnerra.id (bisitatzen den partnerra/bazkidea); komertzialaId → Komertziala.id (bisita sortu duen komertziala).
+     */
+    private static final Migration MIGRAZIO_8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            if (!taulaExistitzenDa(db, "agenda_bisitak")) return;
+            if (!zutabeaExistitzenDa(db, "agenda_bisitak", "partnerId"))
+                db.execSQL("ALTER TABLE agenda_bisitak ADD COLUMN partnerId INTEGER");
+            if (!zutabeaExistitzenDa(db, "agenda_bisitak", "komertzialaId"))
+                db.execSQL("ALTER TABLE agenda_bisitak ADD COLUMN komertzialaId INTEGER");
+            db.execSQL("UPDATE agenda_bisitak SET partnerId = (SELECT id FROM partnerrak WHERE partnerrak.kodea = agenda_bisitak.partnerKodea LIMIT 1) WHERE partnerKodea IS NOT NULL AND partnerKodea != ''");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_agenda_bisitak_partnerId ON agenda_bisitak(partnerId)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_agenda_bisitak_komertzialaId ON agenda_bisitak(komertzialaId)");
+        }
+    };
+
     /** Komertzialak taularen kontsultak. */
     public abstract KomertzialaDao komertzialaDao();
     /** Partnerrak taularen kontsultak. */
@@ -223,7 +241,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8)
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9)
                             .fallbackToDestructiveMigration()
                             .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
                             .build();

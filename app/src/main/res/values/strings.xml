@@ -143,6 +143,14 @@
     <string name="bisita_ikusi_izenburua">Bisitaren xehetasunak</string>
     <string name="bisita_ondo_gordeta">Bisita gordeta.</string>
     <string name="bisita_errorea_data">Data beharrezkoa da.</string>
+    <string name="bisita_errorea_data_formatua">Data formatua ez da zuzena (uuuu-hh-ee).</string>
+    <string name="bisita_errorea_partnerra">Hautatu partner bat.</string>
+    <string name="bisita_errorea_deskribapena_hutsa">Deskribapena beharrezkoa da.</string>
+    <string name="bisita_errorea_deskribapena_luzea">Deskribapena luzeegia da (gehienez %1$d karaktere).</string>
+    <string name="eremu_guztiak_bete_behar_dira">Errorea: Eremu guztiak bete behar dira.</string>
+    <string name="bisita_partnerra_ez_datu_basean">Partnerra ez da datu-basean (Partnerra taula). Eremua baliozkoa izan behar du.</string>
+    <string name="postaz_fitxategia_hutsik">Fitxategia hutsik dago; ezin da postaz bidali.</string>
+    <string name="barne_memoria_lekurik_ez">Barne-memorian ez dago nahikoa lekurik fitxategia idazteko.</string>
     <string name="postaz_gaia_hilero">[Techno Basque] Hileroko Agenda - %1$s</string>
 
     <!-- Bazkideak atala (Agenda antzeko diseinua) -->

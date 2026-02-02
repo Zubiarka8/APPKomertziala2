@@ -59,8 +59,8 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
     @NonNull
     @Override
     public BisitaViewHolder onCreateViewHolder(@NonNull ViewGroup gurasoa, int mota) {
-        View vista = LayoutInflater.from(gurasoa.getContext()).inflate(R.layout.item_agenda_bisita, gurasoa, false);
-        return new BisitaViewHolder(vista);
+        View erroa = LayoutInflater.from(gurasoa.getContext()).inflate(R.layout.item_agenda_bisita, gurasoa, false);
+        return new BisitaViewHolder(erroa);
     }
 
     @Override
@@ -95,15 +95,15 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
         MaterialButton btnEditatu;
         MaterialButton btnEzabatu;
 
-        BisitaViewHolder(View itemView) {
-            super(itemView);
-            itemAgendaData = itemView.findViewById(R.id.itemAgendaData);
-            itemAgendaPartnerra = itemView.findViewById(R.id.itemAgendaPartnerra);
-            itemAgendaDeskribapena = itemView.findViewById(R.id.itemAgendaDeskribapena);
-            itemAgendaEgoera = itemView.findViewById(R.id.itemAgendaEgoera);
-            btnIkusi = itemView.findViewById(R.id.btnAgendaItemIkusi);
-            btnEditatu = itemView.findViewById(R.id.btnAgendaItemEditatu);
-            btnEzabatu = itemView.findViewById(R.id.btnAgendaItemEzabatu);
+        BisitaViewHolder(View erroa) {
+            super(erroa);
+            itemAgendaData = erroa.findViewById(R.id.itemAgendaData);
+            itemAgendaPartnerra = erroa.findViewById(R.id.itemAgendaPartnerra);
+            itemAgendaDeskribapena = erroa.findViewById(R.id.itemAgendaDeskribapena);
+            itemAgendaEgoera = erroa.findViewById(R.id.itemAgendaEgoera);
+            btnIkusi = erroa.findViewById(R.id.btnAgendaItemIkusi);
+            btnEditatu = erroa.findViewById(R.id.btnAgendaItemEditatu);
+            btnEzabatu = erroa.findViewById(R.id.btnAgendaItemEzabatu);
         }
     }
 }

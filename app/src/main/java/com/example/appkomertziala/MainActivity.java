@@ -182,6 +182,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             fabAgendaCitaGehitu.setOnClickListener(v -> {
                 Intent intent = new Intent(this, BisitaFormularioActivity.class);
                 intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, -1L);
+                String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
+                if (komertzialKode != null) intent.putExtra(EXTRA_KOMMERTZIALA_KODEA, komertzialKode);
                 bisitaFormularioLauncher.launch(intent);
             });
         }
@@ -219,8 +221,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         partnerIzena = p != null && p.getIzena() != null ? p.getIzena() : a.getPartnerKodea();
                     }
                     String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena().trim() : "";
+                    String egoeraStr = a.getEgoera() != null ? a.getEgoera().trim() : "";
                     String zenb = "BIS-" + a.getId();
-                    erakusteko.add(new Object[]{dataStr, zenb, partnerIzena.isEmpty() ? "—" : partnerIzena, deskribapena, a.getId()});
+                    erakusteko.add(new Object[]{dataStr, zenb, partnerIzena.isEmpty() ? "—" : partnerIzena, deskribapena, egoeraStr, a.getId()});
                 }
 
                 runOnUiThread(() -> {
@@ -237,7 +240,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         String zenb = (String) row[1];
                         String partnerIzena = (String) row[2];
                         String deskribapena = (String) row[3];
-                        long agendaId = (Long) row[4];
+                        String egoeraStr = (String) row[4];
+                        long agendaId = (Long) row[5];
                         View item = inflater.inflate(R.layout.item_zita, listContainer, false);
                         ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
                         ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
@@ -247,10 +251,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             tvOrdezk.setText(deskribapena);
                             tvOrdezk.setVisibility(View.VISIBLE);
                         }
+                        TextView tvEgoera = item.findViewById(R.id.itemZitaEgoera);
+                        if (tvEgoera != null && !egoeraStr.isEmpty()) {
+                            tvEgoera.setText(egoeraStr);
+                            tvEgoera.setVisibility(View.VISIBLE);
+                        }
                         MaterialButton btnIkusi = item.findViewById(R.id.btnZitaIkusi);
                         MaterialButton btnEditatu = item.findViewById(R.id.btnZitaEditatu);
                         MaterialButton btnEzabatu = item.findViewById(R.id.btnZitaEzabatu);
-                        btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, partnerIzena, deskribapena));
+                        btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, partnerIzena, deskribapena, egoeraStr));
                         btnEditatu.setOnClickListener(v -> editatuZita(agendaId));
                         btnEzabatu.setOnClickListener(v -> ezabatuZita(agendaId));
                         listContainer.addView(item);
@@ -268,14 +277,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): agenda gaiak soilik (data, zenbakia, partnerra, ordezkaritza). Pedidoen lerroak ez dira erakusten. */
-    private void erakutsiZitaXehetasunak(String dataStr, String zenbakia, String partnerIzena, String ordezk) {
+    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): data, zenbakia, partnerra, deskribapena, egoera. */
+    private void erakutsiZitaXehetasunak(String dataStr, String zenbakia, String partnerIzena, String deskribapena, String egoera) {
         StringBuilder msg = new StringBuilder();
         msg.append(getString(R.string.cita_data)).append(": ").append(dataStr).append("\n");
         msg.append(getString(R.string.cita_zenbakia)).append(": ").append(zenbakia).append("\n");
         msg.append(getString(R.string.cita_partnerra)).append(": ").append(partnerIzena).append("\n");
-        if (ordezk != null && !ordezk.isEmpty()) {
-            msg.append(getString(R.string.cita_ordezkaritza)).append(": ").append(ordezk).append("\n");
+        msg.append(getString(R.string.agenda_bisita_egoera)).append(": ").append(egoera != null && !egoera.isEmpty() ? egoera : "—").append("\n");
+        if (deskribapena != null && !deskribapena.isEmpty()) {
+            msg.append(getString(R.string.agenda_bisita_deskribapena)).append(": ").append(deskribapena).append("\n");
         }
         String msgStr = msg.toString();
         new AlertDialog.Builder(this)
@@ -285,10 +295,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .show();
     }
 
-    /** Bisita editatzeko BisitaFormularioActivity ireki (Editatu botoia). */
+    /** Bisita editatzeko BisitaFormularioActivity ireki (Editatu botoia). Komertzialaren kodea bidaltzen da (sortzailearen ID erresolbatzeko). */
     private void editatuZita(long agendaId) {
         Intent intent = new Intent(this, BisitaFormularioActivity.class);
         intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, agendaId);
+        String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
+        if (komertzialKode != null) intent.putExtra(EXTRA_KOMMERTZIALA_KODEA, komertzialKode);
         bisitaFormularioLauncher.launch(intent);
     }
 
@@ -434,14 +446,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         bidaliPostaz(fitxategiIzena, gaia, "application/xml");
     }
 
-    /** XML eta TXT fitxategiak Gmail bidez bidaltzen ditu (bi eranskin). */
+    /**
+     * XML eta TXT fitxategiak Gmail bidez bidaltzen ditu (eranskin gisa).
+     * Fitxategien egiaztapena: existitzen direla eta hutsik ez daudela (Gmail Intent aurretik).
+     */
     private void bidaliPostazXmlTxt(String xmlIzena, String txtIzena, String gaia) {
         ArrayList<Uri> uris = new ArrayList<>();
         File xmlFitx = new File(getFilesDir(), xmlIzena);
         File txtFitx = new File(getFilesDir(), txtIzena);
         try {
-            if (xmlFitx.exists()) uris.add(FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", xmlFitx));
-            if (txtFitx.exists()) uris.add(FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", txtFitx));
+            if (xmlFitx.exists() && xmlFitx.length() > 0)
+                uris.add(FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", xmlFitx));
+            if (txtFitx.exists() && txtFitx.length() > 0)
+                uris.add(FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", txtFitx));
             if (uris.isEmpty()) {
                 Toast.makeText(this, R.string.postaz_fitxategi_ez, Toast.LENGTH_SHORT).show();
                 return;
@@ -463,10 +480,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /**
+     * Fitxategia Gmail (edo beste posta-app) bidez bidaltzen du. Gmail Intent aurretik egiaztatzen du
+     * fitxategia benetan sortu dela eta ez dagoela hutsik (integritasun-mugak).
+     */
     private void bidaliPostaz(String fitxategiIzena, String gaia, String mimeMota) {
         File fitxategia = new File(getFilesDir(), fitxategiIzena);
         if (!fitxategia.exists()) {
             Toast.makeText(this, R.string.postaz_fitxategi_ez, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (fitxategia.length() <= 0) {
+            Toast.makeText(this, R.string.postaz_fitxategia_hutsik, Toast.LENGTH_SHORT).show();
             return;
         }
         try {

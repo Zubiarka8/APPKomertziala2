@@ -35,8 +35,17 @@
                 android:id="@+id/itemZitaZenbakia"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
                 android:textSize="@dimen/text_size_small"
                 android:textColor="@color/text_secondary"/>
+
+            <TextView
+                android:id="@+id/itemZitaEgoera"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_secondary"
+                android:visibility="gone"/>
         </LinearLayout>
 
         <TextView

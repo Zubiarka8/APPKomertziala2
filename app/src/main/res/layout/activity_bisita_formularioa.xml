@@ -8,8 +8,9 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
+        android:gravity="center_vertical"
         android:padding="@dimen/margin_medium">
 
         <com.google.android.material.card.MaterialCardView
@@ -26,10 +27,13 @@
                 android:padding="@dimen/margin_large">
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBisitaData"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/margin_medium"
                     android:hint="@string/agenda_bisita_data"
+                    app:startIconDrawable="@drawable/ic_calendar"
+                    app:startIconContentDescription="@string/zita_data_icon_cd"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -58,6 +62,7 @@
                     android:minHeight="@dimen/button_height"/>
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBisitaDeskribapena"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/margin_medium"
@@ -70,7 +75,8 @@
                         android:layout_height="wrap_content"
                         android:inputType="textMultiLine"
                         android:minLines="2"
-                        android:maxLines="4"/>
+                        android:maxLines="4"
+                        android:maxLength="500"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
