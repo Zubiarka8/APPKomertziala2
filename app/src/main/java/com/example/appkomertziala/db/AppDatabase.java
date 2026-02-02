@@ -40,7 +40,7 @@ import com.example.appkomertziala.db.kontsultak.PartnerraDao;
         Logina.class,
         Agenda.class
     },
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -97,6 +97,17 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 5 -> 6: katalogoa taulan irudia_izena eremua gehitu (drawable baliabidearen izena).
+     * Asteko inportazioan produktu bakoitzaren irudia gordetzeko.
+     */
+    private static final Migration MIGRAZIO_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE katalogoa ADD COLUMN irudia_izena TEXT DEFAULT NULL");
+        }
+    };
+
     /** Komertzialak taularen kontsultak. */
     public abstract KomertzialaDao komertzialaDao();
     /** Partnerrak taularen kontsultak. */
@@ -126,9 +137,9 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5)
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6)
                             .fallbackToDestructiveMigration()
-                            .allowMainThreadQueries()  // Evita cierre si alguna consulta se hace en el hilo principal
+                            .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
                             .build();
                 }
             }

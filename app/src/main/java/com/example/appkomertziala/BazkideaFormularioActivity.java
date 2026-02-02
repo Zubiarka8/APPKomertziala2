@@ -11,16 +11,20 @@ import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 /**
  * Bazkide berria gehitzeko edo lehendik dagoen bazkidea editatzeko formularioa.
  * Egitura: bazkideak.xml (NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia).
+ * Datuen balidazioa: NAN eta izena beharrezkoak; erroreak eremuetan eta Toast bidez.
  */
 public class BazkideaFormularioActivity extends AppCompatActivity {
 
-    /** Editatzeko: bazkidearen id. &lt; 0 bada berria. */
+    /** Editatzeko: bazkidearen id. Zero baino txikiagoa bada berria da. */
     public static final String EXTRA_BAZKIDEA_ID = "bazkidea_id";
 
+    private TextInputLayout tilNan;
+    private TextInputLayout tilIzena;
     private TextInputEditText etNan, etIzena, etAbizena, etTelefonoa, etPosta, etJaiotzeData, etArgazkia;
     private AppDatabase datuBasea;
     private long editatuId = -1;
@@ -34,6 +38,8 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         editatuId = getIntent().getLongExtra(EXTRA_BAZKIDEA_ID, -1);
         setTitle(editatuId >= 0 ? getString(R.string.bazkidea_editatu) : getString(R.string.bazkidea_berria));
 
+        tilNan = findViewById(R.id.tilBazkideaNan);
+        tilIzena = findViewById(R.id.tilBazkideaIzena);
         etNan = findViewById(R.id.etBazkideaNan);
         etIzena = findViewById(R.id.etBazkideaIzena);
         etAbizena = findViewById(R.id.etBazkideaAbizena);
@@ -66,11 +72,23 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         }
     }
 
-    /** Gorde botoian: baieztapen dialogo erakutsi, gero gorde. */
+    /** Gorde botoian: datuak balidatu, erroreak erakutsi; balidoak badira baieztapen dialogo, gero gorde. */
     private void erakutsiGordeBaieztapena() {
+        if (tilNan != null) tilNan.setError(null);
+        if (tilIzena != null) tilIzena.setError(null);
         String nan = etNan.getText() != null ? etNan.getText().toString().trim() : "";
+        String izena = etIzena.getText() != null ? etIzena.getText().toString().trim() : "";
+        boolean baliogabea = false;
         if (nan.isEmpty()) {
-            Toast.makeText(this, getString(R.string.table_bazkide_nan) + " beharrezkoa", Toast.LENGTH_SHORT).show();
+            if (tilNan != null) tilNan.setError(getString(R.string.bazkidea_errorea_nan_beharrezkoa));
+            baliogabea = true;
+        }
+        if (izena.isEmpty()) {
+            if (tilIzena != null) tilIzena.setError(getString(R.string.bazkidea_errorea_izena_beharrezkoa));
+            baliogabea = true;
+        }
+        if (baliogabea) {
+            Toast.makeText(this, getString(R.string.bazkidea_errorea_nan_beharrezkoa), Toast.LENGTH_SHORT).show();
             return;
         }
         new AlertDialog.Builder(this)
@@ -89,20 +107,24 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
                 .show();
     }
 
+    /** Bazkidea datu-baseatik ezabatu; arrakasta mezua euskaraz. */
     private void ezabatuBazkidea() {
         new Thread(() -> {
             Bazkidea b = datuBasea.bazkideaDao().idzBilatu(editatuId);
             if (b != null) {
                 datuBasea.bazkideaDao().ezabatu(b);
                 runOnUiThread(() -> {
-                    Toast.makeText(this, getString(R.string.btn_ezabatu), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.bazkidea_ondo_ezabatuta, Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
                 });
+            } else {
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.errorea_gordetzean, "Ez da bazkidea aurkitu."), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
 
+    /** Formularioa gorde: txertatu (berria) edo eguneratu (editatzeko). Arrakasta edo errore mezua euskaraz. */
     private void gordeBazkidea() {
         String nan = etNan.getText() != null ? etNan.getText().toString().trim() : "";
         String izena = etIzena.getText() != null ? etIzena.getText().toString().trim() : "";
@@ -121,18 +143,24 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         b.setJaiotzeData(jaiotzeData);
         b.setArgazkia(argazkia);
 
+        final boolean editatzen = editatuId >= 0;
         new Thread(() -> {
-            if (editatuId >= 0) {
-                b.setId(editatuId);
-                datuBasea.bazkideaDao().eguneratu(b);
-            } else {
-                datuBasea.bazkideaDao().txertatu(b);
+            try {
+                if (editatzen) {
+                    b.setId(editatuId);
+                    datuBasea.bazkideaDao().eguneratu(b);
+                } else {
+                    datuBasea.bazkideaDao().txertatu(b);
+                }
+                runOnUiThread(() -> {
+                    Toast.makeText(this, editatzen ? R.string.ondo_gorde_dira_aldaketak : R.string.ondo_gorde_da, Toast.LENGTH_SHORT).show();
+                    setResult(RESULT_OK);
+                    finish();
+                });
+            } catch (Exception e) {
+                String mezu = e.getMessage() != null ? e.getMessage() : "";
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu), Toast.LENGTH_SHORT).show());
             }
-            runOnUiThread(() -> {
-                Toast.makeText(this, getString(R.string.bazkidea_gorde), Toast.LENGTH_SHORT).show();
-                setResult(RESULT_OK);
-                finish();
-            });
         }).start();
     }
 }

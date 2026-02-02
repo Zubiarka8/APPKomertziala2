@@ -140,10 +140,26 @@
     <string name="bazkidea_gorde">Gorde</string>
     <string name="bazkidea_gorde_baieztatu">Seguru zaude gorde nahi duzula?</string>
     <string name="bazkidea_ezabatu_baieztatu">Seguru zaude ezabatu nahi duzula?</string>
+    <string name="bazkidea_errorea_nan_beharrezkoa">NAN beharrezkoa da.</string>
+    <string name="bazkidea_errorea_izena_beharrezkoa">Izena beharrezkoa da.</string>
+    <string name="bazkidea_ondo_ezabatuta">Bazkidea ondo ezabatuta.</string>
+
+    <!-- Ondo gorde / aldaketak / errorea (orokorrak) -->
+    <string name="ondo_gorde_da">Ondo gorde da.</string>
+    <string name="ondo_gorde_dira_aldaketak">Ondo gorde dira aldaketak.</string>
+    <string name="ondo_ezabatuta">Ondo ezabatuta.</string>
+    <string name="errorea_gordetzean">Errorea gordetzean: %1$s</string>
 
     <string name="tab_agenda_placeholder">Agenda</string>
     <string name="tab_bazkideak_placeholder">Bazkideak</string>
     <string name="tab_inventarioa_placeholder">Inventarioa</string>
+
+    <!-- Inbentarioa (Katalogoa) modulua -->
+    <string name="inbentarioa_izenburua">Inbentarioa (Katalogoa)</string>
+    <string name="inbentarioa_zerrenda_hutsa">Produkturik ez. Katalogoa eguneratu (astero) botoiarekin kargatu.</string>
+    <string name="katalogoa_artikulu_kodea_etiketa">Artikulu kodea: %1$s</string>
+    <string name="katalogoa_stock_etiketa">Stock: %1$d</string>
+    <string name="cd_katalogoa_irudia">Produktuaren irudia</string>
 
     <string name="fab_bazkide_berria">Bazkide berria</string>
     <string name="cd_bazkidea_gehitu">Bazkide berria gehitu</string>

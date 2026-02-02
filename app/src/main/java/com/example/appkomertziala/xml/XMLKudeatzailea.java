@@ -533,13 +533,14 @@ public class XMLKudeatzailea {
         return zerrenda.size();
     }
 
-    /** produktua elementu bat irakurri (id, izena, prezioa, stock). */
+    /** produktua elementu bat irakurri (id, izena, prezioa, stock, irudia_path). irudia_path drawable baliabidearen izena. */
     private Katalogoa produktuaElementuaIrakurri(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "produktua");
         String id = "";
         String izena = "";
         double prezioa = 0;
         int stock = 0;
+        String irudiaIzena = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) continue;
             String name = parser.getName();
@@ -556,12 +557,16 @@ public class XMLKudeatzailea {
                 case "stock":
                     stock = (int) parseLongSafe(testuaIrakurri(parser), 0);
                     break;
+                case "irudia_path":
+                    irudiaIzena = testuaIrakurri(parser);
+                    break;
                 default:
                     atalBatJauzi(parser);
                     break;
             }
         }
-        return new Katalogoa(id != null ? id : "", izena != null ? izena : "", prezioa, stock);
+        Katalogoa k = new Katalogoa(id != null ? id : "", izena != null ? izena : "", prezioa, stock, irudiaIzena);
+        return k;
     }
 
     /** Elementu baten testu-edukia irakurri. */

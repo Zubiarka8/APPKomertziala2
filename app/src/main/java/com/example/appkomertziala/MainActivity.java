@@ -31,6 +31,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
+import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Partnerra;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
 import com.example.appkomertziala.xml.XmlBilatzailea;
@@ -44,6 +45,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -466,12 +470,48 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (navId == R.id.bazkideak) {
             erakutsiBazkideakEdukia();
         }
-        if (navId == R.id.inventarioa && contentInventarioa instanceof android.widget.TextView) {
-            String text = XmlBilatzailea.katalogoaFaltaDa(this)
-                    ? getString(R.string.xml_falta_da, "katalogoa.xml")
-                    : getString(R.string.tab_inventarioa_placeholder);
-            ((android.widget.TextView) contentInventarioa).setText(text);
+        if (navId == R.id.inventarioa) {
+            erakutsiInbentarioaEdukia();
         }
+    }
+
+    /** Inbentarioa (Katalogoa) atala: XML falta bada mezu hori; bestela datu-baseko produktu zerrenda RecyclerView-n. */
+    private void erakutsiInbentarioaEdukia() {
+        TextView tvXmlFalta = findViewById(R.id.tvInventarioaXmlFalta);
+        TextView tvHutsa = findViewById(R.id.tvInventarioaHutsa);
+        RecyclerView recyclerKatalogoa = findViewById(R.id.recyclerKatalogoa);
+        if (tvXmlFalta == null || tvHutsa == null || recyclerKatalogoa == null) return;
+
+        if (XmlBilatzailea.katalogoaFaltaDa(this)) {
+            tvXmlFalta.setText(getString(R.string.xml_falta_da, "katalogoa.xml"));
+            tvXmlFalta.setVisibility(View.VISIBLE);
+            tvHutsa.setVisibility(View.GONE);
+            recyclerKatalogoa.setVisibility(View.GONE);
+            return;
+        }
+        tvXmlFalta.setVisibility(View.GONE);
+
+        if (recyclerKatalogoa.getLayoutManager() == null) {
+            recyclerKatalogoa.setLayoutManager(new LinearLayoutManager(this));
+            recyclerKatalogoa.setAdapter(new KatalogoaAdapter(this));
+        }
+        KatalogoaAdapter adapter = (KatalogoaAdapter) recyclerKatalogoa.getAdapter();
+        new Thread(() -> {
+            List<Katalogoa> zerrenda = AppDatabase.getInstance(this).katalogoaDao().katalogoaIkusi();
+            if (zerrenda == null) zerrenda = new ArrayList<>();
+            final List<Katalogoa> lista = zerrenda;
+            runOnUiThread(() -> {
+                if (isDestroyed()) return;
+                if (lista.isEmpty()) {
+                    tvHutsa.setVisibility(View.VISIBLE);
+                    recyclerKatalogoa.setVisibility(View.GONE);
+                } else {
+                    tvHutsa.setVisibility(View.GONE);
+                    recyclerKatalogoa.setVisibility(View.VISIBLE);
+                    if (adapter != null) adapter.eguneratuZerrenda(lista);
+                }
+            });
+        }).start();
     }
 
     /** Bazkideak atala: XML falta bada mezu hori; bestela datu-baseko partner zerrenda taulan erakutsi. */
@@ -550,7 +590,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     tvHutsa.setVisibility(View.GONE);
                     int paddingPx = getResources().getDimensionPixelSize(R.dimen.margin_small);
 
-                    // Cabecera: Izena, Abizena, Telefonoa, Akzioak (gainontzekoa Modifikatu-n ikusiko da)
+                    // Goiburua: Izena, Abizena, Telefonoa, Akzioak (gainontzekoa Editatu-n ikusiko da)
                     TableRow headerRow = new TableRow(this);
                     headerRow.setBackgroundColor(ContextCompat.getColor(this, R.color.primary_purple));
                     float[] headerWeights = {1f, 1f, 1f, 0.5f};
@@ -732,7 +772,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        // Checkpoint (marker) Gipuzkoa egoitzan
+        // Markatzailea (marker) Gipuzkoa egoitzan
         googleMap.addMarker(new MarkerOptions()
                 .position(donostia)
                 .title(getString(R.string.contact_title)));

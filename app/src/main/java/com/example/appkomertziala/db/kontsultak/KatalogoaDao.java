@@ -12,10 +12,23 @@ import com.example.appkomertziala.db.eredua.Katalogoa;
 import java.util.List;
 
 /**
- * Katalogoa taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
+ * Katalogoa taularen kontsultak: datuak txertatu/eguneratu (astero inportazioa),
+ * katalogoa ikusi, eta stock-a eskaera egitean eguneratu.
  */
 @Dao
 public interface KatalogoaDao {
+
+    /** Artikuluak kargatu: txertatu edo ordezkatu (OnConflictStrategy.REPLACE). Asteko inportazioan erabiltzen da. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    List<Long> artikuluakKargatu(List<Katalogoa> zerrenda);
+
+    /** Katalogo guztia ikusi (produktu zerrenda UI-rako). */
+    @Query("SELECT * FROM katalogoa ORDER BY izena")
+    List<Katalogoa> katalogoaIkusi();
+
+    /** Eskaera bat egiten denean stock-a aldatzeko: artikulu baten stock_a eguneratu. */
+    @Query("UPDATE katalogoa SET stock = :stockBerria WHERE artikuluKodea = :artikuluKodea")
+    int stockaEguneratu(String artikuluKodea, int stockBerria);
 
     /** Katalogo-artikulu bat txertatu; gatazka bada ordezkatu (upsert). */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -33,7 +46,7 @@ public interface KatalogoaDao {
     @Delete
     int ezabatu(Katalogoa katalogoa);
 
-    /** Katalogo guztia itzuli. */
+    /** Katalogo guztia itzuli (katalogoaIkusi() bera). */
     @Query("SELECT * FROM katalogoa ORDER BY izena")
     List<Katalogoa> guztiak();
 

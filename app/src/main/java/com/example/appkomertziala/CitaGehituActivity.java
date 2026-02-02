@@ -74,7 +74,7 @@ public class CitaGehituActivity extends AppCompatActivity {
         MaterialButton btnUtzi = findViewById(R.id.btnCitaUtzi);
         MaterialButton btnGorde = findViewById(R.id.btnCitaGorde);
 
-        // Data gaurkoa lehenetsi
+        // Data gaurkoa lehenetsi (uuuu-hh-ee)
         String gaur = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault()).format(new Date());
         etData.setText(gaur);
 
@@ -194,7 +194,7 @@ public class CitaGehituActivity extends AppCompatActivity {
 
     private void beteSpinnerPartnerrak() {
         List<String> izenak = new ArrayList<>();
-        izenak.add(getString(R.string.cita_partnerra) + " — " + getString(R.string.cita_utzi)); // placeholder
+        izenak.add(getString(R.string.cita_partnerra) + " — " + getString(R.string.cita_utzi)); // leihoko hautaketa
         for (Partnerra p : partnerrak) {
             String s = (p.getIzena() != null ? p.getIzena() : "") + " (" + (p.getKodea() != null ? p.getKodea() : "") + ")";
             izenak.add(s);
@@ -217,7 +217,8 @@ public class CitaGehituActivity extends AppCompatActivity {
         String ordezkaritza = etOrdezkaritza.getText() != null ? etOrdezkaritza.getText().toString().trim() : "";
 
         if (zenbakia.isEmpty()) {
-            zenbakia = "AG-" + System.currentTimeMillis();
+            Toast.makeText(this, R.string.cita_errorea_zenbakia, Toast.LENGTH_SHORT).show();
+            return;
         }
         if (data.isEmpty()) {
             Toast.makeText(this, R.string.cita_errorea_data, Toast.LENGTH_SHORT).show();
@@ -228,6 +229,10 @@ public class CitaGehituActivity extends AppCompatActivity {
         if (pos > 0 && partnerrak != null && pos <= partnerrak.size()) {
             Partnerra p = partnerrak.get(pos - 1);
             partnerKodea = p.getKodea() != null ? p.getKodea() : "";
+        }
+        if (partnerKodea.isEmpty()) {
+            Toast.makeText(this, R.string.cita_errorea_partner, Toast.LENGTH_SHORT).show();
+            return;
         }
 
         final boolean editMode = editatuZenbakia != null && !editatuZenbakia.isEmpty();
@@ -257,13 +262,14 @@ public class CitaGehituActivity extends AppCompatActivity {
                     datuBasea.eskaeraGoiburuaDao().txertatu(goiBerria);
                 }
                 runOnUiThread(() -> {
-                    Toast.makeText(this, R.string.cita_ondo_gordeta, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, editMode ? R.string.ondo_gorde_dira_aldaketak : R.string.ondo_gorde_da, Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
                 });
             } catch (Exception e) {
+                String mezu = e.getMessage() != null ? e.getMessage() : "";
                 runOnUiThread(() ->
-                    Toast.makeText(this, getString(R.string.esportatu_errorea, e.getMessage()), Toast.LENGTH_SHORT).show());
+                    Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }

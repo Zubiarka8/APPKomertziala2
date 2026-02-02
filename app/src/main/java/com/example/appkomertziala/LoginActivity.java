@@ -25,10 +25,10 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 /**
- * Techno Basque - Login screen.
- * Top section: logo and title. Load section: XML load and commercial selection.
- * Form: Erabiltzailea (user) and Pasahitza (password) with validation.
- * Google Maps at bottom centered on Donostia. On success navigates to MainActivity.
+ * Techno Basque - Saioa hasi pantaila.
+ * Goiko atala: logoa eta izenburua. Kargatu atala: XML kargatu eta komertzial hautaketa.
+ * Formularioa: Erabiltzailea eta Pasahitza balidazioarekin.
+ * Google Maps behean Donostian zentratua. Arrakastan MainActivity-ra nabigatzen du.
  */
 public class LoginActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -72,7 +72,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        // Checkpoint (marker) Gipuzkoa egoitzan
+        // Markatzailea (marker) Gipuzkoa egoitzan
         googleMap.addMarker(new MarkerOptions()
                 .position(donostia)
                 .title(getString(R.string.contact_title)));

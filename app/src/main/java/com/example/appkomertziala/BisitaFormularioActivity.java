@@ -220,13 +220,14 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                     datuBasea.agendaDao().txertatu(berria);
                 }
                 runOnUiThread(() -> {
-                    Toast.makeText(this, R.string.bisita_ondo_gordeta, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, editatuIdFinal >= 0 ? R.string.ondo_gorde_dira_aldaketak : R.string.ondo_gorde_da, Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
                 });
             } catch (Exception e) {
+                String mezu = e.getMessage() != null ? e.getMessage() : "";
                 runOnUiThread(() ->
-                        Toast.makeText(this, getString(R.string.esportatu_errorea, e.getMessage()), Toast.LENGTH_SHORT).show());
+                        Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }

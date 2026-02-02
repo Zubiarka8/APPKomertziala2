@@ -520,13 +520,12 @@
                 </LinearLayout>
             </ScrollView>
 
-            <TextView
+            <!-- Inbentarioa (Katalogoa): izenburua, XML falta, zerrenda hutsa, RecyclerView -->
+            <include
+                layout="@layout/content_inventarioa"
                 android:id="@+id/content_inventarioa"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="@string/tab_inventarioa_placeholder"
-                android:textSize="@dimen/text_size_large"
                 android:visibility="gone"/>
 
             <!-- Extended FAB Agenda: zita berria (Material 3 - bottom|end) -->
