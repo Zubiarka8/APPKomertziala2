@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,6 +35,14 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
     private TextView tvAgendaModuluaHutsa;
     private AgendaBisitaAdapter adapter;
     private AppDatabase datuBasea;
+
+    private final ActivityResultLauncher<Intent> bisitaFormularioLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    kargatuZerrenda();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,11 +152,11 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
                 .show();
     }
 
-    /** Bisita formularioa ireki (id >= 0 editatzeko, -1 berria gehitzeko). */
+    /** Bisita formularioa ireki (id >= 0 editatzeko, -1 berria gehitzeko). Gorde ondoren zerrenda eguneratzen da. */
     private void irekiFormularioa(long bisitaId) {
         Intent intent = new Intent(this, BisitaFormularioActivity.class);
         intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, bisitaId);
-        startActivity(intent);
+        bisitaFormularioLauncher.launch(intent);
     }
 
     /**

@@ -43,7 +43,7 @@ public interface PartnerraDao {
      * Eguneko alta duten partnerrak itzuli (bazkide berriak esportatzeko — eguneroko txostena).
      * Garrantzitsua: centralera egunero bidaltzeko soilik eguneko erregistro berriak hautatzea.
      */
-    @Query("SELECT * FROM partnerrak WHERE date(sortutakoData) = date('now') ORDER BY izena")
+    @Query("SELECT * FROM partnerrak WHERE date(sortutakoData) = date('now', 'localtime') ORDER BY izena")
     List<Partnerra> egunekoAltaGuztiak();
 
     /** Komertzial kode baten arabera partnerrak itzuli. */

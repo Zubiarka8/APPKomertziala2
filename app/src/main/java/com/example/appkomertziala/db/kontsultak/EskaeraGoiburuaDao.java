@@ -42,7 +42,7 @@ public interface EskaeraGoiburuaDao {
      * Eguneko eskaera goiburu guztiak itzuli (eskaera berriak esportatzeko — eguneroko txostena).
      * Garrantzitsua: egunero eskaera berrien laburpena centralera bidaltzeko.
      */
-    @Query("SELECT * FROM eskaera_goiburuak WHERE date(data) = date('now') ORDER BY data DESC")
+    @Query("SELECT * FROM eskaera_goiburuak WHERE date(data) = date('now', 'localtime') ORDER BY data DESC")
     List<EskaeraGoiburua> egunekoEskaerak();
 
     /** Komertzial kode baten arabera eskaerak itzuli. */

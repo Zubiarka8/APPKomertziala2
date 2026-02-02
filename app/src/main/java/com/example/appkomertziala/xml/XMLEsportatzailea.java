@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Xml;
 
 import com.example.appkomertziala.db.AppDatabase;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
@@ -67,9 +68,40 @@ public class XMLEsportatzailea {
     }
 
     /**
-     * Eguneko ESKAERA_GOIBURUA eta ESKAERA_XEHETASUNA erlazionatu eta eskaera_berriak.xml sortu (eguneroko txostena).
-     * Egunero eskaera berrien laburpena centralera bidaltzeko; egitura hierarkikoan goiburua + xehetasunak.
-     * Nodoa: eskaera_berriak > eskaera (goiburu atributuak) > xehetasunak > xehetasuna (artikuluKodea, kantitatea, prezioa).
+     * Bazkideak taulako datu guztiak bazkideak.xml fitxategian gorde (assets/bazkideak.xml egitura).
+     * Nodoa: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak.
+     */
+    public void bazkideakEsportatu() throws IOException {
+        List<Bazkidea> zerrenda = datuBasea.bazkideaDao().guztiak();
+        String fitxategiIzena = "bazkideak.xml";
+        try (OutputStream irteera = testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE)) {
+            XmlSerializer idazlea = Xml.newSerializer();
+            idazlea.setOutput(irteera, KODEKETA);
+            idazlea.startDocument(KODEKETA, true);
+            idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            idazlea.startTag(null, "bazkideak");
+            for (Bazkidea b : zerrenda) {
+                idazlea.startTag(null, "bazkidea");
+                nodoaIdatzi(idazlea, "NAN", hutsaEz(b.getNan()));
+                nodoaIdatzi(idazlea, "izena", hutsaEz(b.getIzena()));
+                nodoaIdatzi(idazlea, "abizena", hutsaEz(b.getAbizena()));
+                nodoaIdatzi(idazlea, "telefonoZenbakia", hutsaEz(b.getTelefonoZenbakia()));
+                nodoaIdatzi(idazlea, "posta", hutsaEz(b.getPosta()));
+                nodoaIdatzi(idazlea, "jaiotzeData", dataFormatuaBazkideak(hutsaEz(b.getJaiotzeData())));
+                nodoaIdatzi(idazlea, "argazkia", hutsaEz(b.getArgazkia()));
+                idazlea.startTag(null, "eskaerak");
+                idazlea.endTag(null, "eskaerak");
+                idazlea.endTag(null, "bazkidea");
+            }
+            idazlea.endTag(null, "bazkideak");
+            idazlea.endDocument();
+            idazlea.flush();
+        }
+    }
+
+    /**
+     * Eguneko lehen eskaera bidalketa egituran eskaera_berriak.xml fitxategian gorde.
+     * Egitura (bidalketa_2_20260130140648.xml bezala): bidalketa > BidalketaId, Kodea, Helmuga, Data, Amaituta, Lerroak > Lerro.
      */
     public void eskaeraBerriakEsportatu() throws IOException {
         List<EskaeraGoiburua> goiburuak = datuBasea.eskaeraGoiburuaDao().egunekoEskaerak();
@@ -79,29 +111,30 @@ public class XMLEsportatzailea {
             idazlea.setOutput(irteera, KODEKETA);
             idazlea.startDocument(KODEKETA, true);
             idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
-            idazlea.startTag(null, "eskaera_berriak");
-            for (EskaeraGoiburua goi : goiburuak) {
-                // Eskaera nodo bat: goiburua eta bere xehetasun guztiak barnean
-                idazlea.startTag(null, "eskaera");
-                nodoaIdatzi(idazlea, "zenbakia", hutsaEz(goi.getZenbakia()));
-                nodoaIdatzi(idazlea, "data", hutsaEz(goi.getData()));
-                nodoaIdatzi(idazlea, "komertzialKodea", hutsaEz(goi.getKomertzialKodea()));
-                nodoaIdatzi(idazlea, "ordezkaritza", hutsaEz(goi.getOrdezkaritza()));
-                nodoaIdatzi(idazlea, "partnerKodea", hutsaEz(goi.getPartnerKodea()));
-                // Xehetasunak: kontsulta eskaeraZenbakia atez
+            idazlea.startTag(null, "bidalketa");
+            if (!goiburuak.isEmpty()) {
+                EskaeraGoiburua goi = goiburuak.get(0);
+                nodoaIdatzi(idazlea, "BidalketaId", "1");
+                nodoaIdatzi(idazlea, "Kodea", hutsaEz(goi.getZenbakia()));
+                nodoaIdatzi(idazlea, "Helmuga", hutsaEz(goi.getOrdezkaritza()));
+                nodoaIdatzi(idazlea, "Data", dataFormatuaBidalketa(hutsaEz(goi.getData())));
+                nodoaIdatzi(idazlea, "Amaituta", "true");
                 List<EskaeraXehetasuna> xehetasunak = datuBasea.eskaeraXehetasunaDao().eskaerarenXehetasunak(goi.getZenbakia());
-                idazlea.startTag(null, "xehetasunak");
+                idazlea.startTag(null, "Lerroak");
                 for (EskaeraXehetasuna x : xehetasunak) {
-                    idazlea.startTag(null, "xehetasuna");
-                    nodoaIdatzi(idazlea, "artikuluKodea", hutsaEz(x.getArtikuluKodea()));
-                    nodoaIdatzi(idazlea, "kantitatea", String.valueOf(x.getKantitatea()));
-                    nodoaIdatzi(idazlea, "prezioa", String.valueOf(x.getPrezioa()));
-                    idazlea.endTag(null, "xehetasuna");
+                    Katalogoa prod = datuBasea.katalogoaDao().artikuluaBilatu(x.getArtikuluKodea());
+                    String izenaProd = prod != null ? hutsaEz(prod.getIzena()) : hutsaEz(x.getArtikuluKodea());
+                    idazlea.startTag(null, "Lerro");
+                    nodoaIdatzi(idazlea, "ProductoId", hutsaEz(x.getArtikuluKodea()));
+                    nodoaIdatzi(idazlea, "Izena", izenaProd);
+                    nodoaIdatzi(idazlea, "Eskatuta", String.valueOf(x.getKantitatea()));
+                    nodoaIdatzi(idazlea, "Bidalita", String.valueOf(x.getKantitatea()));
+                    nodoaIdatzi(idazlea, "PrezioUnit", String.valueOf(x.getPrezioa()));
+                    idazlea.endTag(null, "Lerro");
                 }
-                idazlea.endTag(null, "xehetasunak");
-                idazlea.endTag(null, "eskaera");
+                idazlea.endTag(null, "Lerroak");
             }
-            idazlea.endTag(null, "eskaera_berriak");
+            idazlea.endTag(null, "bidalketa");
             idazlea.endDocument();
             idazlea.flush();
         }
@@ -244,5 +277,16 @@ public class XMLEsportatzailea {
     /** String nulua edo hutsa "" bihurtzen du (XML-n hutsik ez uzteko). */
     private static String hutsaEz(String s) {
         return s != null ? s : "";
+    }
+
+    /** Data yyyy-MM-dd edo yyyy-MM-dd HH:mm → yyyy/MM/dd (bazkideak.xml eta bidalketa formatua). */
+    private static String dataFormatuaBazkideak(String data) {
+        if (data == null || data.isEmpty()) return "";
+        String zatia = data.contains(" ") ? data.substring(0, data.indexOf(" ")) : data;
+        return zatia.replace("-", "/");
+    }
+
+    private static String dataFormatuaBidalketa(String data) {
+        return dataFormatuaBazkideak(data);
     }
 }

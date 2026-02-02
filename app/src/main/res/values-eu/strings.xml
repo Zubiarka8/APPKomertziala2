@@ -44,7 +44,8 @@
     <string name="esportatu_gordeta_lekua">Gordeta: %1$s</string>
     <string name="esportatu_gordeta_lekua_etiqueta">Esportazioak hemen gordetzen dira:</string>
     <string name="btn_esportatu_bazkide_berriak">Bazkide berriak (bazkide_berriak.xml)</string>
-    <string name="btn_esportatu_eskaera_berriak">Eskaera berriak (eskaera_berriak.xml)</string>
+    <string name="btn_esportatu_bazkideak">Bazkideak (bazkideak.xml)</string>
+    <string name="btn_esportatu_eskaera_berriak">Eskaera berriak / Bidalketak (eskaera_berriak.xml)</string>
     <string name="btn_esportatu_agenda_xml">Esportatu XML (Ofiziala)</string>
     <string name="btn_esportatu_agenda_txt">Esportatu TXT (Kopia)</string>
     <string name="esportatu_agenda_ondo">Agenda esportatuta. Postaz bidali dezakezu.</string>
@@ -57,7 +58,8 @@
     <string name="esportatu_errorea">Errorea esportatzean: %1$s</string>
     <string name="esportatu_errorea_batzuetan">Errorea gertatu da.</string>
     <string name="postaz_gaia_bazkide_berriak">Bazkide berriak - bazkide_berriak.xml</string>
-    <string name="postaz_gaia_eskaera_berriak">Eskaera berriak - eskaera_berriak.xml</string>
+    <string name="postaz_gaia_bazkideak">Bazkideak - bazkideak.xml</string>
+    <string name="postaz_gaia_eskaera_berriak">Eskaera berriak / Bidalketak - eskaera_berriak.xml</string>
     <string name="postaz_gaia_agenda_xml">Agenda (XML) - agenda_hilero.xml</string>
     <string name="postaz_gaia_agenda_txt">Agenda (TXT) - agenda_oharra.txt</string>
     <string name="postaz_gaia_katalogoa">Katalogoa - katalogoa_esportazioa.xml</string>

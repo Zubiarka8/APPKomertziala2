@@ -84,6 +84,20 @@ public class DatuKudeatzailea {
         }
     }
 
+    /** Bazkideak taula bazkideak.xml fitxategian esportatu (bazkideak.xml egitura: NAN, izena, abizena, eskaerak). */
+    public boolean bazkideakEsportatu() {
+        try {
+            esportatzailea.bazkideakEsportatu();
+            return true;
+        } catch (IOException e) {
+            Log.e(ETIKETA, "Bazkideak esportatzean akatsa.", e);
+            return false;
+        } catch (Exception e) {
+            Log.e(ETIKETA, "Bazkideak esportatzean ustekabeko akatsa.", e);
+            return false;
+        }
+    }
+
     /** Eskaera berriak TXT formatuan esportatu (Gmail eranskin gisa). */
     public boolean eskaeraBerriakEsportatuTxt() {
         try {
