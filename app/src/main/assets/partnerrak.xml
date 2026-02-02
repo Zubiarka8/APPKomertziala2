@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<partnerrak>
+    <!-- Partnerren zerrenda -->
+    <partner>
+        <id>1</id>
+        <izena>Arkaitz Empresa</izena>
+        <helbidea>Nagusia kalea 1, Donostia</helbidea>
+        <komertzial_id>1</komertzial_id>
+    </partner>
+    <partner>
+        <id>2</id>
+        <izena>Eneko Empresa</izena>
+        <helbidea>Askatasuna etorbidea 15, Bilbo</helbidea>
+        <komertzial_id>1</komertzial_id>
+    </partner>
+    <partner>
+        <id>3</id>
+        <izena>Lorea Empresa</izena>
+        <helbidea>Nagusia enparantza 5, Gasteiz</helbidea>
+        <komertzial_id>2</komertzial_id>
+    </partner>
+    <partner>
+        <id>4</id>
+        <izena>Martin Empresa</izena>
+        <helbidea>Nagusia enparantza 5 Gasteiz</helbidea>
+        <komertzial_id>1</komertzial_id>
+    </partner>
+</partnerrak>

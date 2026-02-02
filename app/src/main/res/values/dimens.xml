@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Márgenes y padding -->
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="margin_xlarge">32dp</dimen>
+    
+    <!-- Tamaños de CardView -->
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    
+    <!-- Tamaños de texto -->
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_normal">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    <dimen name="text_size_title">24sp</dimen>
+    
+    <!-- Tamaños de íconos -->
+    <dimen name="icon_size_small">24dp</dimen>
+    <dimen name="icon_size_medium">32dp</dimen>
+    <dimen name="icon_size_large">48dp</dimen>
+    <dimen name="icon_size_xlarge">64dp</dimen>
+    
+    <!-- Botones -->
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="button_corner_radius">28dp</dimen>
+    
+    <!-- Tamaño del logo -->
+    <dimen name="logo_size">80dp</dimen>
+    
+    <!-- Mapa -->
+    <dimen name="map_height">250dp</dimen>
+    <dimen name="map_corner_radius">16dp</dimen>
+    
+    <!-- Botones circulares de acción -->
+    <dimen name="action_button_size">56dp</dimen>
+</resources>

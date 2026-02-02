@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider: esportazio fitxategiak Gmail edo beste posta-app bati emateko. -->
+<paths>
+    <files-path name="esportazioak" path="." />
+</paths>

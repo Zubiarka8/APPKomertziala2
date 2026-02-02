@@ -1,0 +1,23 @@
+<bidalketa>
+  <BidalketaId>2</BidalketaId>
+  <Kodea>BDK-002</Kodea>
+  <Helmuga>Donostia</Helmuga>
+  <Data>2026/01/23</Data>
+  <Amaituta>true</Amaituta>
+  <Lerroak>
+    <Lerro>
+      <ProductoId>2</ProductoId>
+      <Izena>GEFORCE RTX 2060</Izena>
+      <Eskatuta>24</Eskatuta>
+      <Bidalita>24</Bidalita>
+      <PrezioUnit>6.9</PrezioUnit>
+    </Lerro>
+    <Lerro>
+      <ProductoId>3</ProductoId>
+      <Izena>GEFORCE RTX 5090</Izena>
+      <Eskatuta>10</Eskatuta>
+      <Bidalita>5</Bidalita>
+      <PrezioUnit>4.2</PrezioUnit>
+    </Lerro>
+  </Lerroak>
+</bidalketa>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<komertzialak>
+    <komertziala>
+        <NAN>12345678A</NAN>
+        <izena> Jon</izena>
+        <abizena>Martinez</abizena>
+        <posta>jon.martinez@email.com</posta>
+        <argazkia>persona5.jfif</argazkia>
+    </komertziala>
+    <komertziala>
+        <NAN>72596109J</NAN>
+        <izena>Ane</izena>
+        <abizena>Garcia</abizena>
+        <posta>ane.garcia@email.com</posta>
+        <jaiotzeData>1995/03/21</jaiotzeData>
+        <argazkia>persona6.jfif</argazkia>
+    </komertziala>
+</komertzialak>

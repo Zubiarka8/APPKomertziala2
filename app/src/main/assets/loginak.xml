@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<loginak>
+    <erabiltzailea>
+        <id>1</id>
+        <email>admin@ikasle.com</email>
+        <pasahitza>admin123</pasahitza>
+    </erabiltzailea>
+    <erabiltzailea>
+        <id>2</id>
+        <email>komertziala@ikasle.com</email>
+        <pasahitza>komertziala123</pasahitza>
+    </erabiltzailea>
+    <erabiltzailea>
+        <id>3</id>
+        <email>test@ikasle.com</email>
+        <pasahitza>test123</pasahitza>
+    </erabiltzailea>
+</loginak>
+

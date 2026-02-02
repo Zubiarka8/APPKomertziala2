@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bazkideak>
+    <bazkidea>
+        <NAN>98765432B</NAN>
+        <izena>Iker</izena>
+        <abizena>Agirre</abizena>
+        <telefonoZenbakia>600333444</telefonoZenbakia>
+        <posta>iker.agirre@example.com</posta>
+        <jaiotzeData>1987/11/22</jaiotzeData>
+        <argazkia>persona5.jfif</argazkia>
+        <eskaerak>
+            <eskaera>
+                <eskaeraID>2</eskaeraID>
+                <prodIzena>GeForce RTX 2060</prodIzena>
+                <data>2024/06/15</data>
+                <kopurua>3</kopurua>
+                <prodArgazkia>rtx_2060.jpg</prodArgazkia>
+            </eskaera>
+            <eskaera>
+                <eskaeraID>3</eskaeraID>
+                <prodIzena>GeForce RTX 3090</prodIzena>
+                <data>2024/06/15</data>
+                <kopurua>3</kopurua>
+                <prodArgazkia>rtx_3090.jpg</prodArgazkia>
+            </eskaera>
+        </eskaerak>
+    </bazkidea>
+    <bazkidea>
+        <NAN>72596109J</NAN>
+        <izena>Ane</izena>
+        <abizena>Garcia</abizena>
+        <telefonoZenbakia>600123456</telefonoZenbakia>
+        <posta>ane.garcia@email.com</posta>
+        <jaiotzeData>1995/03/21</jaiotzeData>
+        <argazkia>persona6.jfif</argazkia>
+        <eskaerak>
+            <eskaera>
+                <eskaeraID>3</eskaeraID>
+                <prodIzena>GeForce RTX 3090</prodIzena>
+                <data>2024/06/15</data>
+                <kopurua>3</kopurua>
+                <prodArgazkia>rtx_3090.jpg</prodArgazkia>
+            </eskaera>
+        </eskaerak>
+    </bazkidea>
+</bazkideak>

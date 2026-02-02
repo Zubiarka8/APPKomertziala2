@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Techno Basque</string>
+    <string name="app_title">Techno Basque</string>
+    <string name="app_subtitle">Komertzialentzako plataforma korporatiboa</string>
+
+    <string name="login_title">Komertzialen sarbidea</string>
+    <string name="erabiltzailea">Erabiltzailea</string>
+    <string name="pasahitza">Pasahitza</string>
+    <string name="saioa_hasi">Saioa hasi</string>
+    <string name="datuak_kargatu">Datuak kargatu</string>
+    <string name="hautatu_xml">Hautatu XML</string>
+    <string name="btn_load_xml">Kargatu XML fitxategiak</string>
+    <string name="xml_hautatu_titulua">Hautatu XML fitxategia (assets)</string>
+    <string name="xml_utzi">Utzi</string>
+    <string name="xml_kargatu">Kargatu</string>
+    <string name="xml_guztiak_kargatu">Guztiak inportatu (orden egokian)</string>
+    <string name="xml_ezin_inportatu">Fitxategi mota hau ezin da inportatu</string>
+    <string name="xml_falta_da">xml-a \'%1$s\' falta da</string>
+    <string name="xml_kargatuta">XML datuak datu-basean kargatu dira.</string>
+    <string name="xml_sinkronizatuta">Datuak sinkronizatu dira (txertatuak, eguneratutakoak eta ezabatutakoak).</string>
+    <string name="xml_errorea">Errorea XML kargatzean: %1$s</string>
+    <string name="btn_select_commercial">Hautatu komertziala zerrendatik</string>
+    <string name="btn_sartu_komertzial_gisa">Sartu komertzial gisa (kredentzialik gabe)</string>
+    <string name="komertzial_hautatu_titulua">Hautatu komertziala</string>
+    <string name="komertzial_zerrenda_hutsa">Komertzialik ez. Kargatu «Kargatu XML fitxategiak» eta hautatu komertzialak.xml lehenik.</string>
+    <string name="show_password">Erakutsi pasahitza</string>
+    <string name="hide_password">Ezkutatu pasahitza</string>
+
+    <string name="error_user_required">Erabiltzailea beharrezkoa da</string>
+    <string name="error_password_required">Pasahitza beharrezkoa da</string>
+    <string name="login_success">Saioa hasita!</string>
+
+    <string name="hasiera_ongietorri">Ongi etorri</string>
+    <string name="esportatu_izenburua">Esportatu XML</string>
+    <string name="esportazio_guztiak_izenburua">Esportazioak (XML + TXT)</string>
+    <string name="agenda_esportazioak_hasieran">Agendako esportazioak (XML eta TXT) Hasiera fitxan daude, «Esportazioak» atalean.</string>
+    <string name="esportatu_atala_egunero">Egunero</string>
+    <string name="esportatu_atala_astero">Astero</string>
+    <string name="esportatu_atala_hilero">Hilero</string>
+    <string name="esportatu_gordeta_lekua">Gordeta: %1$s</string>
+    <string name="esportatu_gordeta_lekua_etiqueta">Esportazioak hemen gordetzen dira:</string>
+    <string name="btn_esportatu_bazkide_berriak">Bazkide berriak (bazkide_berriak.xml)</string>
+    <string name="btn_esportatu_eskaera_berriak">Eskaera berriak (eskaera_berriak.xml)</string>
+    <string name="btn_esportatu_agenda_xml">Esportatu XML (Ofiziala)</string>
+    <string name="btn_esportatu_agenda_txt">Esportatu TXT (Kopia)</string>
+    <string name="esportatu_agenda_ondo">Agenda esportatuta. Postaz bidali dezakezu.</string>
+    <string name="btn_esportatu_katalogoa">Katalogoa esportatu (katalogoa_esportazioa.xml)</string>
+    <string name="btn_katalogoa_eguneratu">Katalogoa eguneratu (astero)</string>
+    <string name="esportatu_ondo">XML barne-memorian gordeta.</string>
+    <string name="katalogoa_eguneratu_ondo">Katalogoa eguneratuta.</string>
+    <string name="esportatu_errorea">Errorea esportatzean: %1$s</string>
+    <string name="esportatu_errorea_batzuetan">Errorea gertatu da.</string>
+    <string name="postaz_gaia_bazkide_berriak">Bazkide berriak - bazkide_berriak.xml</string>
+    <string name="postaz_gaia_eskaera_berriak">Eskaera berriak - eskaera_berriak.xml</string>
+    <string name="postaz_gaia_agenda_xml">Agenda (XML) - agenda_hilero.xml</string>
+    <string name="postaz_gaia_agenda_txt">Agenda (TXT) - agenda_oharra.txt</string>
+    <string name="postaz_gaia_katalogoa">Katalogoa - katalogoa_esportazioa.xml</string>
+    <string name="postaz_hautatu">Bidali postaz (Gmail edo beste)</string>
+    <string name="postaz_fitxategi_ez">Fitxategia ez da aurkitu.</string>
+    <string name="postaz_errorea">Errorea postaz bidaltzean: %1$s</string>
+    <string name="nav_hasiera">Hasiera</string>
+    <string name="nav_agenda">Agenda</string>
+    <string name="nav_bazkideak">Bazkideak</string>
+    <string name="nav_inventarioa">Inventarioa</string>
+
+    <string name="contact_title">Gipuzkoa egoitza</string>
+    <string name="button_map">Mapa ikusi</string>
+    <string name="button_call">Deia aktibatu</string>
+    <string name="button_email">Emaila bidali</string>
+    <string name="deia_errorea">Ezin izan da deia ireki.</string>
+    <string name="posta_errorea">Ezin izan da posta bezeroa ireki.</string>
+    <string name="contact_address">Gran Via kalea 1, Donostia</string>
+    <string name="contact_phone">Tel: 943 123 456</string>
+    <string name="contact_email">gipuzkoa@enpresa.eus</string>
+
+    <!-- Agenda - zita berria eta akzioak -->
+    <string name="agenda_izenburua">Agenda</string>
+    <string name="btn_ikusi">Ikusi</string>
+    <string name="btn_editatu">Editatu</string>
+    <string name="btn_ezabatu">Ezabatu</string>
+    <string name="zita_ezabatu_baieztatu">Zita hau ezabatu nahi duzu?</string>
+    <string name="zita_ezabatu_ondo">Zita ezabatuta.</string>
+    <string name="cita_editatu_titulua">Zita editatu</string>
+    <string name="zita_ikusi_izenburua">Zitaren xehetasunak</string>
+    <string name="agenda_zitak_hutsa">Zitik ez. Gehitu bat «Zita berria» botoiarekin.</string>
+    <string name="cd_agenda_gehitu_cita">Zita berria gehitu</string>
+    <string name="fab_cita_berria">Zita berria</string>
+    <string name="cita_gehitu_titulua">Zita berria</string>
+    <string name="cita_zenbakia">Zenbakia</string>
+    <string name="cita_data">Data (uuuu-hh-ee)</string>
+    <string name="cita_ordua">Ordua</string>
+    <string name="zita_data_icon_cd">Data hautatzeko kalendarioa</string>
+    <string name="zita_ordua_icon_cd">Ordua hautatzeko erlojua</string>
+    <string name="data_hautatu">Data hautatu</string>
+    <string name="ordua_hautatu">Ordua hautatu</string>
+    <string name="cita_ordezkaritza">Ordezkaritza</string>
+    <string name="cita_partnerra">Partnerra</string>
+    <string name="cita_gorde">Gorde</string>
+    <string name="cita_utzi">Utzi</string>
+    <string name="cita_ondo_gordeta">Zita gordeta.</string>
+    <string name="cita_errorea_zenbakia">Zenbakia beharrezkoa da.</string>
+    <string name="cita_errorea_data">Data beharrezkoa da (uuuu-hh-ee).</string>
+    <string name="cita_errorea_partner">Hautatu partner bat.</string>
+
+    <string name="tab_agenda_placeholder">Agenda</string>
+    <string name="tab_bazkideak_placeholder">Bazkideak</string>
+    <string name="tab_inventarioa_placeholder">Inventarioa</string>
+
+    <string name="cd_logo">Techno Basque logoa</string>
+    <string name="cd_user_icon">Erabiltzailea ikonoa</string>
+    <string name="cd_password_icon">Pasahitza ikonoa</string>
+    <string name="cd_map_button">Mapa ikusteko botoia</string>
+    <string name="cd_call_button">Deia egiteko botoia</string>
+    <string name="cd_email_button">Emaila bidaltzeko botoia</string>
+</resources>

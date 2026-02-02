@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- Colores principales -->
+    <color name="primary_purple">#6A5ACD</color>
+    <color name="primary_purple_dark">#5B4AB8</color>
+    <color name="background_light_gray">#F5F5F7</color>
+    <color name="card_background">#FFFFFF</color>
+    
+    <!-- Colores de texto -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#9E9E9E</color>
+    
+    <!-- Colores de estados -->
+    <color name="error_red">#D32F2F</color>
+    <color name="divider_color">#E0E0E0</color>
+    
+    <!-- Colores para botones de acción -->
+    <color name="action_button_bg">#F0F0F0</color>
+    <color name="action_button_icon">#6A5ACD</color>
+</resources>

@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light_gray"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Content area: map for Hasiera, placeholders for other tabs -->
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- Hasiera: map + contact section (default visible) -->
+            <ScrollView
+                android:id="@+id/content_hasiera"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/margin_medium">
+
+                    <!-- 1. Logo eta izena -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardElevation="@dimen/card_elevation"
+                        app:cardBackgroundColor="@color/card_background">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="@dimen/margin_large"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:layout_width="@dimen/logo_size"
+                                android:layout_height="@dimen/logo_size"
+                                android:src="@drawable/enpresalogoa"
+                                android:contentDescription="@string/cd_logo"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/margin_medium"
+                                android:text="@string/app_title"
+                                android:textSize="@dimen/text_size_title"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- 2. Mapa -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardElevation="@dimen/card_elevation"
+                        app:cardBackgroundColor="@color/card_background">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/map_height">
+
+                            <fragment
+                                android:id="@+id/mapFragment"
+                                android:name="com.google.android.gms.maps.SupportMapFragment"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"/>
+                        </FrameLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- 3. Kontaktua: mapa, deia, posta -->
+                    <!-- Gipuzkoa egoitza - Contact section -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardElevation="@dimen/card_elevation"
+                        app:cardBackgroundColor="@color/card_background">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="@dimen/margin_large">
+
+                            <TextView
+                                android:id="@+id/tvContactTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/contact_title"
+                                android:textSize="@dimen/text_size_large"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginBottom="@dimen/margin_medium"/>
+
+                            <TextView
+                                android:id="@+id/tvAddress"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/contact_address"
+                                android:textSize="@dimen/text_size_normal"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="@dimen/margin_small"/>
+
+                            <TextView
+                                android:id="@+id/tvPhone"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/contact_phone"
+                                android:textSize="@dimen/text_size_normal"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="@dimen/margin_small"/>
+
+                            <TextView
+                                android:id="@+id/tvEmail"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/contact_email"
+                                android:textSize="@dimen/text_size_normal"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="@dimen/margin_large"/>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center"
+                                android:weightSum="3">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical"
+                                    android:gravity="center">
+
+                                    <ImageButton
+                                        android:id="@+id/btnMap"
+                                        android:layout_width="@dimen/action_button_size"
+                                        android:layout_height="@dimen/action_button_size"
+                                        android:background="@drawable/bg_action_button"
+                                        android:src="@drawable/ic_map"
+                                        android:scaleType="center"
+                                        android:contentDescription="@string/cd_map_button"
+                                        android:padding="@dimen/margin_medium"/>
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="@dimen/margin_small"
+                                        android:text="@string/button_map"
+                                        android:textSize="@dimen/text_size_small"
+                                        android:textColor="@color/text_secondary"
+                                        android:gravity="center"/>
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical"
+                                    android:gravity="center">
+
+                                    <ImageButton
+                                        android:id="@+id/btnCall"
+                                        android:layout_width="@dimen/action_button_size"
+                                        android:layout_height="@dimen/action_button_size"
+                                        android:background="@drawable/bg_action_button"
+                                        android:src="@drawable/ic_phone"
+                                        android:scaleType="center"
+                                        android:contentDescription="@string/cd_call_button"
+                                        android:padding="@dimen/margin_medium"/>
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="@dimen/margin_small"
+                                        android:text="@string/button_call"
+                                        android:textSize="@dimen/text_size_small"
+                                        android:textColor="@color/text_secondary"
+                                        android:gravity="center"/>
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical"
+                                    android:gravity="center">
+
+                                    <ImageButton
+                                        android:id="@+id/btnEmail"
+                                        android:layout_width="@dimen/action_button_size"
+                                        android:layout_height="@dimen/action_button_size"
+                                        android:background="@drawable/bg_action_button"
+                                        android:src="@drawable/ic_email_send"
+                                        android:scaleType="center"
+                                        android:contentDescription="@string/cd_email_button"
+                                        android:padding="@dimen/margin_medium"/>
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="@dimen/margin_small"
+                                        android:text="@string/button_email"
+                                        android:textSize="@dimen/text_size_small"
+                                        android:textColor="@color/text_secondary"
+                                        android:gravity="center"/>
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- 4. Esportazio guztiak (Hasiera): Egunero, Astero, Hilero — XML + TXT Gmail bidez -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardElevation="@dimen/card_elevation"
+                        app:cardBackgroundColor="@color/card_background">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="@dimen/margin_large">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/esportazio_guztiak_izenburua"
+                                android:textSize="@dimen/text_size_large"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:layout_marginBottom="@dimen/margin_small"/>
+
+                            <TextView
+                                android:id="@+id/tvEsportazioBidea"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textSize="@dimen/text_size_small"
+                                android:textColor="@color/text_secondary"
+                                android:fontFamily="monospace"
+                                android:padding="@dimen/margin_small"
+                                android:background="?attr/selectableItemBackground"
+                                android:layout_marginBottom="@dimen/margin_medium"
+                                tools:text="/data/data/com.example.appkomertziala/files"
+                                android:contentDescription="@string/esportatu_gordeta_lekua_etiqueta"/>
+
+                            <!-- Egunero (diariamente) -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/esportatu_atala_egunero"
+                                android:textSize="@dimen/text_size_normal"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="@dimen/margin_small"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEsportatuBazkideBerriak"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_small"
+                                android:text="@string/btn_esportatu_bazkide_berriak"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEsportatuEskaeraBerriak"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_medium"
+                                android:text="@string/btn_esportatu_eskaera_berriak"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
+                            <!-- Astero (semanal) -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/esportatu_atala_astero"
+                                android:textSize="@dimen/text_size_normal"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="@dimen/margin_small"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEsportatuKatalogoa"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_small"
+                                android:text="@string/btn_esportatu_katalogoa"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnKatalogoaEguneratu"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_medium"
+                                android:text="@string/btn_katalogoa_eguneratu"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
+                            <!-- Hilero (mensual): agenda — XML ofiziala eta TXT kopia -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/esportatu_atala_hilero"
+                                android:textSize="@dimen/text_size_normal"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="@dimen/margin_small"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEsportatuAgendaXml"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_small"
+                                android:text="@string/btn_esportatu_agenda_xml"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEsportatuAgendaTxt"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:text="@string/btn_esportatu_agenda_txt"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- Agenda tab: esportazioak Hasieran daude -->
+            <ScrollView
+                android:id="@+id/content_agenda"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/margin_medium">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/agenda_izenburua"
+                        android:textSize="@dimen/text_size_large"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="@dimen/margin_medium"/>
+
+                    <TextView
+                        android:id="@+id/tvAgendaZitakHutsa"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/margin_large"
+                        android:text="@string/agenda_zitak_hutsa"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
+                        android:layout_marginBottom="@dimen/margin_medium"/>
+
+                    <LinearLayout
+                        android:id="@+id/list_agenda_zitak"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="@dimen/margin_medium"/>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardElevation="@dimen/card_elevation"
+                        app:cardBackgroundColor="@color/card_background">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="@dimen/margin_large"
+                            android:text="@string/agenda_esportazioak_hasieran"
+                            android:textSize="@dimen/text_size_normal"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center"/>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </ScrollView>
+
+            <TextView
+                android:id="@+id/content_bazkideak"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/tab_bazkideak_placeholder"
+                android:textSize="@dimen/text_size_large"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/content_inventarioa"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/tab_inventarioa_placeholder"
+                android:textSize="@dimen/text_size_large"
+                android:visibility="gone"/>
+
+            <!-- Extended FAB: zita berria (fragment_container-en barruan, menua baino gorago) -->
+            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/fabAgendaCitaGehitu"
+                style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="@dimen/margin_medium"
+                android:visibility="gone"
+                android:contentDescription="@string/cd_agenda_gehitu_cita"
+                android:text="@string/fab_cita_berria"
+                app:icon="@drawable/ic_add_24"/>
+        </FrameLayout>
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_nav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/card_background"
+            app:menu="@menu/bottom_nav_menu"
+            app:labelVisibilityMode="labeled"/>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

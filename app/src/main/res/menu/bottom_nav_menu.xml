@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/hasiera"
+        android:icon="@drawable/ic_nav_home"
+        android:title="@string/nav_hasiera"/>
+    <item
+        android:id="@+id/agenda"
+        android:icon="@drawable/ic_nav_calendar"
+        android:title="@string/nav_agenda"/>
+    <item
+        android:id="@+id/bazkideak"
+        android:icon="@drawable/ic_nav_groups"
+        android:title="@string/nav_bazkideak"/>
+    <item
+        android:id="@+id/inventarioa"
+        android:icon="@drawable/ic_nav_inventory"
+        android:title="@string/nav_inventarioa"/>
+</menu>

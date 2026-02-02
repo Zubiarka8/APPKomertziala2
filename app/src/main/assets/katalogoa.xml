@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<katalogoa>
+    <!-- Ekipoak -->
+    <produktua>
+        <id>1</id>
+        <izena>MacBook Pro</izena>
+        <prezioa>1299.99</prezioa>
+        <stock>15</stock>
+        <irudia_path>macbook.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>2</id>
+        <izena>Zerbitzaria 1</izena>
+        <prezioa>2499.99</prezioa>
+        <stock>5</stock>
+        <irudia_path>zerbitzaria1.jpg</irudia_path>
+    </produktua>
+    
+    <!-- Periferikoak - Monitorea -->
+    <produktua>
+        <id>3</id>
+        <izena>LG IPS 27 Hazbete</izena>
+        <prezioa>299.99</prezioa>
+        <stock>20</stock>
+        <irudia_path>lg_ips_27pulgada.jpg</irudia_path>
+    </produktua>
+    
+    <!-- Periferikoak - Prozesagailuak -->
+    <produktua>
+        <id>4</id>
+        <izena>Intel Core i7-14700F</izena>
+        <prezioa>399.99</prezioa>
+        <stock>12</stock>
+        <irudia_path>i7_14700f.webp</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>5</id>
+        <izena>AMD Ryzen 7 3700X</izena>
+        <prezioa>329.99</prezioa>
+        <stock>18</stock>
+        <irudia_path>ryzen_7_3700x.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>6</id>
+        <izena>AMD Ryzen 5 3600</izena>
+        <prezioa>199.99</prezioa>
+        <stock>25</stock>
+        <irudia_path>ryzen5_3600.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>7</id>
+        <izena>AMD Ryzen 7 5700G</izena>
+        <prezioa>349.99</prezioa>
+        <stock>10</stock>
+        <irudia_path>ryzen7_5700g.jpg</irudia_path>
+    </produktua>
+    
+    <!-- Periferikoak - Saguak -->
+    <produktua>
+        <id>8</id>
+        <izena>Logitech MX Master 3</izena>
+        <prezioa>99.99</prezioa>
+        <stock>30</stock>
+        <irudia_path>logitechmx_master3.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>9</id>
+        <izena>Razer Pro Click</izena>
+        <prezioa>79.99</prezioa>
+        <stock>22</stock>
+        <irudia_path>razerproclick.jpg</irudia_path>
+    </produktua>
+    
+    <!-- Periferikoak - Teklatuak -->
+    <produktua>
+        <id>10</id>
+        <izena>Logitech K120</izena>
+        <prezioa>24.99</prezioa>
+        <stock>50</stock>
+        <irudia_path>logitechk120.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>11</id>
+        <izena>Razer Ornata V3</izena>
+        <prezioa>89.99</prezioa>
+        <stock>15</stock>
+        <irudia_path>razerornatav3.webp</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>12</id>
+        <izena>Teklatu Ofizina Basikoa</izena>
+        <prezioa>19.99</prezioa>
+        <stock>40</stock>
+        <irudia_path>teclatu_ofizina_basikoa1.jpg</irudia_path>
+    </produktua>
+    
+    <!-- Osagaiak - Disko Gogorra -->
+    <produktua>
+        <id>13</id>
+        <izena>HDD WD Urdina 1TB</izena>
+        <prezioa>49.99</prezioa>
+        <stock>35</stock>
+        <irudia_path>hdd_wd_urdina.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>14</id>
+        <izena>NVMe Kingston 500GB</izena>
+        <prezioa>59.99</prezioa>
+        <stock>28</stock>
+        <irudia_path>nvme_kingston.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>15</id>
+        <izena>SSD Samsung 1TB</izena>
+        <prezioa>89.99</prezioa>
+        <stock>20</stock>
+        <irudia_path>ssd_samsung.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>16</id>
+        <izena>SSD SanDisk 500GB</izena>
+        <prezioa>49.99</prezioa>
+        <stock>25</stock>
+        <irudia_path>ssd_sandisk.jpg</irudia_path>
+    </produktua>
+    
+    <!-- Osagaiak - RAM -->
+    <produktua>
+        <id>17</id>
+        <izena>Corsair Vengeance 2x16GB 3200MHz RGB</izena>
+        <prezioa>129.99</prezioa>
+        <stock>15</stock>
+        <irudia_path>corsair_vengace_2x16gb_3200mhzrgb.jpg</irudia_path>
+    </produktua>
+    
+    <!-- Osagaiak - Txartel Grafikoak -->
+    <produktua>
+        <id>18</id>
+        <izena>NVIDIA GT 1030</izena>
+        <prezioa>89.99</prezioa>
+        <stock>30</stock>
+        <irudia_path>gt_1030.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>19</id>
+        <izena>NVIDIA RTX 2060</izena>
+        <prezioa>349.99</prezioa>
+        <stock>12</stock>
+        <irudia_path>rtx_2060.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>20</id>
+        <izena>NVIDIA RTX 3090</izena>
+        <prezioa>1499.99</prezioa>
+        <stock>5</stock>
+        <irudia_path>rtx_3090.jpg</irudia_path>
+    </produktua>
+    
+    <produktua>
+        <id>21</id>
+        <izena>NVIDIA RTX 5090</izena>
+        <prezioa>1999.99</prezioa>
+        <stock>3</stock>
+        <irudia_path>rtx_5090.webp</irudia_path>
+    </produktua>
+</katalogoa>
+
+
