@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/margin_medium">
+
+    <TextView
+        android:id="@+id/dialogSaskiaIzenburua"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/saskia_izenburua"
+        android:textSize="@dimen/text_size_title"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="@dimen/margin_medium"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerSaskia"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:minHeight="200dp"
+        android:nestedScrollingEnabled="true"
+        tools:listitem="@layout/item_saskia"
+        tools:itemCount="8"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider_color"
+        android:layout_marginVertical="@dimen/margin_medium"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_medium">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/saskia_guztira_etiketa"
+            android:textSize="@dimen/text_size_large"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"/>
+
+        <TextView
+            android:id="@+id/dialogSaskiaGuztira"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_large"
+            android:textStyle="bold"
+            android:textColor="@color/primary_purple"
+            tools:text="3899,97 €"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaskiaGarbitu"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:text="@string/saskia_garbitu"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaskiaItxi"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:text="@string/saskia_itxi"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaskiaErosi"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_erosi"/>
+    </LinearLayout>
+</LinearLayout>

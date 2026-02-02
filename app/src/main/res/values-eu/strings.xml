@@ -163,6 +163,15 @@
     <string name="saskia_hutsa">Saskia hutsik dago.</string>
     <string name="saskia_guztira">Guztira: %1$s</string>
     <string name="saskia_garbitu">Saskia garbitu</string>
+    <string name="saskia_itxi">Itxi</string>
+    <string name="saskia_guztira_etiketa">Guztira:</string>
+    <string name="saskia_kopurua_gehitu">Kopurua handitu</string>
+    <string name="saskia_kopurua_kendu">Kopurua gutxitu</string>
+    <string name="saskia_prezio_unitatea">%1$s / unit.</string>
+    <string name="saskia_stock_0">Ez dago stock. Ezin da saskira gehitu.</string>
+    <string name="saskia_stock_max">Stock maximoa. Ezin da gehiago gehitu.</string>
+    <string name="saskia_stock_0_batzuk_kendu">Stock 0 duten produktuak saskitik kendu dira.</string>
+    <string name="saskia_erosketa_eginda">Erosketa eginda. Stock eguneratuta.</string>
     <string name="cd_saskia">Erosketa saskia ikusi</string>
     <string name="katalogoa_artikulu_kodea_etiketa">Artikulu kodea: %1$s</string>
     <string name="katalogoa_stock_etiketa">Stock: %1$d</string>

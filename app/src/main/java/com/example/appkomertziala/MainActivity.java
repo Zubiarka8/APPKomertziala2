@@ -9,6 +9,7 @@ import android.text.TextWatcher;
 import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 
 import androidx.core.content.FileProvider;
 import android.widget.ImageButton;
@@ -558,19 +559,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         adapter.eguneratuZerrenda(iragazia);
     }
 
-    /** Produktu bat saskira gehitu (edo kopurua handitu). */
+    /** Produktu bat saskira gehitu (edo kopurua handitu). Stock 0 bada ez da sartzen; kopurua ezin da stock baino handiagoa. */
     private void saskiraGehitu(Katalogoa k) {
         if (k == null) return;
+        int stock = k.getStock();
+        if (stock <= 0) {
+            Toast.makeText(this, R.string.saskia_stock_0, Toast.LENGTH_SHORT).show();
+            return;
+        }
         String kodea = k.getArtikuluKodea() != null ? k.getArtikuluKodea() : "";
         for (SaskiaElementua e : saskia) {
             if (kodea.equals(e.artikuluKodea)) {
+                e.stock = stock;
+                if (e.kopurua >= e.stock) {
+                    Toast.makeText(this, R.string.saskia_stock_max, Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 e.kopurua++;
                 saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
                 Toast.makeText(this, getString(R.string.btn_erosi) + " " + (k.getIzena() != null ? k.getIzena() : ""), Toast.LENGTH_SHORT).show();
                 return;
             }
         }
-        saskia.add(new SaskiaElementua(k.getArtikuluKodea(), k.getIzena(), k.getSalmentaPrezioa(), 1));
+        saskia.add(new SaskiaElementua(k.getArtikuluKodea(), k.getIzena(), k.getSalmentaPrezioa(), k.getIrudiaIzena(), 1, stock));
         saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
         Toast.makeText(this, getString(R.string.btn_erosi) + " " + (k.getIzena() != null ? k.getIzena() : ""), Toast.LENGTH_SHORT).show();
     }
@@ -588,47 +599,116 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    /** Saskia dialogoa erakutsi: zerrenda eta guztira. */
+    /** Saskia dialogoa erakutsi: produktuak, kopurua (+/-), prezioa eta guztira. Stock DBtik eguneratu; 0 dutenak kendu. */
     private void erakutsiSaskiaDialogoa() {
         if (saskia.isEmpty()) {
             Toast.makeText(this, R.string.saskia_hutsa, Toast.LENGTH_SHORT).show();
             return;
         }
-        double guztira = 0;
-        StringBuilder sb = new StringBuilder();
-        for (SaskiaElementua e : saskia) {
-            double lerroa = e.salmentaPrezioa * e.kopurua;
-            guztira += lerroa;
-            sb.append(e.izena != null ? e.izena : e.artikuluKodea)
-                    .append(" x ").append(e.kopurua)
-                    .append(" = ").append(String.format(Locale.getDefault(), "%.2f €", lerroa))
-                    .append("\n");
-        }
-        sb.append("\n").append(getString(R.string.saskia_guztira, String.format(Locale.getDefault(), "%.2f €", guztira)));
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.saskia_izenburua)
-                .setMessage(sb.toString())
-                .setPositiveButton(android.R.string.ok, null)
-                .setNeutralButton(R.string.saskia_garbitu, (dialog, which) -> {
-                    saskia.clear();
+        AppDatabase db = AppDatabase.getInstance(this);
+        new Thread(() -> {
+            for (int i = saskia.size() - 1; i >= 0; i--) {
+                SaskiaElementua e = saskia.get(i);
+                Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
+                int stock = k != null ? k.getStock() : 0;
+                e.stock = stock;
+                if (stock <= 0) {
+                    saskia.remove(i);
+                } else if (e.kopurua > stock) {
+                    e.kopurua = stock;
+                }
+            }
+            runOnUiThread(() -> {
+                if (saskia.isEmpty()) {
                     saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
-                    Toast.makeText(this, R.string.saskia_garbitu, Toast.LENGTH_SHORT).show();
-                })
-                .show();
+                    Toast.makeText(this, R.string.saskia_stock_0_batzuk_kendu, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                erakutsiSaskiaDialogoaBis(dialogView -> {
+                    RecyclerView recyclerSaskia = dialogView.findViewById(R.id.recyclerSaskia);
+                    TextView tvGuztira = dialogView.findViewById(R.id.dialogSaskiaGuztira);
+                    MaterialButton btnGarbitu = dialogView.findViewById(R.id.btnSaskiaGarbitu);
+                    MaterialButton btnItxi = dialogView.findViewById(R.id.btnSaskiaItxi);
+                    MaterialButton btnErosi = dialogView.findViewById(R.id.btnSaskiaErosi);
+
+                    SaskiaAdapter adapter = new SaskiaAdapter(this, saskia);
+                    AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
+
+                    Runnable eguneratuGuztiraEtaBadge = () -> {
+                        double g = 0;
+                        for (SaskiaElementua el : saskia) g += el.salmentaPrezioa * el.kopurua;
+                        tvGuztira.setText(String.format(Locale.getDefault(), "%.2f €", g));
+                        saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+                        if (saskia.isEmpty()) dialog.dismiss();
+                    };
+                    adapter.setOnSaskiaAldaketa(eguneratuGuztiraEtaBadge);
+
+                    recyclerSaskia.setLayoutManager(new LinearLayoutManager(this));
+                    recyclerSaskia.setAdapter(adapter);
+                    eguneratuGuztiraEtaBadge.run();
+
+                    btnGarbitu.setOnClickListener(v -> {
+                        saskia.clear();
+                        adapter.notifyDataSetChanged();
+                        saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+                        dialog.dismiss();
+                        Toast.makeText(this, R.string.saskia_garbitu, Toast.LENGTH_SHORT).show();
+                    });
+                    btnItxi.setOnClickListener(v -> dialog.dismiss());
+
+                    btnErosi.setOnClickListener(v -> {
+                        new Thread(() -> {
+                            for (SaskiaElementua e : saskia) {
+                                Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
+                                if (k != null) {
+                                    int stockBerria = Math.max(0, k.getStock() - e.kopurua);
+                                    db.katalogoaDao().stockaEguneratu(e.artikuluKodea, stockBerria);
+                                }
+                            }
+                            runOnUiThread(() -> {
+                                saskia.clear();
+                                adapter.notifyDataSetChanged();
+                                saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+                                dialog.dismiss();
+                                erakutsiInbentarioaEdukia();
+                                Toast.makeText(this, R.string.saskia_erosketa_eginda, Toast.LENGTH_SHORT).show();
+                            });
+                        }).start();
+                    });
+
+                    dialog.show();
+                    if (dialog.getWindow() != null) {
+                        int screenH = getResources().getDisplayMetrics().heightPixels;
+                        dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, (int) (screenH * 0.75));
+                    }
+                });
+            });
+        }).start();
     }
 
-    /** Saskiaren elementu bat: kodea, izena, prezioa, kopurua. */
-    private static class SaskiaElementua {
+    /** Dialogoaren vista sortu eta callback-ean adapter/dialog konfiguratu (erakutsiSaskiaDialogoa-k deitua stock eguneratu ondoren). */
+    private void erakutsiSaskiaDialogoaBis(java.util.function.Consumer<View> onReady) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_saskia, null);
+        onReady.accept(dialogView);
+    }
+
+    /** Saskiaren elementu bat: kodea, izena, prezioa, kopurua, irudia, stock (gehienez). */
+    static class SaskiaElementua {
         final String artikuluKodea;
         final String izena;
         final double salmentaPrezioa;
+        final String irudiaIzena;
         int kopurua;
+        /** Stock uneko (DB); kopurua ezin da honetatik handiagoa izan. */
+        int stock;
 
-        SaskiaElementua(String artikuluKodea, String izena, double salmentaPrezioa, int kopurua) {
+        SaskiaElementua(String artikuluKodea, String izena, double salmentaPrezioa, String irudiaIzena, int kopurua, int stock) {
             this.artikuluKodea = artikuluKodea != null ? artikuluKodea : "";
             this.izena = izena != null ? izena : "";
             this.salmentaPrezioa = salmentaPrezioa;
+            this.irudiaIzena = irudiaIzena;
             this.kopurua = kopurua;
+            this.stock = stock >= 0 ? stock : 0;
         }
     }
 
