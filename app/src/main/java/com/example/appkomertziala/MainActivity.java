@@ -354,6 +354,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void setupEsportazioBotoiak() {
         DatuKudeatzailea datuKudeatzailea = new DatuKudeatzailea(this);
         AgendaEsportatzailea agendaEsportatzailea = new AgendaEsportatzailea(this);
+        MaterialButton btnEsportatuKomertzialak = findViewById(R.id.btnEsportatuKomertzialak);
         MaterialButton btnBazkideBerriak = findViewById(R.id.btnEsportatuBazkideBerriak);
         MaterialButton btnEskaeraBerriak = findViewById(R.id.btnEsportatuEskaeraBerriak);
         MaterialButton btnEsportatuBazkideak = findViewById(R.id.btnEsportatuBazkideak);
@@ -361,6 +362,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MaterialButton btnEsportatuAgendaTxt = findViewById(R.id.btnEsportatuAgendaTxt);
         MaterialButton btnEsportatuKatalogoa = findViewById(R.id.btnEsportatuKatalogoa);
         MaterialButton btnKatalogoaEguneratu = findViewById(R.id.btnKatalogoaEguneratu);
+        if (btnEsportatuKomertzialak != null) btnEsportatuKomertzialak.setOnClickListener(v -> esportatuKomertzialak(datuKudeatzailea));
         btnBazkideBerriak.setOnClickListener(v -> esportatuBazkideBerriak(datuKudeatzailea));
         btnEskaeraBerriak.setOnClickListener(v -> esportatuEskaeraBerriak(datuKudeatzailea));
         btnEsportatuBazkideak.setOnClickListener(v -> esportatuBazkideak(datuKudeatzailea));
@@ -379,6 +381,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivity(intent);
             finish();
         });
+    }
+
+    private void esportatuKomertzialak(DatuKudeatzailea datuKudeatzailea) {
+        new Thread(() -> {
+            boolean ondo = datuKudeatzailea.komertzialakEsportatu();
+            runOnUiThread(() -> {
+                if (ondo) {
+                    Toast.makeText(this, R.string.esportatu_ondo, Toast.LENGTH_SHORT).show();
+                    bidaliPostaz("komertzialak.xml", getString(R.string.postaz_gaia_komertzialak), "application/xml");
+                } else {
+                    Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).start();
     }
 
     private void esportatuBazkideBerriak(DatuKudeatzailea datuKudeatzailea) {

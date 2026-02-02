@@ -1,6 +1,7 @@
 package com.example.appkomertziala;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -9,6 +10,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.xml.DatuKudeatzailea;
+
+import java.util.ArrayList;
+import java.util.List;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -19,6 +24,8 @@ import com.google.android.material.textfield.TextInputLayout;
  * Datuen balidazioa: NAN eta izena beharrezkoak; erroreak eremuetan eta Toast bidez.
  */
 public class BazkideaFormularioActivity extends AppCompatActivity {
+
+    private static final String ETIKETA = "BazkideaFormulario";
 
     /** Editatzeko: bazkidearen id. Zero baino txikiagoa bada berria da. */
     public static final String EXTRA_BAZKIDEA_ID = "bazkidea_id";
@@ -35,7 +42,7 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         setContentView(R.layout.activity_bazkidea_formulario);
 
         datuBasea = AppDatabase.getInstance(this);
-        editatuId = getIntent().getLongExtra(EXTRA_BAZKIDEA_ID, -1);
+        editatuId = getIntent() != null ? getIntent().getLongExtra(EXTRA_BAZKIDEA_ID, -1) : -1;
         setTitle(editatuId >= 0 ? getString(R.string.bazkidea_editatu) : getString(R.string.bazkidea_berria));
 
         tilNan = findViewById(R.id.tilBazkideaNan);
@@ -107,24 +114,40 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
                 .show();
     }
 
-    /** Bazkidea datu-baseatik ezabatu; arrakasta mezua euskaraz. */
+    /** Bazkidea ezabatu: lehen bazkideak.xml eguneratu (bazkidea zerrendatik kendu), gero datu-basea. */
     private void ezabatuBazkidea() {
         new Thread(() -> {
             Bazkidea b = datuBasea.bazkideaDao().idzBilatu(editatuId);
             if (b != null) {
-                datuBasea.bazkideaDao().ezabatu(b);
-                runOnUiThread(() -> {
-                    Toast.makeText(this, R.string.bazkidea_ondo_ezabatuta, Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);
-                    finish();
-                });
+                DatuKudeatzailea dk = new DatuKudeatzailea(this);
+                List<Bazkidea> zerrenda = datuBasea.bazkideaDao().guztiak();
+                List<Bazkidea> berria = new ArrayList<>();
+                for (Bazkidea x : zerrenda) {
+                    if (x.getId() != editatuId) berria.add(x);
+                }
+                runOnUiThread(() -> Toast.makeText(this, R.string.debug_xml_idazten, Toast.LENGTH_LONG).show());
+                Log.d(ETIKETA, "Ezabatu: XML idazten, zerrenda tamaina=" + berria.size());
+                if (dk.bazkideakEsportatuZerrenda(berria)) {
+                    runOnUiThread(() -> Toast.makeText(this, R.string.debug_ezabatu_xml_ondo, Toast.LENGTH_LONG).show());
+                    Log.d(ETIKETA, "Ezabatu: XML ondo. Datu-baseatik ezabatzen id=" + editatuId);
+                    datuBasea.bazkideaDao().ezabatu(b);
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, R.string.bazkidea_ondo_ezabatuta, Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();
+                    });
+                } else {
+                    Log.e(ETIKETA, "Ezabatu: XML eguneratzean akatsa.");
+                    runOnUiThread(() -> Toast.makeText(this, R.string.debug_xml_akatsa, Toast.LENGTH_LONG).show());
+                }
             } else {
-                runOnUiThread(() -> Toast.makeText(this, getString(R.string.errorea_gordetzean, "Ez da bazkidea aurkitu."), Toast.LENGTH_SHORT).show());
+                Log.e(ETIKETA, "Ezabatu: Ez da bazkidea aurkitu id=" + editatuId);
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.errorea_gordetzean, getString(R.string.bazkidea_ez_da_aurkitu)), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
 
-    /** Formularioa gorde: txertatu (berria) edo eguneratu (editatzeko). Arrakasta edo errore mezua euskaraz. */
+    /** Formularioa gorde: lehen bazkideak.xml eguneratu (zerrenda + berria edo ordezkatua), gero datu-basea. */
     private void gordeBazkidea() {
         String nan = etNan.getText() != null ? etNan.getText().toString().trim() : "";
         String izena = etIzena.getText() != null ? etIzena.getText().toString().trim() : "";
@@ -146,20 +169,48 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         final boolean editatzen = editatuId >= 0;
         new Thread(() -> {
             try {
+                runOnUiThread(() -> Toast.makeText(this, R.string.debug_xml_idazten, Toast.LENGTH_LONG).show());
+                DatuKudeatzailea dk = new DatuKudeatzailea(this);
+                List<Bazkidea> zerrenda = datuBasea.bazkideaDao().guztiak();
+                Log.d(ETIKETA, "Gorde: DB zerrenda tamaina=" + zerrenda.size() + ", editatzen=" + editatzen);
+                List<Bazkidea> xmlZerrenda = new ArrayList<>();
                 if (editatzen) {
                     b.setId(editatuId);
-                    datuBasea.bazkideaDao().eguneratu(b);
+                    for (Bazkidea x : zerrenda) {
+                        xmlZerrenda.add(x.getId() == editatuId ? b : x);
+                    }
                 } else {
-                    datuBasea.bazkideaDao().txertatu(b);
+                    xmlZerrenda.addAll(zerrenda);
+                    xmlZerrenda.add(b);
+                }
+                if (!dk.bazkideakEsportatuZerrenda(xmlZerrenda)) {
+                    Log.e(ETIKETA, "Gorde: bazkideakEsportatuZerrenda false itzuli du.");
+                    runOnUiThread(() -> Toast.makeText(this, R.string.debug_xml_akatsa, Toast.LENGTH_LONG).show());
+                    return;
+                }
+                runOnUiThread(() -> Toast.makeText(this, R.string.debug_xml_ondo, Toast.LENGTH_LONG).show());
+                Log.d(ETIKETA, "Gorde: XML ondo. Datu-basea eguneratzen.");
+                if (editatzen) {
+                    runOnUiThread(() -> Toast.makeText(this, R.string.debug_datu_basea_eguneratzen, Toast.LENGTH_LONG).show());
+                    int errenkadak = datuBasea.bazkideaDao().eguneratu(b);
+                    Log.d(ETIKETA, "Gorde: eguneratu errenkadak=" + errenkadak);
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, R.string.debug_datu_basea_txertatzen, Toast.LENGTH_LONG).show());
+                    long id = datuBasea.bazkideaDao().txertatu(b);
+                    Log.d(ETIKETA, "Gorde: txertatu id=" + id);
                 }
                 runOnUiThread(() -> {
+                    Toast.makeText(this, R.string.debug_datu_basea_ondo, Toast.LENGTH_LONG).show();
                     Toast.makeText(this, editatzen ? R.string.ondo_gorde_dira_aldaketak : R.string.ondo_gorde_da, Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
                 });
             } catch (Exception e) {
+                Log.e(ETIKETA, "Gorde: salbuespena", e);
                 String mezu = e.getMessage() != null ? e.getMessage() : "";
-                runOnUiThread(() -> Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_SHORT).show());
+                if (mezu.isEmpty()) mezu = getString(R.string.errore_ezezaguna);
+                final String mezuFinal = mezu;
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.debug_datu_basea_akatsa, mezuFinal), Toast.LENGTH_LONG).show());
             }
         }).start();
     }

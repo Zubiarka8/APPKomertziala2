@@ -85,8 +85,26 @@ public class XMLKudeatzailea {
         return komertzialakInportatu(barneFitxategiaEdoAssetsIreki("komertzialak.xml"));
     }
 
+    /**
+     * Komertzialak kargatu bakarrik taula hutsik bada (login hasierako karga). Ez du inoiz datu-basean dauden
+     * komertzialak gainidazten (gailutik inportatutakoak mantentzen dira).
+     */
+    public int komertzialakInportatuBakarrikHutsikBada() throws IOException, XmlPullParserException {
+        try (InputStream is = barneFitxategiaEdoAssetsIreki("komertzialak.xml")) {
+            return komertzialakInportatu(is, true);
+        }
+    }
+
     /** Gailutik: sarrera-fluxu batetik komertzialak inportatu. */
     public int komertzialakInportatu(InputStream is) throws IOException, XmlPullParserException {
+        return komertzialakInportatu(is, false);
+    }
+
+    /**
+     * Komertzialak inportatu fluxu batetik. bakarrikHutsikBada true bada, idatzi baino lehen taula hutsik dagoen egiaztatzen du;
+     * hutsik ez bada, ez du ezer gainidazten (hasierako karga gailutik inportatutako datuekin lehiatzen ez dadin).
+     */
+    private int komertzialakInportatu(InputStream is, boolean bakarrikHutsikBada) throws IOException, XmlPullParserException {
         List<Komertziala> zerrenda = new ArrayList<>();
         try (InputStream stream = is) {
             XmlPullParser parser = Xml.newPullParser();
@@ -105,6 +123,9 @@ public class XMLKudeatzailea {
             }
         }
         KomertzialaDao dao = db.komertzialaDao();
+        if (bakarrikHutsikBada && !dao.guztiak().isEmpty()) {
+            return 0;
+        }
         dao.ezabatuGuztiak();
         if (!zerrenda.isEmpty()) {
             dao.txertatuGuztiak(zerrenda);

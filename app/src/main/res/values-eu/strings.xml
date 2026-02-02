@@ -43,6 +43,7 @@
     <string name="sesioa_itxi">Sesioa itxi</string>
     <string name="esportatu_gordeta_lekua">Gordeta: %1$s</string>
     <string name="esportatu_gordeta_lekua_etiqueta">Esportazioak hemen gordetzen dira:</string>
+    <string name="btn_esportatu_komertzialak">Komertzialak (komertzialak.xml)</string>
     <string name="btn_esportatu_bazkide_berriak">Bazkide berriak (bazkide_berriak.xml)</string>
     <string name="btn_esportatu_bazkideak">Bazkideak (bazkideak.xml)</string>
     <string name="btn_esportatu_eskaera_berriak">Eskaera berriak / Bidalketak (eskaera_berriak.xml)</string>
@@ -61,6 +62,7 @@
     <string name="inportatu_ondo">XML inportatuta.</string>
     <string name="inportatu_errorea">Errorea inportatzean: %1$s</string>
     <string name="inportatu_fitxategi_ezin_irakurri">Ezin da fitxategia irakurri.</string>
+    <string name="postaz_gaia_komertzialak">Komertzialak - komertzialak.xml</string>
     <string name="postaz_gaia_bazkide_berriak">Bazkide berriak - bazkide_berriak.xml</string>
     <string name="postaz_gaia_bazkideak">Bazkideak - bazkideak.xml</string>
     <string name="postaz_gaia_eskaera_berriak">Eskaera berriak / Bidalketak - eskaera_berriak.xml</string>
@@ -162,6 +164,8 @@
     <string name="bazkidea_errorea_nan_beharrezkoa">NAN beharrezkoa da.</string>
     <string name="bazkidea_errorea_izena_beharrezkoa">Izena beharrezkoa da.</string>
     <string name="bazkidea_ondo_ezabatuta">Bazkidea ondo ezabatuta.</string>
+    <string name="bazkidea_ez_da_aurkitu">Ez da bazkidea aurkitu.</string>
+    <string name="zita_ez_da_aurkitu">Ez da zita aurkitu.</string>
 
     <!-- Ondo gorde / aldaketak / errorea (orokorrak) -->
     <string name="ondo_gorde_da">Ondo gorde da.</string>
@@ -201,11 +205,23 @@
     <string name="fab_bazkide_berria">Bazkide berria</string>
     <string name="cd_bazkidea_gehitu">Bazkide berria gehitu</string>
 
-    <!-- Diálogos: botoiak euskeraz -->
+    <!-- Dialogoak: botoiak euskeraz -->
     <string name="ados">Ados</string>
     <string name="bai">Bai</string>
     <string name="ez">Ez</string>
     <string name="errore_ezezaguna">Errore ezezaguna</string>
+
+    <!-- Mezuak datu-basea eguneratzeko jarraipena (bazkideak / zitak) -->
+    <string name="debug_xml_idazten">bazkideak.xml idazten…</string>
+    <string name="debug_xml_ondo">bazkideak.xml ondo idatzi da.</string>
+    <string name="debug_xml_akatsa">bazkideak.xml eguneratzean akatsa. Datu-basea ez da eguneratu.</string>
+    <string name="debug_datu_basea_eguneratzen">Datu-basea eguneratzen…</string>
+    <string name="debug_datu_basea_txertatzen">Datu-basean txertatzen…</string>
+    <string name="debug_datu_basea_ondo">Datu-basea ondo eguneratu da.</string>
+    <string name="debug_datu_basea_akatsa">Datu-basean akatsa: %1$s</string>
+    <string name="debug_ezabatu_xml_ondo">XML eguneratu. Bazkidea datu-baseatik ezabatzen…</string>
+    <string name="debug_zita_datu_basean">Zita datu-basean gordetzen…</string>
+    <string name="debug_zita_akatsa">Zita gordetzean akatsa: %1$s</string>
 
     <string name="cd_logo">Techno Basque logoa</string>
     <string name="cd_user_icon">Erabiltzailea ikonoa</string>

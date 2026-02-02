@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Aplikazioaren hizkuntza-aukerak (Android 13+): euskara eta ingelesa -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="eu"/>
+    <locale android:name="en"/>
+</locale-config>

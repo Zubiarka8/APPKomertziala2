@@ -8,6 +8,7 @@ import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
+import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Partnerra;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -17,6 +18,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -68,11 +70,44 @@ public class XMLEsportatzailea {
     }
 
     /**
+     * Komertzialak taulako datu guztiak komertzialak.xml fitxategian gorde (assets/komertzialak.xml egitura).
+     * Nodoa: komertzialak > komertziala > NAN (kodea), izena.
+     */
+    public void komertzialakEsportatu() throws IOException {
+        List<Komertziala> zerrenda = datuBasea.komertzialaDao().guztiak();
+        String fitxategiIzena = "komertzialak.xml";
+        try (OutputStream irteera = testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE)) {
+            XmlSerializer idazlea = Xml.newSerializer();
+            idazlea.setOutput(irteera, KODEKETA);
+            idazlea.startDocument(KODEKETA, true);
+            idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            idazlea.startTag(null, "komertzialak");
+            for (Komertziala k : zerrenda) {
+                idazlea.startTag(null, "komertziala");
+                nodoaIdatzi(idazlea, "NAN", hutsaEz(k.getKodea()));
+                nodoaIdatzi(idazlea, "izena", hutsaEz(k.getIzena()));
+                idazlea.endTag(null, "komertziala");
+            }
+            idazlea.endTag(null, "komertzialak");
+            idazlea.endDocument();
+            idazlea.flush();
+        }
+    }
+
+    /**
      * Bazkideak taulako datu guztiak bazkideak.xml fitxategian gorde (assets/bazkideak.xml egitura).
      * Nodoa: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak.
      */
     public void bazkideakEsportatu() throws IOException {
-        List<Bazkidea> zerrenda = datuBasea.bazkideaDao().guztiak();
+        bazkideakEsportatu(datuBasea.bazkideaDao().guztiak());
+    }
+
+    /**
+     * Emandako bazkide zerrenda bazkideak.xml fitxategian idatzi (formulario bat gorde/ezabatu baino lehen XML eguneratzeko).
+     * Nodoa: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak.
+     */
+    public void bazkideakEsportatu(List<Bazkidea> zerrenda) throws IOException {
+        if (zerrenda == null) zerrenda = new ArrayList<>();
         String fitxategiIzena = "bazkideak.xml";
         try (OutputStream irteera = testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE)) {
             XmlSerializer idazlea = Xml.newSerializer();

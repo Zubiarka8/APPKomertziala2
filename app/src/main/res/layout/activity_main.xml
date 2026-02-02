@@ -278,6 +278,16 @@
                                 android:layout_marginBottom="@dimen/margin_small"/>
 
                             <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEsportatuKomertzialak"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_small"
+                                android:text="@string/btn_esportatu_komertzialak"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnEsportatuBazkideBerriak"
                                 style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="match_parent"

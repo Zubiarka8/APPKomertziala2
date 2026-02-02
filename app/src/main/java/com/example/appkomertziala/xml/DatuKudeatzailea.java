@@ -7,6 +7,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
+
+import com.example.appkomertziala.db.eredua.Bazkidea;
 
 /**
  * Room datu-basearen esportazio eta inportazio logika maiztasunaren arabera koordinatzen duen kudeatzailea.
@@ -84,6 +87,20 @@ public class DatuKudeatzailea {
         }
     }
 
+    /** Komertzialak taula komertzialak.xml fitxategian esportatu (komertzialak.xml egitura: NAN, izena). */
+    public boolean komertzialakEsportatu() {
+        try {
+            esportatzailea.komertzialakEsportatu();
+            return true;
+        } catch (IOException e) {
+            Log.e(ETIKETA, "Komertzialak esportatzean akatsa.", e);
+            return false;
+        } catch (Exception e) {
+            Log.e(ETIKETA, "Komertzialak esportatzean ustekabeko akatsa.", e);
+            return false;
+        }
+    }
+
     /** Bazkideak taula bazkideak.xml fitxategian esportatu (bazkideak.xml egitura: NAN, izena, abizena, eskaerak). */
     public boolean bazkideakEsportatu() {
         try {
@@ -94,6 +111,23 @@ public class DatuKudeatzailea {
             return false;
         } catch (Exception e) {
             Log.e(ETIKETA, "Bazkideak esportatzean ustekabeko akatsa.", e);
+            return false;
+        }
+    }
+
+    /**
+     * Emandako bazkide zerrenda bazkideak.xml fitxategian idatzi (formulario gorde/ezabatu: lehen XML, gero DB).
+     * @return true idazketa ondo bukatu bada, false akatsen bat gertatu bada
+     */
+    public boolean bazkideakEsportatuZerrenda(List<Bazkidea> zerrenda) {
+        try {
+            esportatzailea.bazkideakEsportatu(zerrenda);
+            return true;
+        } catch (IOException e) {
+            Log.e(ETIKETA, "Bazkideak zerrenda esportatzean akatsa.", e);
+            return false;
+        } catch (Exception e) {
+            Log.e(ETIKETA, "Bazkideak zerrenda esportatzean ustekabeko akatsa.", e);
             return false;
         }
     }

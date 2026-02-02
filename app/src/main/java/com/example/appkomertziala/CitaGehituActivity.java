@@ -1,6 +1,7 @@
 package com.example.appkomertziala;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -31,6 +32,8 @@ import java.util.TimeZone;
  */
 public class CitaGehituActivity extends AppCompatActivity {
 
+    private static final String ETIKETA = "CitaGehitu";
+
     public static final String EXTRA_KOMMERTZIALA_KODEA = "komertziala_kodea";
     /** Editatzeko: eskaera zenbakia. Present bada, zita kargatu eta eguneratu. */
     public static final String EXTRA_ESKAERA_ZENBAKIA = "eskaera_zenbakia";
@@ -56,11 +59,11 @@ public class CitaGehituActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zita_gehitu);
 
-        komertzialKodea = getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA);
+        komertzialKodea = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
         if (komertzialKodea == null) {
             komertzialKodea = "";
         }
-        editatuZenbakia = getIntent().getStringExtra(EXTRA_ESKAERA_ZENBAKIA);
+        editatuZenbakia = getIntent() != null ? getIntent().getStringExtra(EXTRA_ESKAERA_ZENBAKIA) : null;
 
         setTitle(editatuZenbakia != null && !editatuZenbakia.isEmpty()
                 ? getString(R.string.zita_editatu_titulua)
@@ -242,12 +245,14 @@ public class CitaGehituActivity extends AppCompatActivity {
         final String komertzialKodeaFinal = komertzialKodea;
         final String ordezkaritzaFinal = ordezkaritza.isEmpty() ? "" : ordezkaritza;
         final String partnerKodeaFinal = partnerKodea;
+        runOnUiThread(() -> Toast.makeText(this, R.string.debug_zita_datu_basean, Toast.LENGTH_LONG).show());
         new Thread(() -> {
             try {
                 Komertziala kom = datuBasea.komertzialaDao().kodeaBilatu(komertzialKodeaFinal);
                 Partnerra part = datuBasea.partnerraDao().kodeaBilatu(partnerKodeaFinal);
                 Long komertzialId = kom != null ? kom.getId() : null;
                 Long partnerId = part != null ? part.getId() : null;
+                Log.d(ETIKETA, "Gorde: komertzialId=" + komertzialId + ", partnerId=" + partnerId + ", editMode=" + editMode);
 
                 if (editMode) {
                     EskaeraGoiburua goi = datuBasea.eskaeraGoiburuaDao().zenbakiaBilatu(editatuZenbakia);
@@ -258,7 +263,13 @@ public class CitaGehituActivity extends AppCompatActivity {
                         goi.setOrdezkaritza(ordezkaritzaFinal);
                         goi.setPartnerKodea(partnerKodeaFinal);
                         goi.setPartnerId(partnerId);
-                        datuBasea.eskaeraGoiburuaDao().eguneratu(goi);
+                        int errenkadak = datuBasea.eskaeraGoiburuaDao().eguneratu(goi);
+                        Log.d(ETIKETA, "Gorde: eguneratu errenkadak=" + errenkadak);
+                    } else {
+                        Log.e(ETIKETA, "Gorde: Ez da zita aurkitu zenbakiarekin: " + editatuZenbakia);
+                        final String mezuZita = getString(R.string.errorea_gordetzean, "Ez da zita aurkitu.");
+                        runOnUiThread(() -> Toast.makeText(CitaGehituActivity.this, mezuZita, Toast.LENGTH_LONG).show());
+                        return;
                     }
                 } else {
                     EskaeraGoiburua goiBerria = new EskaeraGoiburua();
@@ -269,17 +280,21 @@ public class CitaGehituActivity extends AppCompatActivity {
                     goiBerria.setOrdezkaritza(ordezkaritzaFinal);
                     goiBerria.setPartnerKodea(partnerKodeaFinal);
                     goiBerria.setPartnerId(partnerId);
-                    datuBasea.eskaeraGoiburuaDao().txertatu(goiBerria);
+                    long id = datuBasea.eskaeraGoiburuaDao().txertatu(goiBerria);
+                    Log.d(ETIKETA, "Gorde: txertatu id=" + id);
                 }
                 runOnUiThread(() -> {
+                    Toast.makeText(this, R.string.debug_datu_basea_ondo, Toast.LENGTH_LONG).show();
                     Toast.makeText(this, editMode ? R.string.ondo_gorde_dira_aldaketak : R.string.ondo_gorde_da, Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
                 });
             } catch (Exception e) {
+                Log.e(ETIKETA, "Gorde: salbuespena", e);
                 String mezu = e.getMessage() != null ? e.getMessage() : "";
-                runOnUiThread(() ->
-                    Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_SHORT).show());
+                if (mezu.isEmpty()) mezu = getString(R.string.errore_ezezaguna);
+                final String mezuFinal = mezu;
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.debug_zita_akatsa, mezuFinal), Toast.LENGTH_LONG).show());
             }
         }).start();
     }

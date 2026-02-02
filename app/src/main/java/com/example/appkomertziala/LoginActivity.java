@@ -102,6 +102,9 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         btnLogin.setOnClickListener(v -> attemptLogin());
         btnSartuKomertzialGisa.setOnClickListener(v -> sartuKomertzialGisa());
 
+        // Al comienzo: cargar todos los komertzialak si la tabla está vacía (assets o barne-memoria)
+        kargatuKomertzialakHasieran();
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapFragmentLogin);
         if (mapFragment != null) {
@@ -164,6 +167,18 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             } catch (Exception e) {
                 String mezu = e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna);
                 runOnUiThread(() -> Toast.makeText(this, getString(R.string.xml_errorea, mezu), Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
+    /** Al abrir la pantalla de login: si no hay komertzialak en la base de datos, cargar komertzialak.xml (assets o barne-memoria). Solo carga si la tabla sigue vacía justo antes de escribir, para no sobrescribir importaciones del usuario. */
+    private void kargatuKomertzialakHasieran() {
+        new Thread(() -> {
+            try {
+                XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                kud.komertzialakInportatuBakarrikHutsikBada();
+            } catch (Exception ignored) {
+                // Si no existe komertzialak.xml, la lista seguirá vacía hasta que carguen XML
             }
         }).start();
     }

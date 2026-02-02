@@ -53,7 +53,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
 
         setTitle(getString(R.string.agenda_modulua_bisita_berria));
         datuBasea = AppDatabase.getInstance(this);
-        editatuId = getIntent().getLongExtra(EXTRA_BISITA_ID, -1);
+        editatuId = getIntent() != null ? getIntent().getLongExtra(EXTRA_BISITA_ID, -1) : -1;
         if (editatuId >= 0) {
             setTitle(getString(R.string.btn_editatu));
         }

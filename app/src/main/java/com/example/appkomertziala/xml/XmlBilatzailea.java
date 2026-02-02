@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Assets-en dauden XML fitxategiak bilatzen ditu.
  * Falta diren fitxategiak zehazteko erabiltzen da; inportak ez dauden bitartean
- * sezio bakoitzean "xml-a 'fichero.xml' falta da" erakusteko.
+ * sezio bakoitzean "xml-a 'fitxategi.xml' falta da" erakusteko.
  */
 public final class XmlBilatzailea {
 
