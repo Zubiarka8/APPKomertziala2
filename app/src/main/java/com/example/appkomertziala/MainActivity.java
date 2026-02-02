@@ -300,6 +300,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnEsportatuAgendaTxt.setOnClickListener(v -> esportatuAgendaTXT(agendaEsportatzailea));
         btnEsportatuKatalogoa.setOnClickListener(v -> esportatuKatalogoa(datuKudeatzailea));
         btnKatalogoaEguneratu.setOnClickListener(v -> katalogoaEguneratu(datuKudeatzailea));
+        MaterialButton btnSesioaItxi = findViewById(R.id.btnSesioaItxi);
+        btnSesioaItxi.setOnClickListener(v -> {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+        });
     }
 
     private void esportatuBazkideBerriak(DatuKudeatzailea datuKudeatzailea) {

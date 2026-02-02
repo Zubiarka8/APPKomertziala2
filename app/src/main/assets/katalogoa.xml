@@ -11,7 +11,7 @@
     
     <produktua>
         <id>2</id>
-        <izena>Zerbitzaria 1</izena>
+        <izena>Zerbitzaria 1234</izena>
         <prezioa>2499.99</prezioa>
         <stock>5</stock>
         <irudia_path>zerbitzaria1.jpg</irudia_path>

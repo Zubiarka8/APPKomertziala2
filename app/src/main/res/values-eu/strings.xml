@@ -40,6 +40,7 @@
     <string name="esportatu_atala_egunero">Egunero</string>
     <string name="esportatu_atala_astero">Astero</string>
     <string name="esportatu_atala_hilero">Hilero</string>
+    <string name="sesioa_itxi">Sesioa itxi</string>
     <string name="esportatu_gordeta_lekua">Gordeta: %1$s</string>
     <string name="esportatu_gordeta_lekua_etiqueta">Esportazioak hemen gordetzen dira:</string>
     <string name="btn_esportatu_bazkide_berriak">Bazkide berriak (bazkide_berriak.xml)</string>

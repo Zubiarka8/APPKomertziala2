@@ -352,7 +352,18 @@
                                 style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_medium"
                                 android:text="@string/btn_esportatu_agenda_txt"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
+                            <!-- Sesioa itxi -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSesioaItxi"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:text="@string/sesioa_itxi"
                                 android:textSize="@dimen/text_size_small"
                                 app:cornerRadius="@dimen/button_corner_radius"/>
                         </LinearLayout>
