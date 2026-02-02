@@ -561,15 +561,15 @@
 
             <!-- Extended FAB Agenda: zita berria (Material 3 - bottom|end) -->
             <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-                android:id="@+id/fabAgendaCitaGehitu"
+                android:id="@+id/fabAgendaZitaGehitu"
                 style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
                 android:layout_margin="@dimen/margin_medium"
                 android:visibility="gone"
-                android:contentDescription="@string/cd_agenda_gehitu_cita"
-                android:text="@string/fab_cita_berria"
+                android:contentDescription="@string/cd_agenda_gehitu_zita"
+                android:text="@string/fab_zita_berria"
                 app:icon="@drawable/ic_add_24"/>
 
             <!-- Extended FAB Bazkideak: bazkide berria (berdin altuera, Material 3) -->

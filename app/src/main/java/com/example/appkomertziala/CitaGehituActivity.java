@@ -54,7 +54,7 @@ public class CitaGehituActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_cita_gehitu);
+        setContentView(R.layout.activity_zita_gehitu);
 
         komertzialKodea = getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA);
         if (komertzialKodea == null) {
@@ -63,8 +63,8 @@ public class CitaGehituActivity extends AppCompatActivity {
         editatuZenbakia = getIntent().getStringExtra(EXTRA_ESKAERA_ZENBAKIA);
 
         setTitle(editatuZenbakia != null && !editatuZenbakia.isEmpty()
-                ? getString(R.string.cita_editatu_titulua)
-                : getString(R.string.cita_gehitu_titulua));
+                ? getString(R.string.zita_editatu_titulua)
+                : getString(R.string.zita_gehitu_titulua));
         datuBasea = AppDatabase.getInstance(this);
 
         etZenbakia = findViewById(R.id.etCitaZenbakia);
@@ -195,7 +195,7 @@ public class CitaGehituActivity extends AppCompatActivity {
 
     private void beteSpinnerPartnerrak() {
         List<String> izenak = new ArrayList<>();
-        izenak.add(getString(R.string.cita_partnerra) + " — " + getString(R.string.cita_utzi)); // leihoko hautaketa
+        izenak.add(getString(R.string.zita_partnerra) + " — " + getString(R.string.zita_utzi)); // leihoan hautaketa
         for (Partnerra p : partnerrak) {
             String s = (p.getIzena() != null ? p.getIzena() : "") + " (" + (p.getKodea() != null ? p.getKodea() : "") + ")";
             izenak.add(s);
@@ -218,11 +218,11 @@ public class CitaGehituActivity extends AppCompatActivity {
         String ordezkaritza = etOrdezkaritza.getText() != null ? etOrdezkaritza.getText().toString().trim() : "";
 
         if (zenbakia.isEmpty()) {
-            Toast.makeText(this, R.string.cita_errorea_zenbakia, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.zita_errorea_zenbakia, Toast.LENGTH_SHORT).show();
             return;
         }
         if (data.isEmpty()) {
-            Toast.makeText(this, R.string.cita_errorea_data, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.zita_errorea_data, Toast.LENGTH_SHORT).show();
             return;
         }
         String partnerKodea = "";
@@ -232,7 +232,7 @@ public class CitaGehituActivity extends AppCompatActivity {
             partnerKodea = p.getKodea() != null ? p.getKodea() : "";
         }
         if (partnerKodea.isEmpty()) {
-            Toast.makeText(this, R.string.cita_errorea_partner, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.zita_errorea_partner, Toast.LENGTH_SHORT).show();
             return;
         }
 

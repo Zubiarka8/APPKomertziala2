@@ -28,7 +28,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cita_zenbakia"
+                    android:text="@string/zita_zenbakia"
                     android:textSize="@dimen/text_size_normal"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="@dimen/margin_small"/>
@@ -37,7 +37,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/cita_zenbakia"
+                    android:hint="@string/zita_zenbakia"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -51,7 +51,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cita_data"
+                    android:text="@string/zita_data"
                     android:textSize="@dimen/text_size_normal"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="@dimen/margin_small"/>
@@ -60,7 +60,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/cita_data"
+                    android:hint="@string/zita_data"
                     app:startIconDrawable="@drawable/ic_calendar"
                     app:startIconContentDescription="@string/zita_data_icon_cd"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
@@ -78,7 +78,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cita_ordua"
+                    android:text="@string/zita_ordua"
                     android:textSize="@dimen/text_size_normal"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="@dimen/margin_small"/>
@@ -87,7 +87,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/cita_ordua"
+                    android:hint="@string/zita_ordua"
                     app:startIconDrawable="@drawable/ic_clock"
                     app:startIconContentDescription="@string/zita_ordua_icon_cd"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
@@ -105,7 +105,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cita_ordezkaritza"
+                    android:text="@string/zita_ordezkaritza"
                     android:textSize="@dimen/text_size_normal"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="@dimen/margin_small"/>
@@ -114,7 +114,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/margin_medium"
-                    android:hint="@string/cita_ordezkaritza"
+                    android:hint="@string/zita_ordezkaritza"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -128,7 +128,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cita_partnerra"
+                    android:text="@string/zita_partnerra"
                     android:textSize="@dimen/text_size_normal"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="@dimen/margin_small"/>
@@ -153,14 +153,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/button_height"
                         android:layout_marginEnd="@dimen/margin_small"
-                        android:text="@string/cita_utzi"
+                        android:text="@string/zita_utzi"
                         app:cornerRadius="@dimen/button_corner_radius"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCitaGorde"
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/button_height"
-                        android:text="@string/cita_gorde"
+                        android:text="@string/zita_gorde"
                         app:cornerRadius="@dimen/button_corner_radius"/>
                 </LinearLayout>
             </LinearLayout>

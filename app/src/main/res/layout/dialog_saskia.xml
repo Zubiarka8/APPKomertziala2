@@ -67,10 +67,11 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaskiaGarbitu"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_small"
+            app:backgroundTint="@color/saskia_garbitu_bg"
             android:text="@string/saskia_garbitu"/>
 
         <com.google.android.material.button.MaterialButton

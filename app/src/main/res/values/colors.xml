@@ -23,4 +23,7 @@
 
     <!-- Estados (mantener rojo solo para errores) -->
     <color name="error_red">#FFB00020</color>
+
+    <!-- Saskia garbitu botoia: atzealde leuna -->
+    <color name="saskia_garbitu_bg">#FFEFE5E5</color>
 </resources>

@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private View contentBazkideak;
     private View contentInventarioa;
     private BottomNavigationView bottomNav;
-    private ExtendedFloatingActionButton fabAgendaCitaGehitu;
+    private ExtendedFloatingActionButton fabAgendaZitaGehitu;
     private ExtendedFloatingActionButton fabBazkideaGehitu;
     private ImageButton btnMap;
 
@@ -114,6 +114,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (result.getResultCode() == RESULT_OK) {
                     kargatuBazkideakZerrenda();
                 }
+            });
+
+    private final ActivityResultLauncher<Intent> produktuDetalaLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() != RESULT_OK || result.getData() == null) return;
+                String kodea = result.getData().getStringExtra(ProduktuDetalaActivity.EXTRA_EROSI_ARTIKULU_KODEA);
+                if (kodea == null || kodea.isEmpty()) return;
+                AppDatabase db = AppDatabase.getInstance(this);
+                new Thread(() -> {
+                    Katalogoa k = db.katalogoaDao().artikuluaBilatu(kodea);
+                    if (k != null) {
+                        runOnUiThread(() -> {
+                            saskiraGehitu(k);
+                        });
+                    }
+                }).start();
             });
 
     private final ActivityResultLauncher<String[]> inportatuGailutikLauncher = registerForActivityResult(
@@ -161,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         contentBazkideak = findViewById(R.id.content_bazkideak);
         contentInventarioa = findViewById(R.id.content_inventarioa);
         bottomNav = findViewById(R.id.bottom_nav);
-        fabAgendaCitaGehitu = findViewById(R.id.fabAgendaCitaGehitu);
+        fabAgendaZitaGehitu = findViewById(R.id.fabAgendaZitaGehitu);
         fabBazkideaGehitu = findViewById(R.id.fabBazkideaGehitu);
         btnMap = findViewById(R.id.btnMap);
         btnCall = findViewById(R.id.btnCall);
@@ -178,8 +195,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /** Agenda fitxako Extended FAB: bisita berria gehitzeko pantaila ireki (agenda_bisitak taula). */
     private void setupAgendaCitaGehitu() {
-        if (fabAgendaCitaGehitu != null) {
-            fabAgendaCitaGehitu.setOnClickListener(v -> {
+        if (fabAgendaZitaGehitu != null) {
+            fabAgendaZitaGehitu.setOnClickListener(v -> {
                 Intent intent = new Intent(this, BisitaFormularioActivity.class);
                 intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, -1L);
                 String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
@@ -280,9 +297,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): data, zenbakia, partnerra, deskribapena, egoera. */
     private void erakutsiZitaXehetasunak(String dataStr, String zenbakia, String partnerIzena, String deskribapena, String egoera) {
         StringBuilder msg = new StringBuilder();
-        msg.append(getString(R.string.cita_data)).append(": ").append(dataStr).append("\n");
-        msg.append(getString(R.string.cita_zenbakia)).append(": ").append(zenbakia).append("\n");
-        msg.append(getString(R.string.cita_partnerra)).append(": ").append(partnerIzena).append("\n");
+        msg.append(getString(R.string.zita_data)).append(": ").append(dataStr).append("\n");
+        msg.append(getString(R.string.zita_zenbakia)).append(": ").append(zenbakia).append("\n");
+        msg.append(getString(R.string.zita_partnerra)).append(": ").append(partnerIzena).append("\n");
         msg.append(getString(R.string.agenda_bisita_egoera)).append(": ").append(egoera != null && !egoera.isEmpty() ? egoera : "—").append("\n");
         if (deskribapena != null && !deskribapena.isEmpty()) {
             msg.append(getString(R.string.agenda_bisita_deskribapena)).append(": ").append(deskribapena).append("\n");
@@ -557,8 +574,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         contentAgenda.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
         contentBazkideak.setVisibility(navId == R.id.bazkideak ? View.VISIBLE : View.GONE);
         contentInventarioa.setVisibility(navId == R.id.inventarioa ? View.VISIBLE : View.GONE);
-        if (fabAgendaCitaGehitu != null) {
-            fabAgendaCitaGehitu.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
+        if (fabAgendaZitaGehitu != null) {
+            fabAgendaZitaGehitu.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
         }
         if (fabBazkideaGehitu != null) {
             fabBazkideaGehitu.setVisibility(navId == R.id.bazkideak ? View.VISIBLE : View.GONE);
@@ -598,6 +615,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             recyclerKatalogoa.setLayoutManager(new LinearLayoutManager(this));
             KatalogoaAdapter adapter = new KatalogoaAdapter(this);
             adapter.setErosiEntzulea(k -> saskiraGehitu(k));
+            adapter.setItemEntzulea(k -> produktuDetalaLauncher.launch(ProduktuDetalaActivity.intentProduktuDetala(this, k.getArtikuluKodea())));
             recyclerKatalogoa.setAdapter(adapter);
         }
         KatalogoaAdapter adapter = (KatalogoaAdapter) recyclerKatalogoa.getAdapter();

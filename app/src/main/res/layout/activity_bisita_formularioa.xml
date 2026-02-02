@@ -106,13 +106,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/margin_small"
-                        android:text="@string/cita_utzi"/>
+                        android:text="@string/zita_utzi"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnBisitaGorde"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/cita_gorde"/>
+                        android:text="@string/zita_gorde"/>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

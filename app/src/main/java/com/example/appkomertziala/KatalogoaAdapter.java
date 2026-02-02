@@ -29,6 +29,9 @@ public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.Kata
     /** Erosi botoian sakatzean deitzen den entzulea. */
     private OnErosiClickListener erosiEntzulea;
 
+    /** Item (produktua) sakatzean detale orria irekitzeko entzulea. */
+    private OnItemClickListener itemEntzulea;
+
     /** Irudi baliabidearen izena ezezaguna edo hutsa denean erabiltzen den leihoko drawable. */
     private static final int LEIHOKO_IRUDIA = R.drawable.ic_logo_generico;
 
@@ -37,12 +40,21 @@ public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.Kata
         void onErosi(Katalogoa produktua);
     }
 
+    /** Item sakatzean: produktuaren detale orria irekitzeko. */
+    public interface OnItemClickListener {
+        void onItemClick(Katalogoa produktua);
+    }
+
     public KatalogoaAdapter(Context context) {
         this.context = context.getApplicationContext();
     }
 
     public void setErosiEntzulea(OnErosiClickListener entzulea) {
         this.erosiEntzulea = entzulea;
+    }
+
+    public void setItemEntzulea(OnItemClickListener entzulea) {
+        this.itemEntzulea = entzulea;
     }
 
     /** Zerrenda eguneratu eta notifyDataSetChanged. */
@@ -72,6 +84,9 @@ public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.Kata
         holder.stock.setText(context.getString(R.string.katalogoa_stock_etiketa, k.getStock()));
         holder.btnErosi.setOnClickListener(v -> {
             if (erosiEntzulea != null) erosiEntzulea.onErosi(k);
+        });
+        holder.itemView.setOnClickListener(v -> {
+            if (itemEntzulea != null) itemEntzulea.onItemClick(k);
         });
     }
 
