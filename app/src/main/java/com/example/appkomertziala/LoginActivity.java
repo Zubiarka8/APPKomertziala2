@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                         runOnUiThread(() -> Toast.makeText(this, R.string.inportatu_ondo, Toast.LENGTH_SHORT).show());
                     } catch (Exception e) {
                         String mezu = e.getMessage() != null ? e.getMessage() : "";
-                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.inportatu_errorea, mezu), Toast.LENGTH_LONG).show());
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.inportatu_errorea, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_LONG).show());
                     }
                 }).start();
             });
@@ -127,7 +127,8 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             XMLKudeatzailea kud = new XMLKudeatzailea(this);
             xmlak = kud.assetsXmlFitxategiak();
         } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.xml_errorea, e.getMessage() != null ? e.getMessage() : ""), Toast.LENGTH_LONG).show();
+            String mezu = e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna);
+            Toast.makeText(this, getString(R.string.xml_errorea, mezu), Toast.LENGTH_LONG).show();
             return;
         }
         // Lehen aukera: «Guztiak inportatu»; gero assets-eko fitxategi bakoitza
@@ -161,8 +162,8 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             } catch (java.io.IOException e) {
                 runOnUiThread(() -> Toast.makeText(this, R.string.errorea_fitxategia_irakurtzean, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
-                String mezu = getString(R.string.xml_errorea, e.getMessage() != null ? e.getMessage() : "");
-                runOnUiThread(() -> Toast.makeText(this, mezu, Toast.LENGTH_LONG).show());
+                String mezu = e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna);
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.xml_errorea, mezu), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
@@ -177,27 +178,30 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             } catch (java.io.IOException e) {
                 runOnUiThread(() -> Toast.makeText(this, R.string.errorea_fitxategia_irakurtzean, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
-                String mezu = getString(R.string.xml_errorea, e.getMessage() != null ? e.getMessage() : "");
-                runOnUiThread(() -> Toast.makeText(this, mezu, Toast.LENGTH_LONG).show());
+                String mezu = e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna);
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.xml_errorea, mezu), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
 
-    /** Komertzialen zerrenda datu-basean bilatu eta hautaketa-dialogoa erakusten du. Hutsik badago, komertzialak.xml kargatzen du lehenik. */
+    /** Komertzialen zerrenda datu-basean bilatu eta hautaketa-dialogoa erakusten du. Hutsik badago, XML guztiak kargatzen ditu (datu-basea betetzeko) eta gero zerrenda osoa erakusten du. */
     private void sartuKomertzialGisa() {
-        if (XmlBilatzailea.komertzialakFaltaDa(this)) {
-            Toast.makeText(this, getString(R.string.xml_falta_da, "komertzialak.xml"), Toast.LENGTH_LONG).show();
-            return;
-        }
         new Thread(() -> {
-            List<Komertziala> zerrenda = AppDatabase.getInstance(this).komertzialaDao().guztiak();
+            AppDatabase db = AppDatabase.getInstance(this);
+            List<Komertziala> zerrenda = db.komertzialaDao().guztiak();
             if (zerrenda.isEmpty()) {
                 try {
                     XMLKudeatzailea kud = new XMLKudeatzailea(this);
-                    kud.inportatuFitxategia("komertzialak.xml");
-                    zerrenda = AppDatabase.getInstance(this).komertzialaDao().guztiak();
-                } catch (Exception ignored) {
-                    // Utzi zerrenda hutsik
+                    kud.guztiakInportatu();
+                    zerrenda = db.komertzialaDao().guztiak();
+                } catch (Exception e) {
+                    try {
+                        XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                        kud.inportatuFitxategia("komertzialak.xml");
+                        zerrenda = db.komertzialaDao().guztiak();
+                    } catch (Exception ignored) {
+                        // Utzi zerrenda hutsik
+                    }
                 }
             }
             final List<Komertziala> finalZerrenda = zerrenda;

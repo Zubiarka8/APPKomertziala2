@@ -5,12 +5,16 @@ import android.util.Log;
 import android.util.Xml;
 
 import com.example.appkomertziala.db.AppDatabase;
+import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Logina;
 import com.example.appkomertziala.db.eredua.Partnerra;
+import com.example.appkomertziala.db.kontsultak.AgendaDao;
 import com.example.appkomertziala.db.kontsultak.BazkideaDao;
+import com.example.appkomertziala.db.kontsultak.EskaeraGoiburuaDao;
 import com.example.appkomertziala.db.kontsultak.KatalogoaDao;
 import com.example.appkomertziala.db.kontsultak.KomertzialaDao;
 import com.example.appkomertziala.db.kontsultak.LoginaDao;
@@ -26,17 +30,17 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
  * XML fitxategiak barne-memoriatik (edo assets-etik erreserba gisa) irakurtzeko eta datu-basean txertatu/eguneratu (upsert) egiteko kudeatzailea.
  * Ordezkaritzatik jasotako fitxategiak barne-memorian gorde ohi dira. Eragiketa guztiak hila nagusitik kanpo exekutatu behar dira.
- * XmlPullParser erabiltzen du. komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml.
+ * XmlPullParser erabiltzen du. komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
  */
 public class XMLKudeatzailea {
 
@@ -653,8 +657,113 @@ public class XMLKudeatzailea {
     }
 
     /**
+     * agenda.xml inportatu. Bi formatu onartzen dira:
+     * - Agenda (agenda_bisitak): bisita > bisita_data, partner_kodea, deskribapena, egoera.
+     * - EskaeraGoiburua (zitak zaharrak): bisita > zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea.
+     */
+    public int agendaInportatu(InputStream is) throws IOException, XmlPullParserException {
+        XmlPullParser parser = Xml.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setInput(is, "UTF-8");
+        parser.nextTag();
+        parser.require(XmlPullParser.START_TAG, null, "agenda");
+        int count = 0;
+        AgendaDao agendaDao = db.agendaDao();
+        EskaeraGoiburuaDao eskaeraDao = db.eskaeraGoiburuaDao();
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
+            if ("bisita".equals(parser.getName())) {
+                Map<String, String> map = bisitaElementuaMap(parser);
+                if (map.containsKey("bisita_data")) {
+                    Agenda a = new Agenda();
+                    a.setBisitaData(trimm(map.get("bisita_data")));
+                    a.setPartnerKodea(trimm(map.get("partner_kodea")));
+                    a.setDeskribapena(trimm(map.get("deskribapena")));
+                    a.setEgoera(trimm(map.get("egoera")));
+                    agendaDao.txertatu(a);
+                    count++;
+                } else {
+                    EskaeraGoiburua goi = bisitaMapToEskaeraGoiburua(map);
+                    if (goi.getKomertzialKodea() != null && !goi.getKomertzialKodea().isEmpty()) {
+                        Komertziala kom = db.komertzialaDao().kodeaBilatu(goi.getKomertzialKodea().trim());
+                        if (kom != null) goi.setKomertzialId(kom.getId());
+                    }
+                    if (goi.getPartnerKodea() != null && !goi.getPartnerKodea().isEmpty()) {
+                        Partnerra part = db.partnerraDao().kodeaBilatu(goi.getPartnerKodea().trim());
+                        if (part != null) goi.setPartnerId(part.getId());
+                    }
+                    eskaeraDao.txertatu(goi);
+                    count++;
+                }
+            } else {
+                atalBatJauzi(parser);
+            }
+        }
+        return count;
+    }
+
+    private static String trimm(String s) {
+        return s != null ? s.trim() : "";
+    }
+
+    private Map<String, String> bisitaElementuaMap(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, "bisita");
+        Map<String, String> map = new HashMap<>();
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
+            String name = parser.getName();
+            String value = testuaIrakurri(parser);
+            map.put(name, value != null ? value : "");
+        }
+        return map;
+    }
+
+    private EskaeraGoiburua bisitaMapToEskaeraGoiburua(Map<String, String> map) {
+        String zenbakia = trimm(map.get("zenbakia"));
+        if (zenbakia == null || zenbakia.isEmpty()) zenbakia = "agenda_" + System.currentTimeMillis();
+        EskaeraGoiburua goi = new EskaeraGoiburua();
+        goi.setZenbakia(zenbakia);
+        goi.setData(trimm(map.get("data")));
+        goi.setKomertzialKodea(trimm(map.get("komertzialKodea")));
+        goi.setOrdezkaritza(trimm(map.get("ordezkaritza")));
+        goi.setPartnerKodea(trimm(map.get("partnerKodea")));
+        return goi;
+    }
+
+    /** bisita elementu bat irakurri (zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea). */
+    private EskaeraGoiburua bisitaElementuaIrakurri(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, "bisita");
+        String zenbakia = "";
+        String data = "";
+        String komertzialKodea = "";
+        String ordezkaritza = "";
+        String partnerKodea = "";
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
+            String name = parser.getName();
+            String value = testuaIrakurri(parser);
+            switch (name) {
+                case "zenbakia": zenbakia = value; break;
+                case "data": data = value; break;
+                case "komertzialKodea": komertzialKodea = value; break;
+                case "ordezkaritza": ordezkaritza = value; break;
+                case "partnerKodea": partnerKodea = value; break;
+                default: atalBatJauzi(parser); break;
+            }
+        }
+        if (zenbakia == null || zenbakia.isEmpty()) zenbakia = "agenda_" + System.currentTimeMillis();
+        EskaeraGoiburua goi = new EskaeraGoiburua();
+        goi.setZenbakia(zenbakia.trim());
+        goi.setData(data != null ? data.trim() : "");
+        goi.setKomertzialKodea(komertzialKodea != null ? komertzialKodea.trim() : "");
+        goi.setOrdezkaritza(ordezkaritza != null ? ordezkaritza.trim() : "");
+        goi.setPartnerKodea(partnerKodea != null ? partnerKodea.trim() : "");
+        return goi;
+    }
+
+    /**
      * Gailutik hautatutako fitxategi bat inportatzen du (Uri / InputStream).
-     * Fitxategi-izenaren arabera: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml.
+     * Fitxategi-izenaren arabera: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
      */
     public void inportatuSarreraFluxutik(InputStream is, String fitxategiIzena) throws IOException, XmlPullParserException {
         if (fitxategiIzena == null) fitxategiIzena = "";
@@ -676,6 +785,9 @@ public class XMLKudeatzailea {
             case "katalogoa.xml":
                 katalogoaInportatuSarreraFluxutik(is);
                 break;
+            case "agenda.xml":
+                agendaInportatu(is);
+                break;
             default:
                 throw new IllegalArgumentException("Fitxategi mota hau ezin da inportatu: " + izena);
         }
@@ -691,8 +803,8 @@ public class XMLKudeatzailea {
 
     /**
      * Fitxategi bat inportatzen du izenaren arabera (barne-memoriatik edo assets-etik).
-     * Onartutako fitxategiak: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml.
-     * Beste motak ez badira onartzen, IllegalArgumentException jaurtitzen du.
+     * Onartutako fitxategiak: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
+     * agenda.xml barne-memorian gordeta egon behar du (esportatu ondoren inportatzeko).
      */
     public void inportatuFitxategia(String fitxategiIzena) throws IOException, XmlPullParserException {
         if (fitxategiIzena == null) fitxategiIzena = "";
@@ -711,6 +823,11 @@ public class XMLKudeatzailea {
                 break;
             case "katalogoa.xml":
                 katalogoaInportatu();
+                break;
+            case "agenda.xml":
+                try (InputStream is = context.openFileInput("agenda.xml")) {
+                    agendaInportatu(is);
+                }
                 break;
             default:
                 throw new IllegalArgumentException("Fitxategi mota hau ezin da inportatu: " + fitxategiIzena);

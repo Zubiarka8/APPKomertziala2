@@ -122,7 +122,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
         new AlertDialog.Builder(this)
                 .setTitle(R.string.bisita_ikusi_izenburua)
                 .setMessage(mezua.toString())
-                .setPositiveButton(android.R.string.ok, null)
+                .setPositiveButton(R.string.ados, null)
                 .show();
     }
 
@@ -136,7 +136,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
         new AlertDialog.Builder(this)
                 .setTitle(R.string.btn_ezabatu)
                 .setMessage(R.string.bisita_ezabatu_baieztatu)
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                .setPositiveButton(R.string.bai, (dialog, which) -> {
                     new Thread(() -> {
                         Agenda a = datuBasea.agendaDao().idzBilatu(elementua.id);
                         if (a != null) {
@@ -148,7 +148,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
                         }
                     }).start();
                 })
-                .setNegativeButton(android.R.string.no, null)
+                .setNegativeButton(R.string.ez, null)
                 .show();
     }
 
@@ -217,7 +217,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
                 startActivity(Intent.createChooser(intent, getString(R.string.postaz_hautatu)));
             }
         } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.postaz_errorea, e.getMessage()), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.postaz_errorea, e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna)), Toast.LENGTH_LONG).show();
         }
     }
 }

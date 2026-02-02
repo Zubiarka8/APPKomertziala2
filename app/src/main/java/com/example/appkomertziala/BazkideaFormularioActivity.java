@@ -93,8 +93,8 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         }
         new AlertDialog.Builder(this)
                 .setMessage(R.string.bazkidea_gorde_baieztatu)
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> gordeBazkidea())
-                .setNegativeButton(android.R.string.no, null)
+                .setPositiveButton(R.string.bai, (dialog, which) -> gordeBazkidea())
+                .setNegativeButton(R.string.ez, null)
                 .show();
     }
 
@@ -102,8 +102,8 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
     private void erakutsiEzabatuBaieztapena() {
         new AlertDialog.Builder(this)
                 .setMessage(R.string.bazkidea_ezabatu_baieztatu)
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> ezabatuBazkidea())
-                .setNegativeButton(android.R.string.no, null)
+                .setPositiveButton(R.string.bai, (dialog, which) -> ezabatuBazkidea())
+                .setNegativeButton(R.string.ez, null)
                 .show();
     }
 
@@ -159,7 +159,7 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
                 });
             } catch (Exception e) {
                 String mezu = e.getMessage() != null ? e.getMessage() : "";
-                runOnUiThread(() -> Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu), Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }

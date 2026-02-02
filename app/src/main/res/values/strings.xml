@@ -198,6 +198,7 @@
     <string name="saskia_stock_max">Stock maximoa. Ezin da gehiago gehitu.</string>
     <string name="saskia_stock_0_batzuk_kendu">Stock 0 duten produktuak saskitik kendu dira.</string>
     <string name="saskia_erosketa_eginda">Erosketa eginda. Stock eguneratuta.</string>
+    <string name="saskia_erosi_baieztatu">Seguru zaude erosi nahi duzula?</string>
     <string name="cd_saskia">Erosketa saskia ikusi</string>
     <string name="katalogoa_artikulu_kodea_etiketa">Artikulu kodea: %1$s</string>
     <string name="katalogoa_stock_etiketa">Stock: %1$d</string>
@@ -207,6 +208,12 @@
     <string name="cd_bazkidea_gehitu">Bazkide berria gehitu</string>
 
     <!-- Content descriptions (accessibility) -->
+    <!-- Diálogos: botoiak euskeraz -->
+    <string name="ados">Ados</string>
+    <string name="bai">Bai</string>
+    <string name="ez">Ez</string>
+    <string name="errore_ezezaguna">Errore ezezaguna</string>
+
     <string name="cd_logo">Techno Basque logoa</string>
     <string name="cd_user_icon">Erabiltzailea ikonoa</string>
     <string name="cd_password_icon">Pasahitza ikonoa</string>

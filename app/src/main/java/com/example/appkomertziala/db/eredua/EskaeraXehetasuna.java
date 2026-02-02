@@ -1,25 +1,16 @@
 package com.example.appkomertziala.db.eredua;
 
 import androidx.room.Entity;
-import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 /**
  * Eskaera xehetasuna: ID, Eskaera_Zenbakia, Artikulu_Kodea, Kantitatea, Prezioa.
- * Eskaera baten lerro bakoitza.
+ * Loturak: eskaeraZenbakia → EskaeraGoiburua.zenbakia, artikuluKodea → Katalogoa (aplikazioan; migrazioek ez dute FK sortzen).
  */
 @Entity(
     tableName = "eskaera_xehetasunak",
-    indices = {@Index("eskaeraZenbakia")},
-    foreignKeys = {
-        @ForeignKey(
-            entity = EskaeraGoiburua.class,
-            parentColumns = "zenbakia",
-            childColumns = "eskaeraZenbakia",
-            onDelete = ForeignKey.CASCADE
-        )
-    }
+    indices = {@Index("eskaeraZenbakia"), @Index("artikuluKodea")}
 )
 public class EskaeraXehetasuna {
 

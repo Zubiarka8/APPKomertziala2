@@ -32,10 +32,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appkomertziala.db.AppDatabase;
+import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
+import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Partnerra;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
 import com.example.appkomertziala.xml.XmlBilatzailea;
@@ -98,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ImageButton btnCall;
     private ImageButton btnEmail;
 
-    private final ActivityResultLauncher<Intent> citaGehituLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<Intent> bisitaFormularioLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
@@ -131,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         runOnUiThread(() -> Toast.makeText(this, R.string.inportatu_ondo, Toast.LENGTH_SHORT).show());
                     } catch (Exception e) {
                         String mezu = e.getMessage() != null ? e.getMessage() : "";
-                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.inportatu_errorea, mezu), Toast.LENGTH_LONG).show());
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.inportatu_errorea, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_LONG).show());
                     }
                 }).start();
             });
@@ -174,14 +176,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         erakutsiEsportazioBidea();
     }
 
-    /** Agenda fitxako Extended FAB: zita berria gehitzeko pantaila ireki. */
+    /** Agenda fitxako Extended FAB: bisita berria gehitzeko pantaila ireki (agenda_bisitak taula). */
     private void setupAgendaCitaGehitu() {
         if (fabAgendaCitaGehitu != null) {
             fabAgendaCitaGehitu.setOnClickListener(v -> {
-                String kode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
-                Intent intent = new Intent(this, CitaGehituActivity.class);
-                intent.putExtra(CitaGehituActivity.EXTRA_KOMMERTZIALA_KODEA, kode != null ? kode : "");
-                citaGehituLauncher.launch(intent);
+                Intent intent = new Intent(this, BisitaFormularioActivity.class);
+                intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, -1L);
+                bisitaFormularioLauncher.launch(intent);
             });
         }
     }
@@ -197,10 +198,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    /** Agendako zita zerrenda kargatu eta erakutsi (komertzialaren arabera). */
+    /** Agendako bisita zerrenda kargatu eta erakutsi (agenda_bisitak taula, agendaDao). */
     private void kargatuAgendaZitak() {
-        String k = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
-        final String komertzialKode = (k == null || k.isEmpty()) ? "" : k;
         LinearLayout listContainer = findViewById(R.id.list_agenda_zitak);
         TextView tvHutsa = findViewById(R.id.tvAgendaZitakHutsa);
         if (listContainer == null || tvHutsa == null) return;
@@ -208,54 +207,55 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         new Thread(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(this);
-                List<EskaeraGoiburua> zitak = db.eskaeraGoiburuaDao().komertzialarenEskaerak(komertzialKode);
-                if (zitak == null) zitak = new ArrayList<>();
+                List<Agenda> bisitak = db.agendaDao().guztiak();
+                if (bisitak == null) bisitak = new ArrayList<>();
 
-                ArrayList<String[]> erakusteko = new ArrayList<>();
-                for (EskaeraGoiburua goi : zitak) {
-                    String dataStr = goi.getData() != null ? goi.getData() : "";
+                ArrayList<Object[]> erakusteko = new ArrayList<>();
+                for (Agenda a : bisitak) {
+                    String dataStr = a.getBisitaData() != null ? a.getBisitaData() : "";
                     String partnerIzena = "";
-                    if (goi.getPartnerKodea() != null && !goi.getPartnerKodea().trim().isEmpty()) {
-                        Partnerra p = db.partnerraDao().kodeaBilatu(goi.getPartnerKodea().trim());
-                        partnerIzena = p != null && p.getIzena() != null ? p.getIzena() : goi.getPartnerKodea();
+                    if (a.getPartnerKodea() != null && !a.getPartnerKodea().trim().isEmpty()) {
+                        Partnerra p = db.partnerraDao().kodeaBilatu(a.getPartnerKodea().trim());
+                        partnerIzena = p != null && p.getIzena() != null ? p.getIzena() : a.getPartnerKodea();
                     }
-                    String ordezk = goi.getOrdezkaritza() != null ? goi.getOrdezkaritza().trim() : "";
-                    String zenb = goi.getZenbakia() != null ? goi.getZenbakia() : "";
-                    erakusteko.add(new String[]{dataStr, zenb, partnerIzena.isEmpty() ? "—" : partnerIzena, ordezk});
+                    String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena().trim() : "";
+                    String zenb = "BIS-" + a.getId();
+                    erakusteko.add(new Object[]{dataStr, zenb, partnerIzena.isEmpty() ? "—" : partnerIzena, deskribapena, a.getId()});
                 }
 
                 runOnUiThread(() -> {
                     if (isDestroyed()) return;
                     listContainer.removeAllViews();
-                if (erakusteko.isEmpty()) {
-                    tvHutsa.setVisibility(View.VISIBLE);
-                    return;
-                }
-                tvHutsa.setVisibility(View.GONE);
-                LayoutInflater inflater = getLayoutInflater();
-                for (String[] row : erakusteko) {
-                    View item = inflater.inflate(R.layout.item_zita, listContainer, false);
-                    ((TextView) item.findViewById(R.id.itemZitaData)).setText(row[0]);
-                    ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(row[1]);
-                    ((TextView) item.findViewById(R.id.itemZitaPartnerra)).setText(row[2]);
-                    TextView tvOrdezk = item.findViewById(R.id.itemZitaOrdezkaritza);
-                    if (!row[3].isEmpty()) {
-                        tvOrdezk.setText(row[3]);
-                        tvOrdezk.setVisibility(View.VISIBLE);
+                    if (erakusteko.isEmpty()) {
+                        tvHutsa.setVisibility(View.VISIBLE);
+                        return;
                     }
-                    final String zenbakia = row[1];
-                    final String dataStr = row[0];
-                    final String partnerIzena = row[2];
-                    final String ordezk = row[3];
-                    MaterialButton btnIkusi = item.findViewById(R.id.btnZitaIkusi);
-                    MaterialButton btnEditatu = item.findViewById(R.id.btnZitaEditatu);
-                    MaterialButton btnEzabatu = item.findViewById(R.id.btnZitaEzabatu);
-                    btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenbakia, partnerIzena, ordezk));
-                    btnEditatu.setOnClickListener(v -> editatuZita(zenbakia));
-                    btnEzabatu.setOnClickListener(v -> ezabatuZita(zenbakia));
-                    listContainer.addView(item);
-                }
-            });
+                    tvHutsa.setVisibility(View.GONE);
+                    LayoutInflater inflater = getLayoutInflater();
+                    for (Object[] row : erakusteko) {
+                        String dataStr = (String) row[0];
+                        String zenb = (String) row[1];
+                        String partnerIzena = (String) row[2];
+                        String deskribapena = (String) row[3];
+                        long agendaId = (Long) row[4];
+                        View item = inflater.inflate(R.layout.item_zita, listContainer, false);
+                        ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
+                        ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
+                        ((TextView) item.findViewById(R.id.itemZitaPartnerra)).setText(partnerIzena);
+                        TextView tvOrdezk = item.findViewById(R.id.itemZitaOrdezkaritza);
+                        if (!deskribapena.isEmpty()) {
+                            tvOrdezk.setText(deskribapena);
+                            tvOrdezk.setVisibility(View.VISIBLE);
+                        }
+                        MaterialButton btnIkusi = item.findViewById(R.id.btnZitaIkusi);
+                        MaterialButton btnEditatu = item.findViewById(R.id.btnZitaEditatu);
+                        MaterialButton btnEzabatu = item.findViewById(R.id.btnZitaEzabatu);
+                        btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, partnerIzena, deskribapena));
+                        btnEditatu.setOnClickListener(v -> editatuZita(agendaId));
+                        btnEzabatu.setOnClickListener(v -> ezabatuZita(agendaId));
+                        listContainer.addView(item);
+                    }
+                });
             } catch (Exception e) {
                 runOnUiThread(() -> {
                     if (!isDestroyed()) {
@@ -268,52 +268,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): goiburua eta eskaera lerroak (DB). */
+    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): agenda gaiak soilik (data, zenbakia, partnerra, ordezkaritza). Pedidoen lerroak ez dira erakusten. */
     private void erakutsiZitaXehetasunak(String dataStr, String zenbakia, String partnerIzena, String ordezk) {
-        new Thread(() -> {
-            StringBuilder msg = new StringBuilder();
-            msg.append(getString(R.string.cita_data)).append(": ").append(dataStr).append("\n");
-            msg.append(getString(R.string.cita_zenbakia)).append(": ").append(zenbakia).append("\n");
-            msg.append(getString(R.string.cita_partnerra)).append(": ").append(partnerIzena).append("\n");
-            if (ordezk != null && !ordezk.isEmpty()) {
-                msg.append(getString(R.string.cita_ordezkaritza)).append(": ").append(ordezk).append("\n");
-            }
-            List<EskaeraXehetasuna> xehetasunak = AppDatabase.getInstance(this).eskaeraXehetasunaDao().eskaerarenXehetasunak(zenbakia);
-            if (xehetasunak != null && !xehetasunak.isEmpty()) {
-                msg.append("\n");
-                for (EskaeraXehetasuna x : xehetasunak) {
-                    msg.append("  • ").append(x.getArtikuluKodea()).append(" — ").append(x.getKantitatea()).append(" x ").append(String.format(Locale.getDefault(), "%.2f", x.getPrezioa())).append(" €\n");
-                }
-            }
-            String msgStr = msg.toString();
-            runOnUiThread(() -> new AlertDialog.Builder(this)
-                    .setTitle(R.string.zita_ikusi_izenburua)
-                    .setMessage(msgStr)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show());
-        }).start();
+        StringBuilder msg = new StringBuilder();
+        msg.append(getString(R.string.cita_data)).append(": ").append(dataStr).append("\n");
+        msg.append(getString(R.string.cita_zenbakia)).append(": ").append(zenbakia).append("\n");
+        msg.append(getString(R.string.cita_partnerra)).append(": ").append(partnerIzena).append("\n");
+        if (ordezk != null && !ordezk.isEmpty()) {
+            msg.append(getString(R.string.cita_ordezkaritza)).append(": ").append(ordezk).append("\n");
+        }
+        String msgStr = msg.toString();
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.zita_ikusi_izenburua)
+                .setMessage(msgStr)
+                .setPositiveButton(R.string.ados, null)
+                .show();
     }
 
-    /** Zita editatzeko CitaGehituActivity ireki (Editatu botoia). */
-    private void editatuZita(String zenbakia) {
-        String kode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
-        Intent intent = new Intent(this, CitaGehituActivity.class);
-        intent.putExtra(CitaGehituActivity.EXTRA_KOMMERTZIALA_KODEA, kode != null ? kode : "");
-        intent.putExtra(CitaGehituActivity.EXTRA_ESKAERA_ZENBAKIA, zenbakia);
-        citaGehituLauncher.launch(intent);
+    /** Bisita editatzeko BisitaFormularioActivity ireki (Editatu botoia). */
+    private void editatuZita(long agendaId) {
+        Intent intent = new Intent(this, BisitaFormularioActivity.class);
+        intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, agendaId);
+        bisitaFormularioLauncher.launch(intent);
     }
 
-    /** Zita ezabatu baieztapenarekin (Ezabatu botoia). */
-    private void ezabatuZita(String zenbakia) {
+    /** Bisita ezabatu baieztapenarekin (Ezabatu botoia). */
+    private void ezabatuZita(long agendaId) {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.btn_ezabatu)
                 .setMessage(R.string.zita_ezabatu_baieztatu)
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                .setPositiveButton(R.string.bai, (dialog, which) -> {
                     new Thread(() -> {
                         AppDatabase db = AppDatabase.getInstance(this);
-                        EskaeraGoiburua goi = db.eskaeraGoiburuaDao().zenbakiaBilatu(zenbakia);
-                        if (goi != null) {
-                            db.eskaeraGoiburuaDao().ezabatu(goi);
+                        Agenda a = db.agendaDao().idzBilatu(agendaId);
+                        if (a != null) {
+                            db.agendaDao().ezabatu(a);
                             runOnUiThread(() -> {
                                 Toast.makeText(this, R.string.zita_ezabatu_ondo, Toast.LENGTH_SHORT).show();
                                 kargatuAgendaZitak();
@@ -321,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }).start();
                 })
-                .setNegativeButton(android.R.string.no, null)
+                .setNegativeButton(R.string.ez, null)
                 .show();
     }
 
@@ -470,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(Intent.createChooser(intent, getString(R.string.postaz_hautatu)));
             }
         } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.postaz_errorea, e.getMessage()), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.postaz_errorea, e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna)), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -495,7 +484,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(Intent.createChooser(intent, getString(R.string.postaz_hautatu)));
             }
         } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.postaz_errorea, e.getMessage()), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.postaz_errorea, e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna)), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -746,42 +735,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     btnItxi.setOnClickListener(v -> dialog.dismiss());
 
                     btnErosi.setOnClickListener(v -> {
-                        new Thread(() -> {
-                            String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
-                            if (komertzialKode == null) komertzialKode = "";
-                            String zenbakia = "ESK-" + System.currentTimeMillis();
-                            String data = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(new java.util.Date());
-                            EskaeraGoiburua goi = new EskaeraGoiburua();
-                            goi.setZenbakia(zenbakia);
-                            goi.setData(data);
-                            goi.setKomertzialKodea(komertzialKode);
-                            goi.setOrdezkaritza("");
-                            goi.setPartnerKodea("");
-                            db.eskaeraGoiburuaDao().txertatu(goi);
-                            for (SaskiaElementua e : saskia) {
-                                EskaeraXehetasuna x = new EskaeraXehetasuna();
-                                x.setEskaeraZenbakia(zenbakia);
-                                x.setArtikuluKodea(e.artikuluKodea);
-                                x.setKantitatea(e.kopurua);
-                                x.setPrezioa(e.salmentaPrezioa);
-                                db.eskaeraXehetasunaDao().txertatu(x);
-                            }
-                            for (SaskiaElementua e : saskia) {
-                                Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
-                                if (k != null) {
-                                    int stockBerria = Math.max(0, k.getStock() - e.kopurua);
-                                    db.katalogoaDao().stockaEguneratu(e.artikuluKodea, stockBerria);
-                                }
-                            }
-                            runOnUiThread(() -> {
-                                saskia.clear();
-                                adapter.notifyDataSetChanged();
-                                saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
-                                dialog.dismiss();
-                                erakutsiInbentarioaEdukia();
-                                Toast.makeText(this, R.string.saskia_erosketa_eginda, Toast.LENGTH_SHORT).show();
-                            });
-                        }).start();
+                        new AlertDialog.Builder(this)
+                                .setMessage(R.string.saskia_erosi_baieztatu)
+                                .setPositiveButton(R.string.bai, (d, w) -> {
+                                    new Thread(() -> {
+                                        String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
+                                        if (komertzialKode == null) komertzialKode = "";
+                                        String zenbakia = "ESK-" + System.currentTimeMillis();
+                                        String data = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(new java.util.Date());
+                                        EskaeraGoiburua goi = new EskaeraGoiburua();
+                                        goi.setZenbakia(zenbakia);
+                                        goi.setData(data);
+                                        goi.setKomertzialKodea(komertzialKode);
+                                        if (komertzialKode != null && !komertzialKode.isEmpty()) {
+                                            Komertziala kom = db.komertzialaDao().kodeaBilatu(komertzialKode);
+                                            if (kom != null) goi.setKomertzialId(kom.getId());
+                                        }
+                                        goi.setOrdezkaritza("");
+                                        goi.setPartnerKodea("");
+                                        db.eskaeraGoiburuaDao().txertatu(goi);
+                                        for (SaskiaElementua e : saskia) {
+                                            EskaeraXehetasuna x = new EskaeraXehetasuna();
+                                            x.setEskaeraZenbakia(zenbakia);
+                                            x.setArtikuluKodea(e.artikuluKodea);
+                                            x.setKantitatea(e.kopurua);
+                                            x.setPrezioa(e.salmentaPrezioa);
+                                            db.eskaeraXehetasunaDao().txertatu(x);
+                                        }
+                                        for (SaskiaElementua e : saskia) {
+                                            Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
+                                            if (k != null) {
+                                                int stockBerria = Math.max(0, k.getStock() - e.kopurua);
+                                                db.katalogoaDao().stockaEguneratu(e.artikuluKodea, stockBerria);
+                                            }
+                                        }
+                                        runOnUiThread(() -> {
+                                            saskia.clear();
+                                            adapter.notifyDataSetChanged();
+                                            saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+                                            dialog.dismiss();
+                                            erakutsiInbentarioaEdukia();
+                                            Toast.makeText(this, R.string.saskia_erosketa_eginda, Toast.LENGTH_SHORT).show();
+                                        });
+                                    }).start();
+                                })
+                                .setNegativeButton(R.string.ez, null)
+                                .show();
                     });
 
                     dialog.show();
@@ -999,7 +998,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         new AlertDialog.Builder(this)
                 .setTitle(R.string.btn_ezabatu)
                 .setMessage(R.string.bazkidea_ezabatu_baieztatu)
-                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                .setPositiveButton(R.string.bai, (dialog, which) -> {
                     new Thread(() -> {
                         AppDatabase.getInstance(this).bazkideaDao().ezabatu(b);
                         runOnUiThread(() -> {
@@ -1008,7 +1007,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         });
                     }).start();
                 })
-                .setNegativeButton(android.R.string.no, null)
+                .setNegativeButton(R.string.ez, null)
                 .show();
     }
 

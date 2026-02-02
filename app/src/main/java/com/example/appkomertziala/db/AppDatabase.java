@@ -1,6 +1,7 @@
 package com.example.appkomertziala.db;
 
 import android.content.Context;
+import android.database.Cursor;
 
 import androidx.room.Database;
 import androidx.room.Room;
@@ -40,12 +41,42 @@ import com.example.appkomertziala.db.kontsultak.PartnerraDao;
         Logina.class,
         Agenda.class
     },
-    version = 6,
+    version = 8,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase instantzia;
+
+    /** Taula existitzen den egiaztatzen du. (taulaIzena bakarrik taula izen seguruak direnean erabili.) */
+    private static boolean taulaExistitzenDa(SupportSQLiteDatabase db, String taulaIzena) {
+        try {
+            String escaped = taulaIzena.replace("'", "''");
+            try (Cursor c = db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='" + escaped + "'")) {
+                return c != null && c.moveToFirst();
+            }
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    /** Taula baten zutabe bat existitzen den egiaztatzen du (ADD COLUMN bikoiztuak saihesteko). */
+    private static boolean zutabeaExistitzenDa(SupportSQLiteDatabase db, String taulaIzena, String zutabeIzena) {
+        try {
+            String escaped = taulaIzena.replace("'", "''");
+            try (Cursor c = db.query("PRAGMA table_info('" + escaped + "')")) {
+                if (c == null) return false;
+                int nameIdx = c.getColumnIndex("name");
+                if (nameIdx == -1) return false;
+                while (c.moveToNext()) {
+                    if (zutabeIzena.equals(c.getString(nameIdx))) return true;
+                }
+                return false;
+            }
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
 
     /**
      * 1 -> 2: partnerrak taulan sortutakoData eremua gehitu (eguneko alta iragazteko).
@@ -54,8 +85,11 @@ public abstract class AppDatabase extends RoomDatabase {
     private static final Migration MIGRAZIO_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
-            db.execSQL("ALTER TABLE partnerrak ADD COLUMN sortutakoData TEXT DEFAULT ''");
-            db.execSQL("UPDATE partnerrak SET sortutakoData = date('now') WHERE sortutakoData = '' OR sortutakoData IS NULL");
+            if (!taulaExistitzenDa(db, "partnerrak")) return;
+            if (!zutabeaExistitzenDa(db, "partnerrak", "sortutakoData")) {
+                db.execSQL("ALTER TABLE partnerrak ADD COLUMN sortutakoData TEXT DEFAULT ''");
+                db.execSQL("UPDATE partnerrak SET sortutakoData = date('now') WHERE sortutakoData = '' OR sortutakoData IS NULL");
+            }
         }
     };
 
@@ -78,10 +112,11 @@ public abstract class AppDatabase extends RoomDatabase {
     private static final Migration MIGRAZIO_3_4 = new Migration(3, 4) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
-            db.execSQL("ALTER TABLE partnerrak ADD COLUMN telefonoa TEXT");
-            db.execSQL("ALTER TABLE partnerrak ADD COLUMN posta TEXT");
-            db.execSQL("ALTER TABLE partnerrak ADD COLUMN jaiotzeData TEXT");
-            db.execSQL("ALTER TABLE partnerrak ADD COLUMN argazkia TEXT");
+            if (!taulaExistitzenDa(db, "partnerrak")) return;
+            if (!zutabeaExistitzenDa(db, "partnerrak", "telefonoa")) db.execSQL("ALTER TABLE partnerrak ADD COLUMN telefonoa TEXT");
+            if (!zutabeaExistitzenDa(db, "partnerrak", "posta")) db.execSQL("ALTER TABLE partnerrak ADD COLUMN posta TEXT");
+            if (!zutabeaExistitzenDa(db, "partnerrak", "jaiotzeData")) db.execSQL("ALTER TABLE partnerrak ADD COLUMN jaiotzeData TEXT");
+            if (!zutabeaExistitzenDa(db, "partnerrak", "argazkia")) db.execSQL("ALTER TABLE partnerrak ADD COLUMN argazkia TEXT");
         }
     };
 
@@ -104,7 +139,58 @@ public abstract class AppDatabase extends RoomDatabase {
     private static final Migration MIGRAZIO_5_6 = new Migration(5, 6) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
-            db.execSQL("ALTER TABLE katalogoa ADD COLUMN irudia_izena TEXT DEFAULT NULL");
+            if (!taulaExistitzenDa(db, "katalogoa")) return;
+            if (!zutabeaExistitzenDa(db, "katalogoa", "irudia_izena"))
+                db.execSQL("ALTER TABLE katalogoa ADD COLUMN irudia_izena TEXT DEFAULT NULL");
+        }
+    };
+
+    /**
+     * 6 -> 7: eskaera_goiburuak eta eskaera_xehetasunak taulak berriz sortu (indizeekin; kanpo-gakoak instalazio berrian sortzen dira).
+     * Migrazioan FK ez erabiltzea, datu zaharrek balioak ez betetzeagatik huts egitea saihesteko.
+     */
+    private static final Migration MIGRAZIO_6_7 = new Migration(6, 7) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            if (taulaExistitzenDa(db, "eskaera_goiburuak")) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS eskaera_goiburuak_new (zenbakia TEXT PRIMARY KEY NOT NULL, data TEXT, komertzialKodea TEXT, ordezkaritza TEXT, partnerKodea TEXT)");
+                db.execSQL("INSERT OR IGNORE INTO eskaera_goiburuak_new (zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea) SELECT zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea FROM eskaera_goiburuak");
+                db.execSQL("DROP TABLE eskaera_goiburuak");
+                db.execSQL("ALTER TABLE eskaera_goiburuak_new RENAME TO eskaera_goiburuak");
+            } else {
+                db.execSQL("CREATE TABLE IF NOT EXISTS eskaera_goiburuak (zenbakia TEXT PRIMARY KEY NOT NULL, data TEXT, komertzialKodea TEXT, ordezkaritza TEXT, partnerKodea TEXT)");
+            }
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_goiburuak_komertzialKodea ON eskaera_goiburuak(komertzialKodea)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_goiburuak_partnerKodea ON eskaera_goiburuak(partnerKodea)");
+
+            if (taulaExistitzenDa(db, "eskaera_xehetasunak")) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS eskaera_xehetasunak_new (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, eskaeraZenbakia TEXT, artikuluKodea TEXT, kantitatea INTEGER NOT NULL, prezioa REAL NOT NULL)");
+                db.execSQL("INSERT OR IGNORE INTO eskaera_xehetasunak_new (id, eskaeraZenbakia, artikuluKodea, kantitatea, prezioa) SELECT id, eskaeraZenbakia, artikuluKodea, kantitatea, prezioa FROM eskaera_xehetasunak");
+                db.execSQL("DROP TABLE eskaera_xehetasunak");
+                db.execSQL("ALTER TABLE eskaera_xehetasunak_new RENAME TO eskaera_xehetasunak");
+            } else {
+                db.execSQL("CREATE TABLE IF NOT EXISTS eskaera_xehetasunak (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, eskaeraZenbakia TEXT, artikuluKodea TEXT, kantitatea INTEGER NOT NULL, prezioa REAL NOT NULL)");
+            }
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_xehetasunak_eskaeraZenbakia ON eskaera_xehetasunak(eskaeraZenbakia)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_xehetasunak_artikuluKodea ON eskaera_xehetasunak(artikuluKodea)");
+        }
+    };
+
+    /**
+     * 7 -> 8: eskaera_goiburuak taulan partnerId eta komertzialId eremuak (ID bidezko loturak: nor erosi, nor kudeatu).
+     */
+    private static final Migration MIGRAZIO_7_8 = new Migration(7, 8) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            if (!taulaExistitzenDa(db, "eskaera_goiburuak")) return;
+            if (!zutabeaExistitzenDa(db, "eskaera_goiburuak", "komertzialId"))
+                db.execSQL("ALTER TABLE eskaera_goiburuak ADD COLUMN komertzialId INTEGER");
+            if (!zutabeaExistitzenDa(db, "eskaera_goiburuak", "partnerId"))
+                db.execSQL("ALTER TABLE eskaera_goiburuak ADD COLUMN partnerId INTEGER");
+            db.execSQL("UPDATE eskaera_goiburuak SET komertzialId = (SELECT id FROM komertzialak WHERE komertzialak.kodea = eskaera_goiburuak.komertzialKodea LIMIT 1) WHERE komertzialKodea IS NOT NULL AND komertzialKodea != ''");
+            db.execSQL("UPDATE eskaera_goiburuak SET partnerId = (SELECT id FROM partnerrak WHERE partnerrak.kodea = eskaera_goiburuak.partnerKodea LIMIT 1) WHERE partnerKodea IS NOT NULL AND partnerKodea != ''");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_goiburuak_komertzialId ON eskaera_goiburuak(komertzialId)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_goiburuak_partnerId ON eskaera_goiburuak(partnerId)");
         }
     };
 
@@ -137,7 +223,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6)
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8)
                             .fallbackToDestructiveMigration()
                             .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
                             .build();

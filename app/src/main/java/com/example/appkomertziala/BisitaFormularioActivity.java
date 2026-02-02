@@ -227,7 +227,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
             } catch (Exception e) {
                 String mezu = e.getMessage() != null ? e.getMessage() : "";
                 runOnUiThread(() ->
-                        Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu), Toast.LENGTH_SHORT).show());
+                        Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }

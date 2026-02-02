@@ -5,7 +5,7 @@ import android.util.Log;
 import android.util.Xml;
 
 import com.example.appkomertziala.db.AppDatabase;
-import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
+import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Partnerra;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -39,27 +39,26 @@ public class AgendaEsportatzailea {
     }
 
     /**
-     * AGENDA taulako (hilabeteko bisita guztiak) datuak XML egitura hierarkiko batean gorde.
-     * Fitxategia: agenda.xml. Ordezkaritzak datu-basea eguneratzeko erabiliko duen fitxategi ofiziala.
+     * AGENDA taulako (agenda_bisitak) hilabeteko bisitak XML egitura hierarkiko batean gorde.
+     * Fitxategia: agenda.xml. Soilik agenda (bisitak), ez eskaera/pedidoak.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada
      */
     public boolean agendaXMLSortu() {
         try {
-            List<EskaeraGoiburua> hilabetekoak = datuBasea.eskaeraGoiburuaDao().hilabetekoEskaerak();
+            List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak();
             try (OutputStream irteera = testuingurua.openFileOutput(FITXATEGI_XML, Context.MODE_PRIVATE)) {
                 XmlSerializer idazlea = Xml.newSerializer();
                 idazlea.setOutput(irteera, KODEKETA);
                 idazlea.startDocument(KODEKETA, true);
                 idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
                 idazlea.startTag(null, "agenda");
-                for (EskaeraGoiburua goi : hilabetekoak) {
+                for (Agenda a : hilabetekoak) {
                     idazlea.startTag(null, "bisita");
-                    nodoaIdatzi(idazlea, "zenbakia", hutsaEz(goi.getZenbakia()));
-                    nodoaIdatzi(idazlea, "data", hutsaEz(goi.getData()));
-                    nodoaIdatzi(idazlea, "komertzialKodea", hutsaEz(goi.getKomertzialKodea()));
-                    nodoaIdatzi(idazlea, "ordezkaritza", hutsaEz(goi.getOrdezkaritza()));
-                    nodoaIdatzi(idazlea, "partnerKodea", hutsaEz(goi.getPartnerKodea()));
+                    nodoaIdatzi(idazlea, "bisita_data", hutsaEz(a.getBisitaData()));
+                    nodoaIdatzi(idazlea, "partner_kodea", hutsaEz(a.getPartnerKodea()));
+                    nodoaIdatzi(idazlea, "deskribapena", hutsaEz(a.getDeskribapena()));
+                    nodoaIdatzi(idazlea, "egoera", hutsaEz(a.getEgoera()));
                     idazlea.endTag(null, "bisita");
                 }
                 idazlea.endTag(null, "agenda");
@@ -77,21 +76,20 @@ public class AgendaEsportatzailea {
     }
 
     /**
-     * Hileroko bisitak testu-fitxategi irakurgarri batean gorde.
+     * Hileroko bisitak (agenda_bisitak) testu-fitxategi irakurgarri batean gorde.
      * Fitxategia: agenda.txt. Bisita bakoitza lerro batean: Data - Partnerra - Deskribapena.
-     * Informazioa modu azkarrean irakurtzeko kopia.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada
      */
     public boolean agendaTXTSortu() {
         try {
-            List<EskaeraGoiburua> hilabetekoak = datuBasea.eskaeraGoiburuaDao().hilabetekoEskaerak();
+            List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak();
             try (OutputStreamWriter idazlea = new OutputStreamWriter(
                     testuingurua.openFileOutput(FITXATEGI_TXT, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
-                for (EskaeraGoiburua goi : hilabetekoak) {
-                    String data = hutsaEz(goi.getData());
-                    String partnerra = partnerrarenIzena(goi.getPartnerKodea());
-                    String deskribapena = "Eskaera " + hutsaEz(goi.getZenbakia()) + " - " + hutsaEz(goi.getOrdezkaritza());
+                for (Agenda a : hilabetekoak) {
+                    String data = hutsaEz(a.getBisitaData());
+                    String partnerra = partnerrarenIzena(a.getPartnerKodea());
+                    String deskribapena = hutsaEz(a.getDeskribapena());
                     idazlea.write(data + " - " + partnerra + " - " + deskribapena + "\n");
                 }
                 idazlea.flush();

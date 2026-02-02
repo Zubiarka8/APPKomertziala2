@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
+import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Partnerra;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -243,13 +244,20 @@ public class CitaGehituActivity extends AppCompatActivity {
         final String partnerKodeaFinal = partnerKodea;
         new Thread(() -> {
             try {
+                Komertziala kom = datuBasea.komertzialaDao().kodeaBilatu(komertzialKodeaFinal);
+                Partnerra part = datuBasea.partnerraDao().kodeaBilatu(partnerKodeaFinal);
+                Long komertzialId = kom != null ? kom.getId() : null;
+                Long partnerId = part != null ? part.getId() : null;
+
                 if (editMode) {
                     EskaeraGoiburua goi = datuBasea.eskaeraGoiburuaDao().zenbakiaBilatu(editatuZenbakia);
                     if (goi != null) {
                         goi.setData(dataFinal);
                         goi.setKomertzialKodea(komertzialKodeaFinal);
+                        goi.setKomertzialId(komertzialId);
                         goi.setOrdezkaritza(ordezkaritzaFinal);
                         goi.setPartnerKodea(partnerKodeaFinal);
+                        goi.setPartnerId(partnerId);
                         datuBasea.eskaeraGoiburuaDao().eguneratu(goi);
                     }
                 } else {
@@ -257,8 +265,10 @@ public class CitaGehituActivity extends AppCompatActivity {
                     goiBerria.setZenbakia(zenbakiaFinal);
                     goiBerria.setData(dataFinal);
                     goiBerria.setKomertzialKodea(komertzialKodeaFinal);
+                    goiBerria.setKomertzialId(komertzialId);
                     goiBerria.setOrdezkaritza(ordezkaritzaFinal);
                     goiBerria.setPartnerKodea(partnerKodeaFinal);
+                    goiBerria.setPartnerId(partnerId);
                     datuBasea.eskaeraGoiburuaDao().txertatu(goiBerria);
                 }
                 runOnUiThread(() -> {
@@ -269,7 +279,7 @@ public class CitaGehituActivity extends AppCompatActivity {
             } catch (Exception e) {
                 String mezu = e.getMessage() != null ? e.getMessage() : "";
                 runOnUiThread(() ->
-                    Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu), Toast.LENGTH_SHORT).show());
+                    Toast.makeText(this, getString(R.string.errorea_gordetzean, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
