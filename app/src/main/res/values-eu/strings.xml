@@ -103,9 +103,50 @@
     <string name="cita_errorea_data">Data beharrezkoa da (uuuu-hh-ee).</string>
     <string name="cita_errorea_partner">Hautatu partner bat.</string>
 
+    <string name="agenda_modulua_izenburua">Agenda (bisitak)</string>
+    <string name="agenda_modulua_zerrenda_hutsa">Bisitarik ez. Gehitu bat «Bisita berria» botoiarekin.</string>
+    <string name="agenda_modulua_bisita_berria">Bisita berria</string>
+    <string name="agenda_bisita_data">Bisitaren data</string>
+    <string name="agenda_bisita_partnerra">Partnerra</string>
+    <string name="agenda_bisita_deskribapena">Deskribapena</string>
+    <string name="agenda_bisita_egoera">Egoera</string>
+    <string name="egoera_egina">Egina</string>
+    <string name="egoera_zain">Zain</string>
+    <string name="egoera_deuseztatua">Deuseztatua</string>
+    <string name="bisita_ezabatu_baieztatu">Bisita hau ezabatu nahi duzu?</string>
+    <string name="bisita_ezabatu_ondo">Bisita ezabatuta.</string>
+    <string name="bisita_ikusi_izenburua">Bisitaren xehetasunak</string>
+    <string name="bisita_ondo_gordeta">Bisita gordeta.</string>
+    <string name="bisita_errorea_data">Data beharrezkoa da.</string>
+    <string name="postaz_gaia_hilero">[Techno Basque] Hileroko Agenda - %1$s</string>
+
+    <!-- Bazkideak atala (Agenda antzeko diseinua) -->
+    <string name="bazkideak_izenburua">Bazkideak</string>
+    <string name="bazkideak_zerrenda_hutsa">Bazkiderik ez. Gehitu bat «Gehitu» botoiarekin.</string>
+    <!-- Tabla Bazkideak (bazkideak.xml egitura) -->
+    <string name="bazkideak_bilatu">Bilatu (NAN, izena, posta…)</string>
+    <string name="bazkidea_gehitu">Gehitu</string>
+    <string name="table_bazkide_nan">NAN</string>
+    <string name="table_bazkide_izena">Izena</string>
+    <string name="table_bazkide_abizena">Abizena</string>
+    <string name="table_bazkide_telefonoa">Telefonoa</string>
+    <string name="table_bazkide_posta">Posta</string>
+    <string name="table_bazkide_jaiotze_data">Jaiotze data</string>
+    <string name="table_bazkide_argazkia">Argazkia</string>
+    <string name="table_bazkide_akzioak">Akzioak</string>
+    <string name="bazkidea_izenburu">Bazkidea</string>
+    <string name="bazkidea_berria">Bazkide berria</string>
+    <string name="bazkidea_editatu">Bazkidea editatu</string>
+    <string name="bazkidea_gorde">Gorde</string>
+    <string name="bazkidea_gorde_baieztatu">Seguru zaude gorde nahi duzula?</string>
+    <string name="bazkidea_ezabatu_baieztatu">Seguru zaude ezabatu nahi duzula?</string>
+
     <string name="tab_agenda_placeholder">Agenda</string>
     <string name="tab_bazkideak_placeholder">Bazkideak</string>
     <string name="tab_inventarioa_placeholder">Inventarioa</string>
+
+    <string name="fab_bazkide_berria">Bazkide berria</string>
+    <string name="cd_bazkidea_gehitu">Bazkide berria gehitu</string>
 
     <string name="cd_logo">Techno Basque logoa</string>
     <string name="cd_user_icon">Erabiltzailea ikonoa</string>

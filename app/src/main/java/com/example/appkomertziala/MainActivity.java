@@ -1,8 +1,11 @@
 package com.example.appkomertziala;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,8 +13,15 @@ import android.view.View;
 import androidx.core.content.FileProvider;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -19,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appkomertziala.db.AppDatabase;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.Partnerra;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
@@ -64,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private View contentInventarioa;
     private BottomNavigationView bottomNav;
     private ExtendedFloatingActionButton fabAgendaCitaGehitu;
+    private ExtendedFloatingActionButton fabBazkideaGehitu;
     private ImageButton btnMap;
     private ImageButton btnCall;
     private ImageButton btnEmail;
@@ -73,6 +85,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
                     kargatuAgendaZitak();
+                }
+            });
+
+    private final ActivityResultLauncher<Intent> bazkideaFormularioLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    kargatuBazkideakZerrenda();
                 }
             });
 
@@ -87,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         contentInventarioa = findViewById(R.id.content_inventarioa);
         bottomNav = findViewById(R.id.bottom_nav);
         fabAgendaCitaGehitu = findViewById(R.id.fabAgendaCitaGehitu);
+        fabBazkideaGehitu = findViewById(R.id.fabBazkideaGehitu);
         btnMap = findViewById(R.id.btnMap);
         btnCall = findViewById(R.id.btnCall);
         btnEmail = findViewById(R.id.btnEmail);
@@ -96,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupContactButtons();
         setupEsportazioBotoiak();
         setupAgendaCitaGehitu();
+        setupBazkideaFab();
         erakutsiEsportazioBidea();
     }
 
@@ -111,6 +133,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /** Bazkideak fitxako Extended FAB: bazkide berria gehitzeko pantaila ireki (Material 3, Agenda bera altuera). */
+    private void setupBazkideaFab() {
+        if (fabBazkideaGehitu != null) {
+            fabBazkideaGehitu.setOnClickListener(v -> {
+                Intent intent = new Intent(this, BazkideaFormularioActivity.class);
+                intent.putExtra(BazkideaFormularioActivity.EXTRA_BAZKIDEA_ID, -1L);
+                bazkideaFormularioLauncher.launch(intent);
+            });
+        }
+    }
+
     /** Agendako zita zerrenda kargatu eta erakutsi (komertzialaren arabera). */
     private void kargatuAgendaZitak() {
         String k = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
@@ -120,25 +153,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (listContainer == null || tvHutsa == null) return;
 
         new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            List<EskaeraGoiburua> zitak = db.eskaeraGoiburuaDao().komertzialarenEskaerak(komertzialKode);
-            if (zitak == null) zitak = new ArrayList<>();
+            try {
+                AppDatabase db = AppDatabase.getInstance(this);
+                List<EskaeraGoiburua> zitak = db.eskaeraGoiburuaDao().komertzialarenEskaerak(komertzialKode);
+                if (zitak == null) zitak = new ArrayList<>();
 
-            ArrayList<String[]> erakusteko = new ArrayList<>();
-            for (EskaeraGoiburua goi : zitak) {
-                String dataStr = goi.getData() != null ? goi.getData() : "";
-                String partnerIzena = "";
-                if (goi.getPartnerKodea() != null && !goi.getPartnerKodea().trim().isEmpty()) {
-                    Partnerra p = db.partnerraDao().kodeaBilatu(goi.getPartnerKodea().trim());
-                    partnerIzena = p != null && p.getIzena() != null ? p.getIzena() : goi.getPartnerKodea();
+                ArrayList<String[]> erakusteko = new ArrayList<>();
+                for (EskaeraGoiburua goi : zitak) {
+                    String dataStr = goi.getData() != null ? goi.getData() : "";
+                    String partnerIzena = "";
+                    if (goi.getPartnerKodea() != null && !goi.getPartnerKodea().trim().isEmpty()) {
+                        Partnerra p = db.partnerraDao().kodeaBilatu(goi.getPartnerKodea().trim());
+                        partnerIzena = p != null && p.getIzena() != null ? p.getIzena() : goi.getPartnerKodea();
+                    }
+                    String ordezk = goi.getOrdezkaritza() != null ? goi.getOrdezkaritza().trim() : "";
+                    String zenb = goi.getZenbakia() != null ? goi.getZenbakia() : "";
+                    erakusteko.add(new String[]{dataStr, zenb, partnerIzena.isEmpty() ? "—" : partnerIzena, ordezk});
                 }
-                String ordezk = goi.getOrdezkaritza() != null ? goi.getOrdezkaritza().trim() : "";
-                String zenb = goi.getZenbakia() != null ? goi.getZenbakia() : "";
-                erakusteko.add(new String[]{dataStr, zenb, partnerIzena.isEmpty() ? "—" : partnerIzena, ordezk});
-            }
 
-            runOnUiThread(() -> {
-                listContainer.removeAllViews();
+                runOnUiThread(() -> {
+                    if (isDestroyed()) return;
+                    listContainer.removeAllViews();
                 if (erakusteko.isEmpty()) {
                     tvHutsa.setVisibility(View.VISIBLE);
                     return;
@@ -168,6 +203,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     listContainer.addView(item);
                 }
             });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (!isDestroyed()) {
+                        Toast.makeText(this, getString(R.string.esportatu_errorea_batzuetan), Toast.LENGTH_LONG).show();
+                        listContainer.removeAllViews();
+                        tvHutsa.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
         }).start();
     }
 
@@ -412,27 +456,233 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (fabAgendaCitaGehitu != null) {
             fabAgendaCitaGehitu.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
         }
+        if (fabBazkideaGehitu != null) {
+            fabBazkideaGehitu.setVisibility(navId == R.id.bazkideak ? View.VISIBLE : View.GONE);
+        }
         if (navId == R.id.agenda) {
             kargatuAgendaZitak();
+            erakutsiAgendaXmlFalta();
         }
-        // Bazkideak / Inventarioa: falta den XML bat bada, mezu hori erakutsi
-        if (navId == R.id.bazkideak && contentBazkideak instanceof android.widget.TextView) {
-            StringBuilder sb = new StringBuilder();
-            if (XmlBilatzailea.bazkideakFaltaDa(this)) {
-                sb.append(getString(R.string.xml_falta_da, "bazkideak.xml"));
-            }
-            if (XmlBilatzailea.partnerrakFaltaDa(this)) {
-                if (sb.length() > 0) sb.append("\n");
-                sb.append(getString(R.string.xml_falta_da, "partnerrak.xml"));
-            }
-            ((android.widget.TextView) contentBazkideak).setText(
-                    sb.length() > 0 ? sb.toString() : getString(R.string.tab_bazkideak_placeholder));
+        if (navId == R.id.bazkideak) {
+            erakutsiBazkideakEdukia();
         }
         if (navId == R.id.inventarioa && contentInventarioa instanceof android.widget.TextView) {
             String text = XmlBilatzailea.katalogoaFaltaDa(this)
                     ? getString(R.string.xml_falta_da, "katalogoa.xml")
                     : getString(R.string.tab_inventarioa_placeholder);
             ((android.widget.TextView) contentInventarioa).setText(text);
+        }
+    }
+
+    /** Bazkideak atala: XML falta bada mezu hori; bestela datu-baseko partner zerrenda taulan erakutsi. */
+    private void erakutsiBazkideakEdukia() {
+        TextView tvXmlFalta = findViewById(R.id.tvBazkideakXmlFalta);
+        TextView tvHutsa = findViewById(R.id.tvBazkideakHutsa);
+        View scrollTable = findViewById(R.id.scroll_table_bazkideak);
+        TableLayout tableBazkideak = findViewById(R.id.table_bazkideak);
+        if (tvXmlFalta == null || tvHutsa == null || scrollTable == null || tableBazkideak == null) return;
+
+        StringBuilder sb = new StringBuilder();
+        if (XmlBilatzailea.bazkideakFaltaDa(this)) {
+            sb.append(getString(R.string.xml_falta_da, "bazkideak.xml"));
+        }
+        if (XmlBilatzailea.partnerrakFaltaDa(this)) {
+            if (sb.length() > 0) sb.append("\n");
+            sb.append(getString(R.string.xml_falta_da, "partnerrak.xml"));
+        }
+        if (sb.length() > 0) {
+            tvXmlFalta.setText(sb.toString());
+            tvXmlFalta.setVisibility(View.VISIBLE);
+            tvHutsa.setVisibility(View.GONE);
+            tableBazkideak.removeAllViews();
+            scrollTable.setVisibility(View.GONE);
+            return;
+        }
+        tvXmlFalta.setVisibility(View.GONE);
+        scrollTable.setVisibility(View.VISIBLE);
+        setupBazkideakBilatuEtaGehitu();
+        kargatuBazkideakZerrenda();
+    }
+
+    /** Bazkideak atalean bilatzailea konfiguratu (behin bakarrik). */
+    private void setupBazkideakBilatuEtaGehitu() {
+        TextInputEditText etBilatu = findViewById(R.id.etBazkideakBilatu);
+        if (etBilatu != null && etBilatu.getTag() == null) {
+            etBilatu.setTag(true);
+            etBilatu.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override
+                public void afterTextChanged(Editable s) {
+                    kargatuBazkideakZerrenda();
+                }
+            });
+        }
+    }
+
+    /** Taula bazkideak (DB) kargatu: bilatzailearen testua aplikatu, taula bete, Editatu/Ezabatu botoiak. */
+    private void kargatuBazkideakZerrenda() {
+        TextView tvHutsa = findViewById(R.id.tvBazkideakHutsa);
+        TableLayout tableBazkideak = findViewById(R.id.table_bazkideak);
+        TextInputEditText etBilatu = findViewById(R.id.etBazkideakBilatu);
+        if (tvHutsa == null || tableBazkideak == null) return;
+
+        final String filter = etBilatu != null && etBilatu.getText() != null ? etBilatu.getText().toString().trim() : "";
+
+        new Thread(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(this);
+                List<Bazkidea> zerrenda = filter.isEmpty()
+                        ? db.bazkideaDao().guztiak()
+                        : db.bazkideaDao().bilatu(filter);
+                if (zerrenda == null) zerrenda = new ArrayList<>();
+                final List<Bazkidea> lista = zerrenda;
+
+                runOnUiThread(() -> {
+                    if (isDestroyed()) return;
+                    tableBazkideak.removeAllViews();
+                    if (lista.isEmpty()) {
+                        tvHutsa.setVisibility(View.VISIBLE);
+                        return;
+                    }
+                    tvHutsa.setVisibility(View.GONE);
+                    int paddingPx = getResources().getDimensionPixelSize(R.dimen.margin_small);
+
+                    // Cabecera: Izena, Abizena, Telefonoa, Akzioak (gainontzekoa Modifikatu-n ikusiko da)
+                    TableRow headerRow = new TableRow(this);
+                    headerRow.setBackgroundColor(ContextCompat.getColor(this, R.color.primary_purple));
+                    float[] headerWeights = {1f, 1f, 1f, 0.5f};
+                    int[] headerResIds = {
+                            R.string.table_bazkide_izena,
+                            R.string.table_bazkide_abizena,
+                            R.string.table_bazkide_telefonoa,
+                            R.string.table_bazkide_akzioak
+                    };
+                    for (int i = 0; i < headerResIds.length; i++) {
+                        TextView h = new TextView(this);
+                        h.setText(getString(headerResIds[i]));
+                        h.setTextColor(ContextCompat.getColor(this, android.R.color.white));
+                        h.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+                        h.setTextSize(12);
+                        h.setTypeface(null, android.graphics.Typeface.BOLD);
+                        TableRow.LayoutParams lp = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, headerWeights[i]);
+                        h.setLayoutParams(lp);
+                        headerRow.addView(h);
+                    }
+                    tableBazkideak.addView(headerRow);
+
+                    int rowBg = ContextCompat.getColor(this, R.color.card_background);
+                    int rowBgAlt = ContextCompat.getColor(this, R.color.background_light_gray);
+                    int textColor = ContextCompat.getColor(this, R.color.text_primary);
+                    int idx = 0;
+                    for (Bazkidea b : lista) {
+                        TableRow row = new TableRow(this);
+                        row.setBackgroundColor(idx % 2 == 0 ? rowBg : rowBgAlt);
+                        row.setMinimumHeight(getResources().getDimensionPixelSize(R.dimen.button_height) / 2);
+                        String izena = b.getIzena() != null ? b.getIzena() : "";
+                        String abizena = b.getAbizena() != null ? b.getAbizena() : "";
+                        String telefonoa = b.getTelefonoZenbakia() != null ? b.getTelefonoZenbakia() : "";
+                        for (String value : new String[]{izena, abizena, telefonoa}) {
+                            TextView cell = new TextView(this);
+                            cell.setText(value);
+                            cell.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+                            cell.setTextSize(11);
+                            cell.setTextColor(textColor);
+                            TableRow.LayoutParams lp = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+                            cell.setLayoutParams(lp);
+                            row.addView(cell);
+                        }
+                        LinearLayout akzioak = new LinearLayout(this);
+                        akzioak.setOrientation(LinearLayout.HORIZONTAL);
+                        akzioak.setGravity(android.view.Gravity.CENTER);
+                        int btnMargin = getResources().getDimensionPixelSize(R.dimen.margin_small) / 2;
+                        int iconSizePx = getResources().getDimensionPixelSize(R.dimen.icon_size_small);
+
+                        MaterialButton btnEditatu = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+                        btnEditatu.setMinimumWidth(0);
+                        btnEditatu.setMinimumHeight(0);
+                        btnEditatu.setPadding(btnMargin, btnMargin, btnMargin, btnMargin);
+                        btnEditatu.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_edit_24));
+                        btnEditatu.setIconSize(iconSizePx);
+                        btnEditatu.setIconPadding(0);
+                        btnEditatu.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primary_purple)));
+                        btnEditatu.setContentDescription(getString(R.string.btn_editatu));
+                        btnEditatu.setOnClickListener(v -> {
+                            Intent intent = new Intent(this, BazkideaFormularioActivity.class);
+                            intent.putExtra(BazkideaFormularioActivity.EXTRA_BAZKIDEA_ID, b.getId());
+                            bazkideaFormularioLauncher.launch(intent);
+                        });
+                        LinearLayout.LayoutParams lpEdit = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lpEdit.setMarginEnd(btnMargin);
+                        akzioak.addView(btnEditatu, lpEdit);
+
+                        MaterialButton btnEzabatu = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+                        btnEzabatu.setMinimumWidth(0);
+                        btnEzabatu.setMinimumHeight(0);
+                        btnEzabatu.setPadding(btnMargin, btnMargin, btnMargin, btnMargin);
+                        btnEzabatu.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_delete_24));
+                        btnEzabatu.setIconSize(iconSizePx);
+                        btnEzabatu.setIconPadding(0);
+                        btnEzabatu.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.error_red)));
+                        btnEzabatu.setContentDescription(getString(R.string.btn_ezabatu));
+                        btnEzabatu.setOnClickListener(v -> ezabatuBazkidea(b));
+                        akzioak.addView(btnEzabatu);
+
+                        TableRow.LayoutParams lpAkzioak = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f);
+                        row.addView(akzioak, lpAkzioak);
+                        tableBazkideak.addView(row);
+                        idx++;
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (!isDestroyed()) {
+                        Toast.makeText(this, getString(R.string.esportatu_errorea_batzuetan), Toast.LENGTH_LONG).show();
+                        tvHutsa.setVisibility(View.VISIBLE);
+                        tableBazkideak.removeAllViews();
+                    }
+                });
+            }
+        }).start();
+    }
+
+    /** Bazkidea ezabatu baieztapenarekin. */
+    private void ezabatuBazkidea(Bazkidea b) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.btn_ezabatu)
+                .setMessage(R.string.bazkidea_ezabatu_baieztatu)
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    new Thread(() -> {
+                        AppDatabase.getInstance(this).bazkideaDao().ezabatu(b);
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, R.string.btn_ezabatu, Toast.LENGTH_SHORT).show();
+                            kargatuBazkideakZerrenda();
+                        });
+                    }).start();
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    /** Agenda atalean: beharrezko XMLak falta badira, Bazkideak/Inventarioa moduan mezu bat erakutsi. */
+    private void erakutsiAgendaXmlFalta() {
+        TextView tvAgendaXmlFalta = findViewById(R.id.tvAgendaXmlFalta);
+        if (tvAgendaXmlFalta == null) return;
+        StringBuilder sb = new StringBuilder();
+        if (XmlBilatzailea.bazkideakFaltaDa(this)) {
+            sb.append(getString(R.string.xml_falta_da, "bazkideak.xml"));
+        }
+        if (XmlBilatzailea.partnerrakFaltaDa(this)) {
+            if (sb.length() > 0) sb.append("\n");
+            sb.append(getString(R.string.xml_falta_da, "partnerrak.xml"));
+        }
+        if (sb.length() > 0) {
+            tvAgendaXmlFalta.setText(sb.toString());
+            tvAgendaXmlFalta.setVisibility(View.VISIBLE);
+        } else {
+            tvAgendaXmlFalta.setVisibility(View.GONE);
         }
     }
 

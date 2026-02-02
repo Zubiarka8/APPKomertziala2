@@ -42,6 +42,12 @@ public class Partnerra {
      */
     private String sortutakoData;
 
+    /** Bazkideak.xml-etik: telefonoa, posta, jaiotze-data, argazkia (Room 4. migrazioa). */
+    private String telefonoa;
+    private String posta;
+    private String jaiotzeData;
+    private String argazkia;
+
     public Partnerra() {}
 
     public long getId() { return id; }
@@ -58,4 +64,12 @@ public class Partnerra {
     public void setKomertzialKodea(String komertzialKodea) { this.komertzialKodea = komertzialKodea; }
     public String getSortutakoData() { return sortutakoData; }
     public void setSortutakoData(String sortutakoData) { this.sortutakoData = sortutakoData; }
+    public String getTelefonoa() { return telefonoa; }
+    public void setTelefonoa(String telefonoa) { this.telefonoa = telefonoa; }
+    public String getPosta() { return posta; }
+    public void setPosta(String posta) { this.posta = posta; }
+    public String getJaiotzeData() { return jaiotzeData; }
+    public void setJaiotzeData(String jaiotzeData) { this.jaiotzeData = jaiotzeData; }
+    public String getArgazkia() { return argazkia; }
+    public void setArgazkia(String argazkia) { this.argazkia = argazkia; }
 }

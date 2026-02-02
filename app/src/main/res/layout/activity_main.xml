@@ -384,6 +384,15 @@
                         android:layout_marginBottom="@dimen/margin_medium"/>
 
                     <TextView
+                        android:id="@+id/tvAgendaXmlFalta"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"/>
+
+                    <TextView
                         android:id="@+id/tvAgendaZitakHutsa"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -420,14 +429,96 @@
                 </LinearLayout>
             </ScrollView>
 
-            <TextView
+            <!-- Bazkideak tab: Agenda antzeko diseinua (izenburua, hutsa, zerrenda) -->
+            <ScrollView
                 android:id="@+id/content_bazkideak"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="@string/tab_bazkideak_placeholder"
-                android:textSize="@dimen/text_size_large"
-                android:visibility="gone"/>
+                android:fillViewport="true"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/margin_medium">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/bazkideak_izenburua"
+                        android:textSize="@dimen/text_size_large"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="@dimen/margin_medium"/>
+
+                    <TextView
+                        android:id="@+id/tvBazkideakXmlFalta"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"/>
+
+                    <TextView
+                        android:id="@+id/tvBazkideakHutsa"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/margin_large"
+                        android:text="@string/bazkideak_zerrenda_hutsa"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
+                        android:layout_marginBottom="@dimen/margin_medium"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="@dimen/margin_small">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/bazkideak_bilatu"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etBazkideakBilatu"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:maxLines="1"/>
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardElevation="@dimen/card_elevation"
+                        app:cardBackgroundColor="@color/card_background">
+
+                        <HorizontalScrollView
+                            android:id="@+id/scroll_table_bazkideak"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:scrollbars="horizontal">
+
+                            <TableLayout
+                                android:id="@+id/table_bazkideak"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:stretchColumns="*"
+                                android:shrinkColumns="*"
+                                android:background="@color/card_background"/>
+                        </HorizontalScrollView>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </ScrollView>
 
             <TextView
                 android:id="@+id/content_inventarioa"
@@ -438,7 +529,7 @@
                 android:textSize="@dimen/text_size_large"
                 android:visibility="gone"/>
 
-            <!-- Extended FAB: zita berria (fragment_container-en barruan, menua baino gorago) -->
+            <!-- Extended FAB Agenda: zita berria (Material 3 - bottom|end) -->
             <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
                 android:id="@+id/fabAgendaCitaGehitu"
                 style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary"
@@ -449,6 +540,19 @@
                 android:visibility="gone"
                 android:contentDescription="@string/cd_agenda_gehitu_cita"
                 android:text="@string/fab_cita_berria"
+                app:icon="@drawable/ic_add_24"/>
+
+            <!-- Extended FAB Bazkideak: bazkide berria (berdin altuera, Material 3) -->
+            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/fabBazkideaGehitu"
+                style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="@dimen/margin_medium"
+                android:visibility="gone"
+                android:contentDescription="@string/cd_bazkidea_gehitu"
+                android:text="@string/fab_bazkide_berria"
                 app:icon="@drawable/ic_add_24"/>
         </FrameLayout>
 

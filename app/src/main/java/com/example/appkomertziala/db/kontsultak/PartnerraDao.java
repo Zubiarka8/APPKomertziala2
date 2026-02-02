@@ -49,6 +49,14 @@ public interface PartnerraDao {
     @Query("SELECT * FROM partnerrak WHERE komertzialKodea = :komertzialKodea ORDER BY izena")
     List<Partnerra> komertzialarenPartnerrak(String komertzialKodea);
 
+    /** Bazkideak soilik (bazkideak.xml, id >= 1000); ez partnerrak. */
+    @Query("SELECT * FROM partnerrak WHERE id >= 1000 ORDER BY izena")
+    List<Partnerra> bazkideakGuztiak();
+
+    /** Komertzial baten bazkideak soilik (id >= 1000). */
+    @Query("SELECT * FROM partnerrak WHERE id >= 1000 AND komertzialKodea = :komertzialKodea ORDER BY izena")
+    List<Partnerra> komertzialarenBazkideak(String komertzialKodea);
+
     /** ID baten arabera partnerra bilatu. */
     @Query("SELECT * FROM partnerrak WHERE id = :id")
     Partnerra idzBilatu(long id);

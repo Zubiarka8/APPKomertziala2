@@ -8,12 +8,16 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.example.appkomertziala.db.eredua.Agenda;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Logina;
 import com.example.appkomertziala.db.eredua.Partnerra;
+import com.example.appkomertziala.db.kontsultak.AgendaDao;
+import com.example.appkomertziala.db.kontsultak.BazkideaDao;
 import com.example.appkomertziala.db.kontsultak.EskaeraGoiburuaDao;
 import com.example.appkomertziala.db.kontsultak.EskaeraXehetasunaDao;
 import com.example.appkomertziala.db.kontsultak.KatalogoaDao;
@@ -29,12 +33,14 @@ import com.example.appkomertziala.db.kontsultak.PartnerraDao;
     entities = {
         Komertziala.class,
         Partnerra.class,
+        Bazkidea.class,
         Katalogoa.class,
         EskaeraGoiburua.class,
         EskaeraXehetasuna.class,
-        Logina.class
+        Logina.class,
+        Agenda.class
     },
-    version = 2,
+    version = 5,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -53,10 +59,50 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 2 -> 3: agenda_bisitak taula sortu (Agenda modulua).
+     * Eremuak: id (gako nagusia), bisita_data, partner_kodea, deskribapena, egoera.
+     */
+    private static final Migration MIGRAZIO_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS agenda_bisitak (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, bisitaData TEXT, partnerKodea TEXT, deskribapena TEXT, egoera TEXT)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_agenda_bisitak_partnerKodea ON agenda_bisitak(partnerKodea)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_agenda_bisitak_bisitaData ON agenda_bisitak(bisitaData)");
+        }
+    };
+
+    /**
+     * 3 -> 4: partnerrak taulan bazkideak.xml eremuak (telefonoa, posta, jaiotzeData, argazkia).
+     */
+    private static final Migration MIGRAZIO_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE partnerrak ADD COLUMN telefonoa TEXT");
+            db.execSQL("ALTER TABLE partnerrak ADD COLUMN posta TEXT");
+            db.execSQL("ALTER TABLE partnerrak ADD COLUMN jaiotzeData TEXT");
+            db.execSQL("ALTER TABLE partnerrak ADD COLUMN argazkia TEXT");
+        }
+    };
+
+    /**
+     * 4 -> 5: bazkideak taula sortu (bazkideak.xml egitura: NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia).
+     */
+    private static final Migration MIGRAZIO_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS bazkideak (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_bazkideak_nan ON bazkideak(nan)");
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_bazkideak_izena ON bazkideak(izena)");
+        }
+    };
+
     /** Komertzialak taularen kontsultak. */
     public abstract KomertzialaDao komertzialaDao();
     /** Partnerrak taularen kontsultak. */
     public abstract PartnerraDao partnerraDao();
+    /** Bazkideak taularen kontsultak. */
+    public abstract BazkideaDao bazkideaDao();
     /** Katalogoa taularen kontsultak. */
     public abstract KatalogoaDao katalogoaDao();
     /** Eskaera goiburuak taularen kontsultak. */
@@ -65,6 +111,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract EskaeraXehetasunaDao eskaeraXehetasunaDao();
     /** Loginak taularen kontsultak. */
     public abstract LoginaDao loginaDao();
+    /** Agenda (bisitak) taularen kontsultak. */
+    public abstract AgendaDao agendaDao();
 
     /**
      * Datu-basearen instantzia bakarra itzuli (singleton).
@@ -78,7 +126,10 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2).fallbackToDestructiveMigration().build();
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5)
+                            .fallbackToDestructiveMigration()
+                            .allowMainThreadQueries()  // Evita cierre si alguna consulta se hace en el hilo principal
+                            .build();
                 }
             }
         }

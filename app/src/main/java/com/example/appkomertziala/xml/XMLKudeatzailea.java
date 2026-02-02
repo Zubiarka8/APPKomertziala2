@@ -4,10 +4,12 @@ import android.content.Context;
 import android.util.Xml;
 
 import com.example.appkomertziala.db.AppDatabase;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Logina;
 import com.example.appkomertziala.db.eredua.Partnerra;
+import com.example.appkomertziala.db.kontsultak.BazkideaDao;
 import com.example.appkomertziala.db.kontsultak.KatalogoaDao;
 import com.example.appkomertziala.db.kontsultak.KomertzialaDao;
 import com.example.appkomertziala.db.kontsultak.LoginaDao;
@@ -252,15 +254,97 @@ public class XMLKudeatzailea {
         if (!zerrenda.isEmpty()) {
             dao.txertatuGuztiak(zerrenda);
         }
+        // Taula bazkideak bete (bazkideak.xml egitura)
+        List<Bazkidea> bazkideakZerrenda = new ArrayList<>();
+        try (InputStream is = assetsFitxategiaIreki("bazkideak.xml")) {
+            XmlPullParser parser2 = Xml.newPullParser();
+            parser2.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+            parser2.setInput(is, "UTF-8");
+            parser2.nextTag();
+            parser2.require(XmlPullParser.START_TAG, null, "bazkideak");
+            while (parser2.next() != XmlPullParser.END_TAG) {
+                if (parser2.getEventType() != XmlPullParser.START_TAG) continue;
+                if ("bazkidea".equals(parser2.getName())) {
+                    Bazkidea bazkidea = bazkideaElementuaIrakurriBazkidea(parser2);
+                    if (bazkidea != null) bazkideakZerrenda.add(bazkidea);
+                } else {
+                    atalBatJauzi(parser2);
+                }
+            }
+        }
+        BazkideaDao bazkideaDao = db.bazkideaDao();
+        bazkideaDao.ezabatuGuztiak();
+        if (!bazkideakZerrenda.isEmpty()) {
+            bazkideaDao.txertatuGuztiak(bazkideakZerrenda);
+        }
         return zerrenda.size();
     }
 
-    /** bazkidea elementu bat irakurri (NAN, izena, abizena); eskaerak atala jauzi. */
+    /** bazkidea elementu bat irakurri taula bazkideak-erako (Bazkidea entitatea). */
+    private Bazkidea bazkideaElementuaIrakurriBazkidea(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, "bazkidea");
+        String nan = null;
+        String izena = null;
+        String abizena = null;
+        String telefonoZenbakia = null;
+        String posta = null;
+        String jaiotzeData = null;
+        String argazkia = null;
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
+            String name = parser.getName();
+            if ("eskaerak".equals(name)) {
+                atalBatJauzi(parser);
+                continue;
+            }
+            switch (name) {
+                case "NAN":
+                    nan = testuaIrakurri(parser);
+                    break;
+                case "izena":
+                    izena = testuaIrakurri(parser);
+                    break;
+                case "abizena":
+                    abizena = testuaIrakurri(parser);
+                    break;
+                case "telefonoZenbakia":
+                    telefonoZenbakia = testuaIrakurri(parser);
+                    break;
+                case "posta":
+                    posta = testuaIrakurri(parser);
+                    break;
+                case "jaiotzeData":
+                    jaiotzeData = testuaIrakurri(parser);
+                    break;
+                case "argazkia":
+                    argazkia = testuaIrakurri(parser);
+                    break;
+                default:
+                    atalBatJauzi(parser);
+                    break;
+            }
+        }
+        Bazkidea b = new Bazkidea();
+        b.setNan(nan != null ? nan : "");
+        b.setIzena(izena != null ? izena : "");
+        b.setAbizena(abizena != null ? abizena : "");
+        b.setTelefonoZenbakia(telefonoZenbakia != null ? telefonoZenbakia : "");
+        b.setPosta(posta != null ? posta : "");
+        b.setJaiotzeData(jaiotzeData != null ? jaiotzeData : "");
+        b.setArgazkia(argazkia != null ? argazkia : "");
+        return b;
+    }
+
+    /** bazkidea elementu bat irakurri (NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia); eskaerak atala jauzi. */
     private Partnerra bazkideaElementuaIrakurri(XmlPullParser parser, long idOffset, String komertzialKodea) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "bazkidea");
         String kodea = null;
         String izena = null;
         String abizena = null;
+        String telefonoa = null;
+        String posta = null;
+        String jaiotzeData = null;
+        String argazkia = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) continue;
             String name = parser.getName();
@@ -278,6 +362,18 @@ public class XMLKudeatzailea {
                 case "abizena":
                     abizena = testuaIrakurri(parser);
                     break;
+                case "telefonoZenbakia":
+                    telefonoa = testuaIrakurri(parser);
+                    break;
+                case "posta":
+                    posta = testuaIrakurri(parser);
+                    break;
+                case "jaiotzeData":
+                    jaiotzeData = testuaIrakurri(parser);
+                    break;
+                case "argazkia":
+                    argazkia = testuaIrakurri(parser);
+                    break;
                 default:
                     atalBatJauzi(parser);
                     break;
@@ -293,6 +389,10 @@ public class XMLKudeatzailea {
         p.setProbintzia(null);
         p.setKomertzialKodea(komertzialKodea);
         p.setSortutakoData(gaurkoData());
+        p.setTelefonoa(telefonoa);
+        p.setPosta(posta);
+        p.setJaiotzeData(jaiotzeData);
+        p.setArgazkia(argazkia);
         return p;
     }
 

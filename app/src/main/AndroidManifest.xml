@@ -34,6 +34,18 @@
             android:name=".CitaGehituActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".AgendaModuluaActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".BisitaFormularioActivity"
+            android:exported="false"
+            android:parentActivityName=".AgendaModuluaActivity" />
+        <activity
+            android:name=".BazkideaFormularioActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
