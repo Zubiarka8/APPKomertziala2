@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.appkomertziala.db.eredua.Katalogoa;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,19 +19,30 @@ import java.util.Locale;
 
 /**
  * Katalogoa (inbentarioa) zerrenda erakusteko RecyclerView adapterra.
- * Elementu bakoitzak: produktuaren irudia (res/drawable), izena, artikulu kodea, salmenta-prezioa, stock kopurua.
- * Material Design karta erabiliz, diseinu garbi eta profesionala.
+ * Elementu bakoitzak: irudia, izena, kodea, prezioa, stock eta Erosi botoia.
  */
 public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.KatalogoaViewHolder> {
 
     private final Context context;
     private List<Katalogoa> zerrenda = new ArrayList<>();
 
+    /** Erosi botoian sakatzean deitzen den entzulea. */
+    private OnErosiClickListener erosiEntzulea;
+
     /** Irudi baliabidearen izena ezezaguna edo hutsa denean erabiltzen den leihoko drawable. */
     private static final int LEIHOKO_IRUDIA = R.drawable.ic_logo_generico;
 
+    /** Erosi sakatzean: saskira gehitzeko. */
+    public interface OnErosiClickListener {
+        void onErosi(Katalogoa produktua);
+    }
+
     public KatalogoaAdapter(Context context) {
         this.context = context.getApplicationContext();
+    }
+
+    public void setErosiEntzulea(OnErosiClickListener entzulea) {
+        this.erosiEntzulea = entzulea;
     }
 
     /** Zerrenda eguneratu eta notifyDataSetChanged. */
@@ -54,6 +66,9 @@ public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.Kata
         holder.kodea.setText(context.getString(R.string.katalogoa_artikulu_kodea_etiketa, k.getArtikuluKodea() != null ? k.getArtikuluKodea() : ""));
         holder.prezioa.setText(formatuaPrezioa(k.getSalmentaPrezioa()));
         holder.stock.setText(context.getString(R.string.katalogoa_stock_etiketa, k.getStock()));
+        holder.btnErosi.setOnClickListener(v -> {
+            if (erosiEntzulea != null) erosiEntzulea.onErosi(k);
+        });
     }
 
     @Override
@@ -89,6 +104,7 @@ public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.Kata
         final TextView kodea;
         final TextView prezioa;
         final TextView stock;
+        final MaterialButton btnErosi;
 
         KatalogoaViewHolder(View itemView) {
             super(itemView);
@@ -97,6 +113,7 @@ public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.Kata
             kodea = itemView.findViewById(R.id.itemKatalogoaKodea);
             prezioa = itemView.findViewById(R.id.itemKatalogoaPrezioa);
             stock = itemView.findViewById(R.id.itemKatalogoaStock);
+            btnErosi = itemView.findViewById(R.id.btnKatalogoaErosi);
         }
     }
 }

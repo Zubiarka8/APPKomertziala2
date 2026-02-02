@@ -38,6 +38,64 @@
         android:layout_marginBottom="@dimen/margin_medium"
         android:visibility="gone"/>
 
+    <!-- Bilatzailea eta saskia botoia -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_small">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilInbentarioaBilatu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/inbentarioa_bilatu"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etInbentarioaBilatu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small">
+
+            <ImageButton
+                android:id="@+id/btnInbentarioaSaskia"
+                android:layout_width="@dimen/action_button_size"
+                android:layout_height="@dimen/action_button_size"
+                android:background="@drawable/bg_action_button"
+                android:src="@drawable/ic_cart_24"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/cd_saskia"
+                android:padding="@dimen/margin_small"/>
+
+            <TextView
+                android:id="@+id/tvSaskiaKopurua"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="18dp"
+                android:minHeight="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="-4dp"
+                android:layout_marginEnd="-4dp"
+                android:background="@drawable/bg_cart_badge"
+                android:gravity="center"
+                android:textSize="10sp"
+                android:textColor="@color/text_primary"
+                android:visibility="gone"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="2dp"/>
+        </FrameLayout>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerKatalogoa"
         android:layout_width="match_parent"

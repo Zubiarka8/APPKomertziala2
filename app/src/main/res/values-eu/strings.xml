@@ -157,6 +157,13 @@
     <!-- Inbentarioa (Katalogoa) modulua -->
     <string name="inbentarioa_izenburua">Inbentarioa (Katalogoa)</string>
     <string name="inbentarioa_zerrenda_hutsa">Produkturik ez. Katalogoa eguneratu (astero) botoiarekin kargatu.</string>
+    <string name="inbentarioa_bilatu">Bilatu (izena, kodea…)</string>
+    <string name="btn_erosi">Erosi</string>
+    <string name="saskia_izenburua">Erosketa saskia</string>
+    <string name="saskia_hutsa">Saskia hutsik dago.</string>
+    <string name="saskia_guztira">Guztira: %1$s</string>
+    <string name="saskia_garbitu">Saskia garbitu</string>
+    <string name="cd_saskia">Erosketa saskia ikusi</string>
     <string name="katalogoa_artikulu_kodea_etiketa">Artikulu kodea: %1$s</string>
     <string name="katalogoa_stock_etiketa">Stock: %1$d</string>
     <string name="cd_katalogoa_irudia">Produktuaren irudia</string>

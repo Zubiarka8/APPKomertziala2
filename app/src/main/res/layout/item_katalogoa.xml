@@ -78,6 +78,18 @@
                     android:textSize="@dimen/text_size_small"
                     android:textColor="@color/text_secondary"
                     tools:text="Stock: 15"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnKatalogoaErosi"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:text="@string/btn_erosi"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingHorizontal="@dimen/margin_small"
+                    android:paddingVertical="@dimen/margin_small"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

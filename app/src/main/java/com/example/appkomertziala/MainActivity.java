@@ -52,6 +52,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Techno Basque - Main screen with BottomNavigationView and Gipuzkoa contact section.
@@ -81,6 +82,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ExtendedFloatingActionButton fabAgendaCitaGehitu;
     private ExtendedFloatingActionButton fabBazkideaGehitu;
     private ImageButton btnMap;
+
+    /** Inbentarioa: katalogo osoa (bilatzaileak iragazteko). */
+    private List<Katalogoa> katalogoaOsoa = new ArrayList<>();
+    /** Erosketa saskia: artikulu bakoitza eta kopurua. */
+    private final List<SaskiaElementua> saskia = new ArrayList<>();
     private ImageButton btnCall;
     private ImageButton btnEmail;
 
@@ -475,11 +481,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    /** Inbentarioa (Katalogoa) atala: XML falta bada mezu hori; bestela datu-baseko produktu zerrenda RecyclerView-n. */
+    /** Inbentarioa (Katalogoa) atala: bilatzailea, saskia, RecyclerView. */
     private void erakutsiInbentarioaEdukia() {
         TextView tvXmlFalta = findViewById(R.id.tvInventarioaXmlFalta);
         TextView tvHutsa = findViewById(R.id.tvInventarioaHutsa);
         RecyclerView recyclerKatalogoa = findViewById(R.id.recyclerKatalogoa);
+        TextInputEditText etBilatu = findViewById(R.id.etInbentarioaBilatu);
+        ImageButton btnSaskia = findViewById(R.id.btnInbentarioaSaskia);
+        TextView tvSaskiaKopurua = findViewById(R.id.tvSaskiaKopurua);
         if (tvXmlFalta == null || tvHutsa == null || recyclerKatalogoa == null) return;
 
         if (XmlBilatzailea.katalogoaFaltaDa(this)) {
@@ -493,25 +502,134 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (recyclerKatalogoa.getLayoutManager() == null) {
             recyclerKatalogoa.setLayoutManager(new LinearLayoutManager(this));
-            recyclerKatalogoa.setAdapter(new KatalogoaAdapter(this));
+            KatalogoaAdapter adapter = new KatalogoaAdapter(this);
+            adapter.setErosiEntzulea(k -> saskiraGehitu(k));
+            recyclerKatalogoa.setAdapter(adapter);
         }
         KatalogoaAdapter adapter = (KatalogoaAdapter) recyclerKatalogoa.getAdapter();
+        if (etBilatu != null && etBilatu.getTag() == null) {
+            etBilatu.setTag(true);
+            etBilatu.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override
+                public void afterTextChanged(Editable s) {
+                    inbentarioaBilatzaileaAplikatu(adapter);
+                }
+            });
+        }
+        if (btnSaskia != null) {
+            btnSaskia.setOnClickListener(v -> erakutsiSaskiaDialogoa());
+        }
+        saskiaBadgeEguneratu(tvSaskiaKopurua);
+
         new Thread(() -> {
             List<Katalogoa> zerrenda = AppDatabase.getInstance(this).katalogoaDao().katalogoaIkusi();
             if (zerrenda == null) zerrenda = new ArrayList<>();
             final List<Katalogoa> lista = zerrenda;
             runOnUiThread(() -> {
                 if (isDestroyed()) return;
+                katalogoaOsoa = lista;
                 if (lista.isEmpty()) {
                     tvHutsa.setVisibility(View.VISIBLE);
                     recyclerKatalogoa.setVisibility(View.GONE);
                 } else {
                     tvHutsa.setVisibility(View.GONE);
                     recyclerKatalogoa.setVisibility(View.VISIBLE);
-                    if (adapter != null) adapter.eguneratuZerrenda(lista);
+                    inbentarioaBilatzaileaAplikatu(adapter);
                 }
             });
         }).start();
+    }
+
+    /** Bilatzailearen testua aplikatu: katalogoaOsoa iragazi eta adapter eguneratu. */
+    private void inbentarioaBilatzaileaAplikatu(KatalogoaAdapter adapter) {
+        if (adapter == null) return;
+        TextInputEditText etBilatu = findViewById(R.id.etInbentarioaBilatu);
+        String query = (etBilatu != null && etBilatu.getText() != null) ? etBilatu.getText().toString().trim().toLowerCase(Locale.getDefault()) : "";
+        List<Katalogoa> iragazia = new ArrayList<>();
+        for (Katalogoa k : katalogoaOsoa) {
+            String izena = k.getIzena() != null ? k.getIzena().toLowerCase(Locale.getDefault()) : "";
+            String kodea = k.getArtikuluKodea() != null ? k.getArtikuluKodea().toLowerCase(Locale.getDefault()) : "";
+            if (query.isEmpty() || izena.contains(query) || kodea.contains(query)) {
+                iragazia.add(k);
+            }
+        }
+        adapter.eguneratuZerrenda(iragazia);
+    }
+
+    /** Produktu bat saskira gehitu (edo kopurua handitu). */
+    private void saskiraGehitu(Katalogoa k) {
+        if (k == null) return;
+        String kodea = k.getArtikuluKodea() != null ? k.getArtikuluKodea() : "";
+        for (SaskiaElementua e : saskia) {
+            if (kodea.equals(e.artikuluKodea)) {
+                e.kopurua++;
+                saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+                Toast.makeText(this, getString(R.string.btn_erosi) + " " + (k.getIzena() != null ? k.getIzena() : ""), Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+        saskia.add(new SaskiaElementua(k.getArtikuluKodea(), k.getIzena(), k.getSalmentaPrezioa(), 1));
+        saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+        Toast.makeText(this, getString(R.string.btn_erosi) + " " + (k.getIzena() != null ? k.getIzena() : ""), Toast.LENGTH_SHORT).show();
+    }
+
+    /** Saskia badge (kopurua) eguneratu. */
+    private void saskiaBadgeEguneratu(TextView tvSaskiaKopurua) {
+        if (tvSaskiaKopurua == null) return;
+        int guztira = 0;
+        for (SaskiaElementua e : saskia) guztira += e.kopurua;
+        if (guztira > 0) {
+            tvSaskiaKopurua.setText(String.valueOf(guztira));
+            tvSaskiaKopurua.setVisibility(View.VISIBLE);
+        } else {
+            tvSaskiaKopurua.setVisibility(View.GONE);
+        }
+    }
+
+    /** Saskia dialogoa erakutsi: zerrenda eta guztira. */
+    private void erakutsiSaskiaDialogoa() {
+        if (saskia.isEmpty()) {
+            Toast.makeText(this, R.string.saskia_hutsa, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        double guztira = 0;
+        StringBuilder sb = new StringBuilder();
+        for (SaskiaElementua e : saskia) {
+            double lerroa = e.salmentaPrezioa * e.kopurua;
+            guztira += lerroa;
+            sb.append(e.izena != null ? e.izena : e.artikuluKodea)
+                    .append(" x ").append(e.kopurua)
+                    .append(" = ").append(String.format(Locale.getDefault(), "%.2f €", lerroa))
+                    .append("\n");
+        }
+        sb.append("\n").append(getString(R.string.saskia_guztira, String.format(Locale.getDefault(), "%.2f €", guztira)));
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.saskia_izenburua)
+                .setMessage(sb.toString())
+                .setPositiveButton(android.R.string.ok, null)
+                .setNeutralButton(R.string.saskia_garbitu, (dialog, which) -> {
+                    saskia.clear();
+                    saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+                    Toast.makeText(this, R.string.saskia_garbitu, Toast.LENGTH_SHORT).show();
+                })
+                .show();
+    }
+
+    /** Saskiaren elementu bat: kodea, izena, prezioa, kopurua. */
+    private static class SaskiaElementua {
+        final String artikuluKodea;
+        final String izena;
+        final double salmentaPrezioa;
+        int kopurua;
+
+        SaskiaElementua(String artikuluKodea, String izena, double salmentaPrezioa, int kopurua) {
+            this.artikuluKodea = artikuluKodea != null ? artikuluKodea : "";
+            this.izena = izena != null ? izena : "";
+            this.salmentaPrezioa = salmentaPrezioa;
+            this.kopurua = kopurua;
+        }
     }
 
     /** Bazkideak atala: XML falta bada mezu hori; bestela datu-baseko partner zerrenda taulan erakutsi. */
