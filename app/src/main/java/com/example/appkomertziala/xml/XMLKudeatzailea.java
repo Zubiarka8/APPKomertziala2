@@ -431,28 +431,33 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * loginak.xml inportatu: sinkronizazioa (insert, update, delete). Erabiltzailea gakoa.
+     * loginak.xml inportatu (assets-etik): sinkronizazioa (insert, update, delete). Erabiltzailea gakoa.
      * Etiketak: loginak > erabiltzailea > id, email, pasahitza.
      */
     public int loginakInportatu() throws IOException, XmlPullParserException {
+        try (InputStream is = assetsFitxategiaIreki("loginak.xml")) {
+            return loginakInportatu(is);
+        }
+    }
+
+    /** Gailutik: sarrera-fluxu batetik loginak inportatu. */
+    public int loginakInportatu(InputStream is) throws IOException, XmlPullParserException {
         List<Logina> zerrenda = new ArrayList<>();
         List<Komertziala> komertzialak = db.komertzialaDao().guztiak();
         for (int i = 0; i < komertzialak.size(); i++) {
             komertzialIdKodea.put((long) (i + 1), komertzialak.get(i).getKodea());
         }
-        try (InputStream is = assetsFitxategiaIreki("loginak.xml")) {
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(is, "UTF-8");
-            parser.nextTag();
-            parser.require(XmlPullParser.START_TAG, null, "loginak");
-            while (parser.next() != XmlPullParser.END_TAG) {
-                if (parser.getEventType() != XmlPullParser.START_TAG) continue;
-                if ("erabiltzailea".equals(parser.getName())) {
-                    zerrenda.add(erabiltzaileaElementuaIrakurri(parser));
-                } else {
-                    atalBatJauzi(parser);
-                }
+        XmlPullParser parser = Xml.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setInput(is, "UTF-8");
+        parser.nextTag();
+        parser.require(XmlPullParser.START_TAG, null, "loginak");
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
+            if ("erabiltzailea".equals(parser.getName())) {
+                zerrenda.add(erabiltzaileaElementuaIrakurri(parser));
+            } else {
+                atalBatJauzi(parser);
             }
         }
         List<String> xmlErabiltzaileak = zerrenda.stream().map(Logina::getErabiltzailea).filter(e -> e != null && !e.isEmpty()).distinct().collect(Collectors.toList());
