@@ -10,12 +10,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Inbentarioa (katalogoa) astero ordezkaritzatik jasotako XML fitxategia irakurtzeko eta
- * datu-basean produktu bakoitzaren kodea, izena, prezioa eta stock-a kargatzeko kudeatzailea.
+ * Inbentarioa (katalogoa) astero ordezkaritzatik jasotako XML fitxategia barne-memoriatik irakurtzeko
+ * eta datu-basean produktu bakoitzaren kodea, izena, salmenta_prezioa, stock_a eta irudia_izena
+ * kargatzeko kudeatzailea.
  *
- * Zergatik da garrantzitsua asteko eguneraketa: ordezkaritzak prezioak eta stock-a eguneratzen
- * ditu astero; inportazioa egitean datu-base lokala sinkronizatzen da, komertzialak katalogo
- * eguneraturik ikusteko.
+ * Asteko eguneraketa: ordezkaritzak prezioak eta stock eguneratzen ditu astero; inportazioak
+ * wipe-and-load erabiltzen du (katalogoa guztiz ezabatu, XMLko datuak bakarrik txertatu).
+ * Eragiketa hau hila nagusitik kanpo exekutatu behar da (deiallea Thread edo Executor bidez).
  */
 public class InbentarioKudeatzailea {
 
@@ -33,9 +34,10 @@ public class InbentarioKudeatzailea {
     }
 
     /**
-     * Ordezkaritzatik astero jasotako XML fitxategia irakurri eta produktu guztiak datu-basean kargatu.
+     * Barne-memorian gordetako XML fitxategia irakurri eta katalogoa datu-basean berritu (wipe-and-load).
      * Lehenengo barne-memorian 'katalogoa_ordezkaritza.xml' bilatzen du; ez badago, assets-eko 'katalogoa.xml' erabiltzen du.
-     * Produktu bakoitzaren kodea, izena, salmenta-prezioa, stock-a eta irudia_izena datu-basean gordetzen dira.
+     * XMLtik erauzitako eremuak: artikulu_kodea, izena, salmenta_prezioa, stock_a, irudia_izena.
+     * Hila nagusitik kanpo deitu behar da.
      *
      * @return inportatutako produktu kopurua
      */
@@ -50,7 +52,7 @@ public class InbentarioKudeatzailea {
 
     /**
      * Sarrera-fluxu batetik katalogoa inportatu (adib. fitxategi hautatzailetik).
-     * Astero ordezkaritzatik jasotako XML bera prozesatzen du: produktu bakoitzaren kodea, izena, prezioa, stock-a.
+     * Wipe-and-load: aurreko katalogoa ezabatu, XMLko produktuak bakarrik txertatu.
      *
      * @param sarreraFluxua XML edukia duen fluxua
      * @return inportatutako produktu kopurua

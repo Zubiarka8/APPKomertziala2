@@ -1,6 +1,7 @@
 package com.example.appkomertziala.xml;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.Xml;
 
 import com.example.appkomertziala.db.AppDatabase;
@@ -18,6 +19,7 @@ import com.example.appkomertziala.db.kontsultak.PartnerraDao;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -31,10 +33,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * XML fitxategiak barne-memorian irakurtzeko eta datu-basean txertatu/eguneratu (upsert) egiteko kudeatzailea.
+ * XML fitxategiak barne-memoriatik (edo assets-etik erreserba gisa) irakurtzeko eta datu-basean txertatu/eguneratu (upsert) egiteko kudeatzailea.
+ * Ordezkaritzatik jasotako fitxategiak barne-memorian gorde ohi dira. Eragiketa guztiak hila nagusitik kanpo exekutatu behar dira.
  * XmlPullParser erabiltzen du. komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml.
  */
 public class XMLKudeatzailea {
+
+    private static final String ETIKETA = "XMLKudeatzailea";
 
     private final Context context;
     private final AppDatabase db;
@@ -49,21 +54,31 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * Assets-etik fitxategi baten izena jasota, InputStream itzultzen du.
-     * Barne-memorian irakurtzeko erabiltzen da.
+     * XML fitxategia barne-memoriatik irakurri; ez badago, assets erabili (probak edo lehen karga).
+     * Ordezkaritzatik jasotako fitxategiak barne-memorian gorde ohi dira; hortik irakurri da lehenetsia.
      */
+    private InputStream barneFitxategiaEdoAssetsIreki(String fitxategiIzena) throws IOException {
+        try {
+            return context.openFileInput(fitxategiIzena);
+        } catch (FileNotFoundException e) {
+            return context.getAssets().open(fitxategiIzena);
+        }
+    }
+
+    /** Assets-etik fitxategi bat ireki (katalogoa.xml eta beste atzerapen-erabileretarako). */
     private InputStream assetsFitxategiaIreki(String fitxategiIzena) throws IOException {
         return context.getAssets().open(fitxategiIzena);
     }
 
     /**
-     * komertzialak.xml inportatu: sinkronizazioa (insert, update, delete). Duplikaturik ez.
+     * komertzialak.xml inportatu: barne-memoriatik (edo assets-etik) irakurri, wipe-and-load.
+     * Komertzialak taula guztiz ezabatu eta XMLko erregistroak bakarrik txertatzen dira; informazio zaharra ordezkatuta.
      * Etiketak: komertzialak > komertziala > NAN, izena, abizena.
-     * XML da erreferentzia: DB-n dauden baina XML-en ez daudenak ezabatzen dira.
+     * Eragiketa hau hila nagusitik kanpo exekutatu behar da.
      */
     public int komertzialakInportatu() throws IOException, XmlPullParserException {
         List<Komertziala> zerrenda = new ArrayList<>();
-        try (InputStream is = assetsFitxategiaIreki("komertzialak.xml")) {
+        try (InputStream is = barneFitxategiaEdoAssetsIreki("komertzialak.xml")) {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(is, "UTF-8");
@@ -78,22 +93,14 @@ public class XMLKudeatzailea {
                     atalBatJauzi(parser);
                 }
             }
+        } catch (IOException e) {
+            Log.e(ETIKETA, "Errorea fitxategia irakurtzean: komertzialak.xml", e);
+            throw e;
         }
-        List<String> xmlCodeak = zerrenda.stream().map(Komertziala::getKodea).filter(k -> k != null && !k.isEmpty()).distinct().collect(Collectors.toList());
         KomertzialaDao dao = db.komertzialaDao();
-        if (xmlCodeak.isEmpty()) {
-            dao.ezabatuGuztiak();
-        } else {
-            dao.ezabatuKodeakEzDirenak(xmlCodeak);
-        }
-        for (Komertziala k : zerrenda) {
-            Komertziala exist = dao.kodeaBilatu(k.getKodea());
-            if (exist != null) {
-                k.setId(exist.getId());
-                dao.eguneratu(k);
-            } else {
-                dao.txertatu(k);
-            }
+        dao.ezabatuGuztiak();
+        if (!zerrenda.isEmpty()) {
+            dao.txertatuGuztiak(zerrenda);
         }
         komertzialIdKodea.clear();
         for (Komertziala g : dao.guztiak()) {
@@ -132,12 +139,20 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * partnerrak.xml inportatu: sinkronizazioa (insert, update, delete). Bazkideak (id >= 1000) mantentzen dira.
+     * partnerrak.xml inportatu: barne-memoriatik (edo assets-etik) irakurri.
+     * Partner bakoitza bere komertzialKodea-rekin lotzen da (komertzialIdKodea mapa). Datu umezurtzik ez.
      * Etiketak: partnerrak > partner > id, izena, helbidea, komertzial_id.
+     * Eragiketa hau hila nagusitik kanpo exekutatu behar da.
      */
     public int partnerrakInportatu() throws IOException, XmlPullParserException {
+        if (komertzialIdKodea.isEmpty()) {
+            List<Komertziala> k = db.komertzialaDao().guztiak();
+            for (Komertziala kom : k) {
+                komertzialIdKodea.put(kom.getId(), kom.getKodea());
+            }
+        }
         List<Partnerra> zerrenda = new ArrayList<>();
-        try (InputStream is = assetsFitxategiaIreki("partnerrak.xml")) {
+        try (InputStream is = barneFitxategiaEdoAssetsIreki("partnerrak.xml")) {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(is, "UTF-8");
@@ -151,6 +166,9 @@ public class XMLKudeatzailea {
                     atalBatJauzi(parser);
                 }
             }
+        } catch (IOException e) {
+            Log.e(ETIKETA, "Errorea fitxategia irakurtzean: partnerrak.xml", e);
+            throw e;
         }
         PartnerraDao dao = db.partnerraDao();
         List<Long> mantenduIds = new ArrayList<>(zerrenda.stream().map(Partnerra::getId).collect(Collectors.toList()));
@@ -200,7 +218,9 @@ public class XMLKudeatzailea {
         if (komertzialKodea == null && !komertzialIdKodea.isEmpty()) {
             komertzialKodea = komertzialIdKodea.values().iterator().next();
         }
-        if (komertzialKodea == null) komertzialKodea = "";
+        if (komertzialKodea != null && komertzialKodea.trim().isEmpty()) {
+            komertzialKodea = null;
+        }
         Partnerra p = new Partnerra();
         p.setId(id);
         p.setKodea(String.valueOf(id));
@@ -213,8 +233,9 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * bazkideak.xml inportatu: sinkronizazioa (insert, update, delete). Partnerrak (id &lt; 1000) mantentzen dira.
+     * bazkideak.xml inportatu: barne-memoriatik (edo assets-etik) irakurri. Partnerrak (id &lt; 1000) mantentzen dira.
      * Etiketak: bazkideak > bazkidea > NAN, izena, abizena, ...
+     * Eragiketa hau hila nagusitik kanpo exekutatu behar da.
      */
     public int bazkideakInportatu() throws IOException, XmlPullParserException {
         if (komertzialIdKodea.isEmpty()) {
@@ -225,7 +246,7 @@ public class XMLKudeatzailea {
         }
         List<Partnerra> zerrenda = new ArrayList<>();
         String lehenKodea = komertzialIdKodea.isEmpty() ? "" : komertzialIdKodea.values().iterator().next();
-        try (InputStream is = assetsFitxategiaIreki("bazkideak.xml")) {
+        try (InputStream is = barneFitxategiaEdoAssetsIreki("bazkideak.xml")) {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(is, "UTF-8");
@@ -240,6 +261,9 @@ public class XMLKudeatzailea {
                     atalBatJauzi(parser);
                 }
             }
+        } catch (IOException e) {
+            Log.e(ETIKETA, "Errorea fitxategia irakurtzean: bazkideak.xml", e);
+            throw e;
         }
         PartnerraDao dao = db.partnerraDao();
         List<Long> mantenduIds = new ArrayList<>(zerrenda.stream().map(Partnerra::getId).collect(Collectors.toList()));
@@ -256,7 +280,7 @@ public class XMLKudeatzailea {
         }
         // Taula bazkideak bete (bazkideak.xml egitura)
         List<Bazkidea> bazkideakZerrenda = new ArrayList<>();
-        try (InputStream is = assetsFitxategiaIreki("bazkideak.xml")) {
+        try (InputStream is = barneFitxategiaEdoAssetsIreki("bazkideak.xml")) {
             XmlPullParser parser2 = Xml.newPullParser();
             parser2.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser2.setInput(is, "UTF-8");
@@ -498,7 +522,9 @@ public class XMLKudeatzailea {
 
     /**
      * Katalogoa sarrera-fluxu batetik inportatu (ordezkaritzatik jasotako fitxategia — asteko inportazioa).
-     * Egitura bera: katalogoa > produktua > id, izena, prezioa, stock. Datu-basea berritu (upsert).
+     * Wipe-and-load: katalogoa taula guztiz ezabatu eta XMLko produktuak bakarrik txertatzen dira.
+     * Aurreko asteko stock eta prezio guztiak balio gabe uzten dira; XML da egia bakarra.
+     * Egitura: katalogoa > produktua > id, izena, prezioa, stock, irudia_path.
      */
     public int katalogoaInportatuSarreraFluxutik(InputStream is) throws IOException, XmlPullParserException {
         List<Katalogoa> zerrenda = new ArrayList<>();
@@ -515,23 +541,10 @@ public class XMLKudeatzailea {
                 atalBatJauzi(parser);
             }
         }
-        List<String> xmlArtikuluKodeak = zerrenda.stream().map(Katalogoa::getArtikuluKodea).filter(a -> a != null && !a.isEmpty()).distinct().collect(Collectors.toList());
         KatalogoaDao dao = db.katalogoaDao();
-        if (xmlArtikuluKodeak.isEmpty()) {
-            dao.ezabatuGuztiak();
-        } else {
-            dao.ezabatuArtikuluKodeakEzDirenak(xmlArtikuluKodeak);
-        }
-        for (Katalogoa k : zerrenda) {
-            Katalogoa exist = dao.artikuluaBilatu(k.getArtikuluKodea());
-            if (exist != null) {
-                if (k.getIrudiaIzena() == null || k.getIrudiaIzena().trim().isEmpty()) {
-                    k.setIrudiaIzena(exist.getIrudiaIzena());
-                }
-                dao.eguneratu(k);
-            } else {
-                dao.txertatu(k);
-            }
+        dao.ezabatuGuztiak();
+        if (!zerrenda.isEmpty()) {
+            dao.txertatuGuztiak(zerrenda);
         }
         return zerrenda.size();
     }
@@ -630,7 +643,7 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * Assets-eko fitxategi bat inportatzen du izenaren arabera.
+     * Fitxategi bat inportatzen du izenaren arabera (barne-memoriatik edo assets-etik).
      * Onartutako fitxategiak: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml.
      * Beste motak ez badira onartzen, IllegalArgumentException jaurtitzen du.
      */
@@ -658,8 +671,8 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * Assets-eko XML guztiak ordena egokian inportatzen ditu: komertzialak -> partnerrak -> bazkideak -> loginak -> katalogoa.
-     * Upsert erabiltzen du gatazkak saihesteko.
+     * XML guztiak ordena egokian inportatzen ditu (barne-memoriatik edo assets-etik): komertzialak -> partnerrak -> bazkideak -> loginak -> katalogoa.
+     * Upsert erabiltzen du; informazio berria da egia bakarra, datu umezurtzik ez uzten du.
      */
     public void guztiakInportatu() throws IOException, XmlPullParserException {
         komertzialakInportatu();

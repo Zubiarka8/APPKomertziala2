@@ -61,7 +61,11 @@ public class KatalogoaAdapter extends RecyclerView.Adapter<KatalogoaAdapter.Kata
     @Override
     public void onBindViewHolder(@NonNull KatalogoaViewHolder holder, int posizioa) {
         Katalogoa k = zerrenda.get(posizioa);
-        holder.irudia.setImageResource(irudiIdAurkitu(k.getIrudiaIzena()));
+        int irudiId = irudiIdAurkitu(k.getIrudiaIzena());
+        holder.irudia.setImageResource(irudiId);
+        holder.irudia.setContentDescription(irudiId == LEIHOKO_IRUDIA
+                ? context.getString(R.string.irudirik_gabe)
+                : context.getString(R.string.cd_katalogoa_irudia));
         holder.izena.setText(k.getIzena() != null ? k.getIzena() : "");
         holder.kodea.setText(context.getString(R.string.katalogoa_artikulu_kodea_etiketa, k.getArtikuluKodea() != null ? k.getArtikuluKodea() : ""));
         holder.prezioa.setText(formatuaPrezioa(k.getSalmentaPrezioa()));

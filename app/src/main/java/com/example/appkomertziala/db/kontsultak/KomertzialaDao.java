@@ -13,15 +13,16 @@ import java.util.List;
 
 /**
  * Komertzialak taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
+ * @Insert(onConflict = REPLACE): ID edo kodea bera duen erregistro bat badago, informazio zaharra ezabatu eta XMLko datu berriekin ordezkatzen da.
  */
 @Dao
 public interface KomertzialaDao {
 
-    /** Komertzial bat edo gehiago txertatu; gatazka bada ordezkatu (upsert). */
+    /** Komertzial bat txertatu; gatazka bada ordezkatu (upsert). XMLko datu berriek informazio zaharra ordezkatzen dute. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long txertatu(Komertziala komertziala);
 
-    /** Hainbat komertzial txertatu (upsert). */
+    /** Hainbat komertzial txertatu (upsert). Gatazka bada ordezkatu. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> txertatuGuztiak(List<Komertziala> zerrenda);
 

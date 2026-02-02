@@ -12,13 +12,14 @@ import com.example.appkomertziala.db.eredua.Katalogoa;
 import java.util.List;
 
 /**
- * Katalogoa taularen kontsultak: datuak txertatu/eguneratu (astero inportazioa),
+ * Katalogoa taularen kontsultak: asteko inportazioan wipe-and-load (ezabatuGuztiak + txertatuGuztiak),
  * katalogoa ikusi, eta stock-a eskaera egitean eguneratu.
+ * @Insert(onConflict = REPLACE) artikulu baten kodea lehendik badago zaharrak ordezkatzen ditu.
  */
 @Dao
 public interface KatalogoaDao {
 
-    /** Artikuluak kargatu: txertatu edo ordezkatu (OnConflictStrategy.REPLACE). Asteko inportazioan erabiltzen da. */
+    /** Artikuluak txertatu; gatazka bada ordezkatu (OnConflictStrategy.REPLACE). Asteko wipe-and-load inportazioan erabiltzen da. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> artikuluakKargatu(List<Katalogoa> zerrenda);
 

@@ -19,6 +19,8 @@
     <string name="xml_falta_da">xml-a \'%1$s\' falta da</string>
     <string name="xml_kargatuta">XML datuak datu-basean kargatu dira.</string>
     <string name="xml_sinkronizatuta">Datuak sinkronizatu dira (txertatuak, eguneratutakoak eta ezabatutakoak).</string>
+    <string name="datuak_ondo_eguneratu">Datuak ondo eguneratu dira. Informazio zaharra berrituta dago.</string>
+    <string name="errorea_fitxategia_irakurtzean">Errorea fitxategia irakurtzean.</string>
     <string name="xml_errorea">Errorea XML kargatzean: %1$s</string>
     <string name="btn_select_commercial">Hautatu komertziala zerrendatik</string>
     <string name="btn_sartu_komertzial_gisa">Sartu komertzial gisa (kredentzialik gabe)</string>
@@ -49,6 +51,8 @@
     <string name="btn_katalogoa_eguneratu">Katalogoa eguneratu (astero)</string>
     <string name="esportatu_ondo">XML barne-memorian gordeta.</string>
     <string name="katalogoa_eguneratu_ondo">Katalogoa eguneratuta.</string>
+    <string name="katalogoa_ondo_berritu_datu_zaharrak">Katalogoa ondo berritu da. Datu zaharrak ezabatu dira.</string>
+    <string name="irudirik_gabe">Irudirik gabe</string>
     <string name="esportatu_errorea">Errorea esportatzean: %1$s</string>
     <string name="esportatu_errorea_batzuetan">Errorea gertatu da.</string>
     <string name="postaz_gaia_bazkide_berriak">Bazkide berriak - bazkide_berriak.xml</string>

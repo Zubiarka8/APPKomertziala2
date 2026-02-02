@@ -13,16 +13,17 @@ import java.util.List;
 
 /**
  * Partnerrak taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
- * Partner bakoitza komertzial bakar bati lotuta dago.
+ * Partner bakoitza komertzial bakar bati lotuta dago (komertzialKodea).
+ * @Insert(onConflict = REPLACE): ID bera duen erregistro bat badago, informazio zaharra XMLko datu berriekin ordezkatzen da.
  */
 @Dao
 public interface PartnerraDao {
 
-    /** Partner bat txertatu; gatazka bada ordezkatu (upsert). */
+    /** Partner bat txertatu; gatazka bada ordezkatu (upsert). XMLko datu berriek informazio zaharra ordezkatzen dute. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long txertatu(Partnerra partnerra);
 
-    /** Hainbat partner txertatu (upsert). */
+    /** Hainbat partner txertatu (upsert). Gatazka bada ordezkatu. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> txertatuGuztiak(List<Partnerra> zerrenda);
 

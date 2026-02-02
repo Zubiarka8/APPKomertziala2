@@ -442,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void katalogoaEguneratu(DatuKudeatzailea datuKudeatzailea) {
         new Thread(() -> {
             boolean ondo = datuKudeatzailea.katalogoaEguneratu();
-            runOnUiThread(() -> Toast.makeText(this, ondo ? R.string.katalogoa_eguneratu_ondo : R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show());
+            runOnUiThread(() -> Toast.makeText(this, ondo ? R.string.katalogoa_ondo_berritu_datu_zaharrak : R.string.esportatu_errorea_batzuetan, Toast.LENGTH_LONG).show());
         }).start();
     }
 
@@ -909,7 +909,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     new Thread(() -> {
                         AppDatabase.getInstance(this).bazkideaDao().ezabatu(b);
                         runOnUiThread(() -> {
-                            Toast.makeText(this, R.string.btn_ezabatu, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.bazkidea_ondo_ezabatuta, Toast.LENGTH_SHORT).show();
                             kargatuBazkideakZerrenda();
                         });
                     }).start();

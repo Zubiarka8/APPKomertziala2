@@ -107,15 +107,17 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                 .show();
     }
 
-    /** Hautatutako assets XML fitxategi bakarra kargatzen du. */
+    /** Hautatutako XML fitxategi bakarra kargatzen du (barne-memoriatik edo assets-etik). Hila nagusitik kanpo. */
     private void kargatuXmlFitxategia(String fitxategiIzena) {
         new Thread(() -> {
             try {
                 XMLKudeatzailea kud = new XMLKudeatzailea(this);
                 kud.inportatuFitxategia(fitxategiIzena);
-                runOnUiThread(() -> Toast.makeText(this, R.string.xml_sinkronizatuta, Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show());
             } catch (IllegalArgumentException e) {
                 runOnUiThread(() -> Toast.makeText(this, R.string.xml_ezin_inportatu, Toast.LENGTH_LONG).show());
+            } catch (java.io.IOException e) {
+                runOnUiThread(() -> Toast.makeText(this, R.string.errorea_fitxategia_irakurtzean, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
                 String mezu = getString(R.string.xml_errorea, e.getMessage() != null ? e.getMessage() : "");
                 runOnUiThread(() -> Toast.makeText(this, mezu, Toast.LENGTH_LONG).show());
@@ -123,13 +125,15 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         }).start();
     }
 
-    /** Assets-eko XML guztiak ordena egokian kargatzen du. */
+    /** XML guztiak ordena egokian kargatzen du (komertzialak, partnerrak, bazkideak, loginak, katalogoa). Hila nagusitik kanpo. */
     private void kargatuXmlGuztiak() {
         new Thread(() -> {
             try {
                 XMLKudeatzailea kud = new XMLKudeatzailea(this);
                 kud.guztiakInportatu();
-                runOnUiThread(() -> Toast.makeText(this, R.string.xml_sinkronizatuta, Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show());
+            } catch (java.io.IOException e) {
+                runOnUiThread(() -> Toast.makeText(this, R.string.errorea_fitxategia_irakurtzean, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
                 String mezu = getString(R.string.xml_errorea, e.getMessage() != null ? e.getMessage() : "");
                 runOnUiThread(() -> Toast.makeText(this, mezu, Toast.LENGTH_LONG).show());
