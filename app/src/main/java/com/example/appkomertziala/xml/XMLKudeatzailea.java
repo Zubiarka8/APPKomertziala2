@@ -19,6 +19,7 @@ import com.example.appkomertziala.db.kontsultak.PartnerraDao;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,11 +78,16 @@ public class XMLKudeatzailea {
      * Eragiketa hau hila nagusitik kanpo exekutatu behar da.
      */
     public int komertzialakInportatu() throws IOException, XmlPullParserException {
+        return komertzialakInportatu(barneFitxategiaEdoAssetsIreki("komertzialak.xml"));
+    }
+
+    /** Gailutik: sarrera-fluxu batetik komertzialak inportatu. */
+    public int komertzialakInportatu(InputStream is) throws IOException, XmlPullParserException {
         List<Komertziala> zerrenda = new ArrayList<>();
-        try (InputStream is = barneFitxategiaEdoAssetsIreki("komertzialak.xml")) {
+        try (InputStream stream = is) {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(is, "UTF-8");
+            parser.setInput(stream, "UTF-8");
             parser.nextTag();
             parser.require(XmlPullParser.START_TAG, null, "komertzialak");
             while (parser.next() != XmlPullParser.END_TAG) {
@@ -93,9 +99,6 @@ public class XMLKudeatzailea {
                     atalBatJauzi(parser);
                 }
             }
-        } catch (IOException e) {
-            Log.e(ETIKETA, "Errorea fitxategia irakurtzean: komertzialak.xml", e);
-            throw e;
         }
         KomertzialaDao dao = db.komertzialaDao();
         dao.ezabatuGuztiak();
@@ -145,6 +148,11 @@ public class XMLKudeatzailea {
      * Eragiketa hau hila nagusitik kanpo exekutatu behar da.
      */
     public int partnerrakInportatu() throws IOException, XmlPullParserException {
+        return partnerrakInportatu(barneFitxategiaEdoAssetsIreki("partnerrak.xml"));
+    }
+
+    /** Gailutik: sarrera-fluxu batetik partnerrak inportatu. */
+    public int partnerrakInportatu(InputStream is) throws IOException, XmlPullParserException {
         if (komertzialIdKodea.isEmpty()) {
             List<Komertziala> k = db.komertzialaDao().guztiak();
             for (Komertziala kom : k) {
@@ -152,10 +160,10 @@ public class XMLKudeatzailea {
             }
         }
         List<Partnerra> zerrenda = new ArrayList<>();
-        try (InputStream is = barneFitxategiaEdoAssetsIreki("partnerrak.xml")) {
+        try (InputStream stream = is) {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(is, "UTF-8");
+            parser.setInput(stream, "UTF-8");
             parser.nextTag();
             parser.require(XmlPullParser.START_TAG, null, "partnerrak");
             while (parser.next() != XmlPullParser.END_TAG) {
@@ -166,9 +174,6 @@ public class XMLKudeatzailea {
                     atalBatJauzi(parser);
                 }
             }
-        } catch (IOException e) {
-            Log.e(ETIKETA, "Errorea fitxategia irakurtzean: partnerrak.xml", e);
-            throw e;
         }
         PartnerraDao dao = db.partnerraDao();
         List<Long> mantenduIds = new ArrayList<>(zerrenda.stream().map(Partnerra::getId).collect(Collectors.toList()));
@@ -234,10 +239,14 @@ public class XMLKudeatzailea {
 
     /**
      * bazkideak.xml inportatu: barne-memoriatik (edo assets-etik) irakurri. Partnerrak (id &lt; 1000) mantentzen dira.
-     * Etiketak: bazkideak > bazkidea > NAN, izena, abizena, ...
-     * Eragiketa hau hila nagusitik kanpo exekutatu behar da.
      */
     public int bazkideakInportatu() throws IOException, XmlPullParserException {
+        return bazkideakInportatu(barneFitxategiaEdoAssetsIreki("bazkideak.xml"));
+    }
+
+    /** Gailutik: sarrera-fluxu batetik bazkideak inportatu (bi irakurketak behar direnez, fluxua byte[] bihurtzen da). */
+    public int bazkideakInportatu(InputStream is) throws IOException, XmlPullParserException {
+        byte[] data = irakurriGuztia(is);
         if (komertzialIdKodea.isEmpty()) {
             List<Komertziala> k = db.komertzialaDao().guztiak();
             for (int i = 0; i < k.size(); i++) {
@@ -246,10 +255,10 @@ public class XMLKudeatzailea {
         }
         List<Partnerra> zerrenda = new ArrayList<>();
         String lehenKodea = komertzialIdKodea.isEmpty() ? "" : komertzialIdKodea.values().iterator().next();
-        try (InputStream is = barneFitxategiaEdoAssetsIreki("bazkideak.xml")) {
+        try (InputStream s1 = new ByteArrayInputStream(data)) {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(is, "UTF-8");
+            parser.setInput(s1, "UTF-8");
             parser.nextTag();
             parser.require(XmlPullParser.START_TAG, null, "bazkideak");
             while (parser.next() != XmlPullParser.END_TAG) {
@@ -261,9 +270,6 @@ public class XMLKudeatzailea {
                     atalBatJauzi(parser);
                 }
             }
-        } catch (IOException e) {
-            Log.e(ETIKETA, "Errorea fitxategia irakurtzean: bazkideak.xml", e);
-            throw e;
         }
         PartnerraDao dao = db.partnerraDao();
         List<Long> mantenduIds = new ArrayList<>(zerrenda.stream().map(Partnerra::getId).collect(Collectors.toList()));
@@ -278,12 +284,11 @@ public class XMLKudeatzailea {
         if (!zerrenda.isEmpty()) {
             dao.txertatuGuztiak(zerrenda);
         }
-        // Taula bazkideak bete (bazkideak.xml egitura)
         List<Bazkidea> bazkideakZerrenda = new ArrayList<>();
-        try (InputStream is = barneFitxategiaEdoAssetsIreki("bazkideak.xml")) {
+        try (InputStream s2 = new ByteArrayInputStream(data)) {
             XmlPullParser parser2 = Xml.newPullParser();
             parser2.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser2.setInput(is, "UTF-8");
+            parser2.setInput(s2, "UTF-8");
             parser2.nextTag();
             parser2.require(XmlPullParser.START_TAG, null, "bazkideak");
             while (parser2.next() != XmlPullParser.END_TAG) {
@@ -640,6 +645,43 @@ public class XMLKudeatzailea {
         String[] emaitza = xmlak.toArray(new String[0]);
         Arrays.sort(emaitza);
         return emaitza;
+    }
+
+    /**
+     * Gailutik hautatutako fitxategi bat inportatzen du (Uri / InputStream).
+     * Fitxategi-izenaren arabera: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml.
+     */
+    public void inportatuSarreraFluxutik(InputStream is, String fitxategiIzena) throws IOException, XmlPullParserException {
+        if (fitxategiIzena == null) fitxategiIzena = "";
+        String izena = fitxategiIzena.contains("/") ? fitxategiIzena.substring(fitxategiIzena.lastIndexOf('/') + 1) : fitxategiIzena;
+        izena = izena.trim().toLowerCase(Locale.ROOT);
+        switch (izena) {
+            case "komertzialak.xml":
+                komertzialakInportatu(is);
+                break;
+            case "partnerrak.xml":
+                partnerrakInportatu(is);
+                break;
+            case "bazkideak.xml":
+                bazkideakInportatu(is);
+                break;
+            case "loginak.xml":
+                loginakInportatu(is);
+                break;
+            case "katalogoa.xml":
+                katalogoaInportatuSarreraFluxutik(is);
+                break;
+            default:
+                throw new IllegalArgumentException("Fitxategi mota hau ezin da inportatu: " + izena);
+        }
+    }
+
+    private static byte[] irakurriGuztia(InputStream is) throws IOException {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = is.read(buf)) != -1) baos.write(buf, 0, n);
+        return baos.toByteArray();
     }
 
     /**

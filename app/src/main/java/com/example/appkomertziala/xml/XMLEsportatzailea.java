@@ -141,19 +141,19 @@ public class XMLEsportatzailea {
     }
 
     /**
-     * Hileroko laburpena: agendan erregistratutako bisita (eskaera) guztiak agenda_esportazioa.xml fitxategi bakar batean gorde centralera bidaltzeko.
+     * Hileroko laburpena: agendan erregistratutako bisita (eskaera) guztiak agenda.xml fitxategi bakar batean gorde centralera bidaltzeko.
      * Hilero exekutatu behar da; uneko hilabeteko eskaera goiburuak data atributuaren arabera iragazten dira.
-     * Nodoa: agenda_esportazioa > bisita > zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea.
+     * Nodoa: agenda > bisita > zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea.
      */
     public void agendaEsportatu() throws IOException {
         List<EskaeraGoiburua> hilabetekoak = datuBasea.eskaeraGoiburuaDao().hilabetekoEskaerak();
-        String fitxategiIzena = "agenda_esportazioa.xml";
+        String fitxategiIzena = "agenda.xml";
         try (OutputStream irteera = testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE)) {
             XmlSerializer idazlea = Xml.newSerializer();
             idazlea.setOutput(irteera, KODEKETA);
             idazlea.startDocument(KODEKETA, true);
             idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
-            idazlea.startTag(null, "agenda_esportazioa");
+            idazlea.startTag(null, "agenda");
             for (EskaeraGoiburua goi : hilabetekoak) {
                 idazlea.startTag(null, "bisita");
                 nodoaIdatzi(idazlea, "zenbakia", hutsaEz(goi.getZenbakia()));
@@ -163,34 +163,35 @@ public class XMLEsportatzailea {
                 nodoaIdatzi(idazlea, "partnerKodea", hutsaEz(goi.getPartnerKodea()));
                 idazlea.endTag(null, "bisita");
             }
-            idazlea.endTag(null, "agenda_esportazioa");
+            idazlea.endTag(null, "agenda");
             idazlea.endDocument();
             idazlea.flush();
         }
     }
 
     /**
-     * Katalogoa taulako artikulu guztiak katalogoa_esportazioa.xml fitxategian gorde (astero esportatzeko / Gmail bidez bidaltzeko).
-     * Nodoa: katalogoa_esportazioa > produktua > artikuluKodea, izena, salmentaPrezioa, stock.
+     * Katalogoa taulako artikulu guztiak katalogoa.xml fitxategian gorde (astero esportatzeko / Gmail bidez bidaltzeko).
+     * Nodoa: katalogoa > produktua > id, izena, prezioa, stock, irudia_path (inportazioarekin bateragarria).
      */
     public void katalogoaEsportatu() throws IOException {
         List<Katalogoa> zerrenda = datuBasea.katalogoaDao().guztiak();
-        String fitxategiIzena = "katalogoa_esportazioa.xml";
+        String fitxategiIzena = "katalogoa.xml";
         try (OutputStream irteera = testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE)) {
             XmlSerializer idazlea = Xml.newSerializer();
             idazlea.setOutput(irteera, KODEKETA);
             idazlea.startDocument(KODEKETA, true);
             idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
-            idazlea.startTag(null, "katalogoa_esportazioa");
+            idazlea.startTag(null, "katalogoa");
             for (Katalogoa k : zerrenda) {
                 idazlea.startTag(null, "produktua");
-                nodoaIdatzi(idazlea, "artikuluKodea", hutsaEz(k.getArtikuluKodea()));
+                nodoaIdatzi(idazlea, "id", hutsaEz(k.getArtikuluKodea()));
                 nodoaIdatzi(idazlea, "izena", hutsaEz(k.getIzena()));
-                nodoaIdatzi(idazlea, "salmentaPrezioa", String.valueOf(k.getSalmentaPrezioa()));
+                nodoaIdatzi(idazlea, "prezioa", String.valueOf(k.getSalmentaPrezioa()));
                 nodoaIdatzi(idazlea, "stock", String.valueOf(k.getStock()));
+                nodoaIdatzi(idazlea, "irudia_path", hutsaEz(k.getIrudiaIzena()));
                 idazlea.endTag(null, "produktua");
             }
-            idazlea.endTag(null, "katalogoa_esportazioa");
+            idazlea.endTag(null, "katalogoa");
             idazlea.endDocument();
             idazlea.flush();
         }
@@ -236,10 +237,10 @@ public class XMLEsportatzailea {
         }
     }
 
-    /** Hilabeteko agenda agenda_esportazioa.txt fitxategian (testu laua). */
+    /** Hilabeteko agenda agenda.txt fitxategian (testu laua). */
     public void agendaEsportatuTxt() throws IOException {
         List<EskaeraGoiburua> hilabetekoak = datuBasea.eskaeraGoiburuaDao().hilabetekoEskaerak();
-        String fitxategiIzena = "agenda_esportazioa.txt";
+        String fitxategiIzena = "agenda.txt";
         try (Writer idazlea = new OutputStreamWriter(testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
             idazlea.write("=== AGENDA (hilabeteko bisitak) ===\n\n");
             for (EskaeraGoiburua goi : hilabetekoak) {
@@ -250,10 +251,10 @@ public class XMLEsportatzailea {
         }
     }
 
-    /** Katalogoa katalogoa_esportazioa.txt fitxategian (testu laua). */
+    /** Katalogoa katalogoa.txt fitxategian (testu laua). */
     public void katalogoaEsportatuTxt() throws IOException {
         List<Katalogoa> zerrenda = datuBasea.katalogoaDao().guztiak();
-        String fitxategiIzena = "katalogoa_esportazioa.txt";
+        String fitxategiIzena = "katalogoa.txt";
         try (Writer idazlea = new OutputStreamWriter(testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
             idazlea.write("=== KATALOGOA ===\n\n");
             for (Katalogoa k : zerrenda) {

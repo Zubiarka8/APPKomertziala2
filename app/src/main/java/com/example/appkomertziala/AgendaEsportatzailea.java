@@ -18,8 +18,8 @@ import java.util.List;
 
 /**
  * Agenda (hileroko bisitak) bi formatutan esportatzeko kudeatzailea.
- * Ofiziala: XML hierarkikoa (agenda_hilero.xml) — ordezkaritzak datu-basea eguneratzeko erabiltzen du.
- * Irakurgarria: testu-fitxategia (agenda_oharra.txt) — bisita bakoitza lerro batean (Data - Partnerra - Deskribapena).
+ * Ofiziala: XML hierarkikoa (agenda.xml) — ordezkaritzak datu-basea eguneratzeko erabiltzen du.
+ * Irakurgarria: testu-fitxategia (agenda.txt) — bisita bakoitza lerro batean (Data - Partnerra - Deskribapena).
  */
 public class AgendaEsportatzailea {
 
@@ -27,8 +27,8 @@ public class AgendaEsportatzailea {
     private static final String KODEKETA = "UTF-8";
 
     /** Barne-memorian idazteko fitxategi izen ofizialak. */
-    public static final String FITXATEGI_XML = "agenda_hilero.xml";
-    public static final String FITXATEGI_TXT = "agenda_oharra.txt";
+    public static final String FITXATEGI_XML = "agenda.xml";
+    public static final String FITXATEGI_TXT = "agenda.txt";
 
     private final Context testuingurua;
     private final AppDatabase datuBasea;
@@ -40,7 +40,7 @@ public class AgendaEsportatzailea {
 
     /**
      * AGENDA taulako (hilabeteko bisita guztiak) datuak XML egitura hierarkiko batean gorde.
-     * Fitxategia: agenda_hilero.xml. Ordezkaritzak datu-basea eguneratzeko erabiliko duen fitxategi ofiziala.
+     * Fitxategia: agenda.xml. Ordezkaritzak datu-basea eguneratzeko erabiliko duen fitxategi ofiziala.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada
      */
@@ -52,7 +52,7 @@ public class AgendaEsportatzailea {
                 idazlea.setOutput(irteera, KODEKETA);
                 idazlea.startDocument(KODEKETA, true);
                 idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
-                idazlea.startTag(null, "agenda_hilero");
+                idazlea.startTag(null, "agenda");
                 for (EskaeraGoiburua goi : hilabetekoak) {
                     idazlea.startTag(null, "bisita");
                     nodoaIdatzi(idazlea, "zenbakia", hutsaEz(goi.getZenbakia()));
@@ -62,7 +62,7 @@ public class AgendaEsportatzailea {
                     nodoaIdatzi(idazlea, "partnerKodea", hutsaEz(goi.getPartnerKodea()));
                     idazlea.endTag(null, "bisita");
                 }
-                idazlea.endTag(null, "agenda_hilero");
+                idazlea.endTag(null, "agenda");
                 idazlea.endDocument();
                 idazlea.flush();
             }
@@ -78,7 +78,7 @@ public class AgendaEsportatzailea {
 
     /**
      * Hileroko bisitak testu-fitxategi irakurgarri batean gorde.
-     * Fitxategia: agenda_oharra.txt. Bisita bakoitza lerro batean: Data - Partnerra - Deskribapena.
+     * Fitxategia: agenda.txt. Bisita bakoitza lerro batean: Data - Partnerra - Deskribapena.
      * Informazioa modu azkarrean irakurtzeko kopia.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada

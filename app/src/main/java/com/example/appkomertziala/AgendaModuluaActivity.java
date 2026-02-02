@@ -177,7 +177,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
     }
 
     /**
-     * Barne-memorian dauden agenda_hilero.xml eta agenda_oharra.txt fitxategiak
+     * Barne-memorian dauden agenda.xml eta agenda.txt fitxategiak
      * eranskin gisa bidaltzen ditu Gmail (edo beste posta-app) bidez.
      * Helmuga: gipuzkoa@enpresa.eus. Gaia: [Techno Basque] Hileroko Agenda - HILABETEA.
      */

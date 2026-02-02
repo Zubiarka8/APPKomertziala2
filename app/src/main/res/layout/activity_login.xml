@@ -75,6 +75,16 @@
                     app:cornerRadius="@dimen/button_corner_radius"/>
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnInportatuGailutik"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_height"
+                    android:text="@string/btn_inportatu_gailutik"
+                    android:textSize="@dimen/text_size_medium"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    app:cornerRadius="@dimen/button_corner_radius"/>
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSelectCommercial"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"

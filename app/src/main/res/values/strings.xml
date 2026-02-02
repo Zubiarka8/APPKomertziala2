@@ -56,7 +56,7 @@
     <string name="btn_esportatu_agenda_xml">Esportatu XML (Ofiziala)</string>
     <string name="btn_esportatu_agenda_txt">Esportatu TXT (Kopia)</string>
     <string name="esportatu_agenda_ondo">Agenda esportatuta. Postaz bidali dezakezu.</string>
-    <string name="btn_esportatu_katalogoa">Katalogoa esportatu (katalogoa_esportazioa.xml)</string>
+    <string name="btn_esportatu_katalogoa">Katalogoa esportatu (katalogoa.xml)</string>
     <string name="btn_katalogoa_eguneratu">Katalogoa eguneratu (astero)</string>
     <string name="esportatu_ondo">XML barne-memorian gordeta.</string>
     <string name="katalogoa_eguneratu_ondo">Katalogoa eguneratuta.</string>
@@ -65,13 +65,18 @@
     <string name="esportatu_errorea">Errorea esportatzean: %1$s</string>
     <string name="esportatu_errorea_batzuetan">Errorea gertatu da.</string>
 
+    <string name="btn_inportatu_gailutik">Inportatu gailutik (XML)</string>
+    <string name="inportatu_ondo">XML inportatuta.</string>
+    <string name="inportatu_errorea">Errorea inportatzean: %1$s</string>
+    <string name="inportatu_fitxategi_ezin_irakurri">Ezin da fitxategia irakurri.</string>
+
     <!-- Postaz bidali (Gmail) -->
     <string name="postaz_gaia_bazkide_berriak">Bazkide berriak - bazkide_berriak.xml</string>
     <string name="postaz_gaia_bazkideak">Bazkideak - bazkideak.xml</string>
     <string name="postaz_gaia_eskaera_berriak">Eskaera berriak / Bidalketak - eskaera_berriak.xml</string>
-    <string name="postaz_gaia_agenda_xml">Agenda (ofiziala) - agenda_hilero.xml</string>
-    <string name="postaz_gaia_agenda_txt">Agenda (kopia) - agenda_oharra.txt</string>
-    <string name="postaz_gaia_katalogoa">Katalogoa - katalogoa_esportazioa.xml</string>
+    <string name="postaz_gaia_agenda_xml">Agenda (ofiziala) - agenda.xml</string>
+    <string name="postaz_gaia_agenda_txt">Agenda (kopia) - agenda.txt</string>
+    <string name="postaz_gaia_katalogoa">Katalogoa - katalogoa.xml</string>
     <string name="postaz_hautatu">Bidali postaz (Gmail edo beste)</string>
     <string name="postaz_fitxategi_ez">Fitxategia ez da aurkitu.</string>
     <string name="postaz_errorea">Errorea postaz bidaltzean: %1$s</string>

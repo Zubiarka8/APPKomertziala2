@@ -113,7 +113,7 @@ public class DatuKudeatzailea {
     }
 
     /**
-     * Katalogoa esportatu (astero). Katalogo guztia katalogoa_esportazioa.xml fitxategian gorde Gmail bidez bidaltzeko.
+     * Katalogoa esportatu (astero). Katalogo guztia katalogoa.xml fitxategian gorde Gmail bidez bidaltzeko.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada
      */
@@ -204,7 +204,7 @@ public class DatuKudeatzailea {
 
     /**
      * Agenda esportatu (hilero).
-     * Agendan erregistratutako bisita guztiak (eskaera goiburuak) XML fitxategi bakar batean gorde (agenda_esportazioa.xml) centralera bidaltzeko.
+     * Agendan erregistratutako bisita guztiak (eskaera goiburuak) XML fitxategi bakar batean gorde (agenda.xml) centralera bidaltzeko.
      * Garrantzitsua: hilero exekutatu behar da hileroko laburpena lortzeko; egunero ez da beharrezkoa.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada

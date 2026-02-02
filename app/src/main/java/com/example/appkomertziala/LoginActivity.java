@@ -1,9 +1,14 @@
 package com.example.appkomertziala;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +45,41 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
     private TextInputEditText etUser;
     private TextInputEditText etPassword;
 
+    private final ActivityResultLauncher<String[]> inportatuGailutikLauncher = registerForActivityResult(
+            new ActivityResultContracts.OpenDocument(),
+            uri -> {
+                if (uri == null) return;
+                new Thread(() -> {
+                    try (java.io.InputStream is = getContentResolver().openInputStream(uri)) {
+                        if (is == null) {
+                            runOnUiThread(() -> Toast.makeText(this, R.string.inportatu_fitxategi_ezin_irakurri, Toast.LENGTH_LONG).show());
+                            return;
+                        }
+                        String izena = fitxategiIzenaUri(uri);
+                        if (izena == null || izena.isEmpty()) izena = "katalogoa.xml";
+                        XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                        kud.inportatuSarreraFluxutik(is, izena);
+                        runOnUiThread(() -> Toast.makeText(this, R.string.inportatu_ondo, Toast.LENGTH_SHORT).show());
+                    } catch (Exception e) {
+                        String mezu = e.getMessage() != null ? e.getMessage() : "";
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.inportatu_errorea, mezu), Toast.LENGTH_LONG).show());
+                    }
+                }).start();
+            });
+
+    private String fitxategiIzenaUri(Uri uri) {
+        String izena = null;
+        try (Cursor c = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (c != null && c.moveToFirst()) izena = c.getString(0);
+        }
+        if (izena == null || izena.isEmpty()) {
+            String path = uri.getLastPathSegment();
+            if (path != null && path.contains("/")) izena = path.substring(path.lastIndexOf('/') + 1);
+            else izena = path;
+        }
+        return izena;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +96,8 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         MaterialButton btnSartuKomertzialGisa = findViewById(R.id.btnSartuKomertzialGisa);
 
         btnLoadXml.setOnClickListener(v -> erakutsiXmlHautaketaDialogoa());
+        MaterialButton btnInportatuGailutik = findViewById(R.id.btnInportatuGailutik);
+        btnInportatuGailutik.setOnClickListener(v -> inportatuGailutikLauncher.launch(new String[]{"application/xml", "text/xml", "*/*"}));
         btnSelectCommercial.setOnClickListener(v -> erakutsiKomertzialHautaketaDialogoa());
         btnLogin.setOnClickListener(v -> attemptLogin());
         btnSartuKomertzialGisa.setOnClickListener(v -> sartuKomertzialGisa());

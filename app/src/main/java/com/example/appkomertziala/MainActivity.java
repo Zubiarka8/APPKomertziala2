@@ -2,7 +2,9 @@ package com.example.appkomertziala;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -111,6 +113,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     kargatuBazkideakZerrenda();
                 }
             });
+
+    private final ActivityResultLauncher<String[]> inportatuGailutikLauncher = registerForActivityResult(
+            new ActivityResultContracts.OpenDocument(),
+            uri -> {
+                if (uri == null) return;
+                new Thread(() -> {
+                    try (java.io.InputStream is = getContentResolver().openInputStream(uri)) {
+                        if (is == null) {
+                            runOnUiThread(() -> Toast.makeText(this, R.string.inportatu_fitxategi_ezin_irakurri, Toast.LENGTH_LONG).show());
+                            return;
+                        }
+                        String izena = fitxategiIzenaUri(uri);
+                        if (izena == null || izena.isEmpty()) izena = "katalogoa.xml";
+                        XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                        kud.inportatuSarreraFluxutik(is, izena);
+                        runOnUiThread(() -> Toast.makeText(this, R.string.inportatu_ondo, Toast.LENGTH_SHORT).show());
+                    } catch (Exception e) {
+                        String mezu = e.getMessage() != null ? e.getMessage() : "";
+                        runOnUiThread(() -> Toast.makeText(this, getString(R.string.inportatu_errorea, mezu), Toast.LENGTH_LONG).show());
+                    }
+                }).start();
+            });
+
+    private String fitxategiIzenaUri(Uri uri) {
+        String izena = null;
+        try (Cursor c = getContentResolver().query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (c != null && c.moveToFirst()) izena = c.getString(0);
+        }
+        if (izena == null || izena.isEmpty()) {
+            String path = uri.getLastPathSegment();
+            if (path != null && path.contains("/")) izena = path.substring(path.lastIndexOf('/') + 1);
+            else izena = path;
+        }
+        return izena;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -313,6 +350,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnEsportatuAgendaTxt.setOnClickListener(v -> esportatuAgendaTXT(agendaEsportatzailea));
         btnEsportatuKatalogoa.setOnClickListener(v -> esportatuKatalogoa(datuKudeatzailea));
         btnKatalogoaEguneratu.setOnClickListener(v -> katalogoaEguneratu(datuKudeatzailea));
+        MaterialButton btnInportatuGailutik = findViewById(R.id.btnInportatuGailutik);
+        if (btnInportatuGailutik != null) {
+            btnInportatuGailutik.setOnClickListener(v -> inportatuGailutikLauncher.launch(new String[]{"application/xml", "text/xml", "*/*"}));
+        }
         MaterialButton btnSesioaItxi = findViewById(R.id.btnSesioaItxi);
         btnSesioaItxi.setOnClickListener(v -> {
             Intent intent = new Intent(this, LoginActivity.class);
@@ -366,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    /** Esportatu XML (ofiziala): agenda_hilero.xml — ordezkaritzak datu-basea eguneratzeko. */
+    /** Esportatu XML (ofiziala): agenda.xml — ordezkaritzak datu-basea eguneratzeko. */
     private void esportatuAgendaXML(AgendaEsportatzailea agendaEsportatzailea) {
         new Thread(() -> {
             boolean ondo = agendaEsportatzailea.agendaXMLSortu();
@@ -381,7 +422,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    /** Esportatu TXT (kopia irakurgarria): agenda_oharra.txt — informazioa azkar irakurtzeko. */
+    /** Esportatu TXT (kopia irakurgarria): agenda.txt — informazioa azkar irakurtzeko. */
     private void esportatuAgendaTXT(AgendaEsportatzailea agendaEsportatzailea) {
         new Thread(() -> {
             boolean ondo = agendaEsportatzailea.agendaTXTSortu();
@@ -465,7 +506,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             runOnUiThread(() -> {
                 if (ondo) {
                     Toast.makeText(this, R.string.esportatu_ondo, Toast.LENGTH_SHORT).show();
-                    bidaliPostazXmlTxt("katalogoa_esportazioa.xml", "katalogoa_esportazioa.txt", getString(R.string.postaz_gaia_katalogoa));
+                    bidaliPostazXmlTxt("katalogoa.xml", "katalogoa.txt", getString(R.string.postaz_gaia_katalogoa));
                 } else {
                     Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
                 }
