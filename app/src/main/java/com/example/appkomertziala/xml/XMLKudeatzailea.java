@@ -478,7 +478,7 @@ public class XMLKudeatzailea {
 
     /**
      * katalogoa.xml inportatu (assets-etik): sinkronizazioa (insert, update, delete). ArtikuluKodea gakoa.
-     * Etiketak: katalogoa > produktua > id, izena, prezioa, stock.
+     * Etiketak: katalogoa > produktua > id, izena, prezioa, stock, irudia_path (drawable izena, adib. macbook.jpg).
      */
     public int katalogoaInportatu() throws IOException, XmlPullParserException {
         try (InputStream is = assetsFitxategiaIreki("katalogoa.xml")) {
@@ -525,6 +525,9 @@ public class XMLKudeatzailea {
         for (Katalogoa k : zerrenda) {
             Katalogoa exist = dao.artikuluaBilatu(k.getArtikuluKodea());
             if (exist != null) {
+                if (k.getIrudiaIzena() == null || k.getIrudiaIzena().trim().isEmpty()) {
+                    k.setIrudiaIzena(exist.getIrudiaIzena());
+                }
                 dao.eguneratu(k);
             } else {
                 dao.txertatu(k);

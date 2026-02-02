@@ -36,6 +36,7 @@ import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Partnerra;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
 import com.example.appkomertziala.xml.XmlBilatzailea;
+import com.example.appkomertziala.xml.XMLKudeatzailea;
 import com.example.appkomertziala.AgendaEsportatzailea;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -51,7 +52,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import org.xmlpull.v1.XmlPullParserException;
 import java.util.List;
 import java.util.Locale;
 
@@ -527,6 +531,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         new Thread(() -> {
             List<Katalogoa> zerrenda = AppDatabase.getInstance(this).katalogoaDao().katalogoaIkusi();
             if (zerrenda == null) zerrenda = new ArrayList<>();
+            // Katalogoa hutsik badago edo inongo produktuk ez du irudia_izena, assets-eko katalogoa.xml inportatu (irudiak betetzeko).
+            boolean irudiakHutsak = zerrenda.stream().allMatch(k -> k.getIrudiaIzena() == null || k.getIrudiaIzena().trim().isEmpty());
+            if (zerrenda.isEmpty() || irudiakHutsak) {
+                try {
+                    XMLKudeatzailea kud = new XMLKudeatzailea(MainActivity.this);
+                    kud.katalogoaInportatu();
+                    zerrenda = AppDatabase.getInstance(MainActivity.this).katalogoaDao().katalogoaIkusi();
+                    if (zerrenda == null) zerrenda = new ArrayList<>();
+                } catch (IOException | XmlPullParserException ignored) { }
+            }
             final List<Katalogoa> lista = zerrenda;
             runOnUiThread(() -> {
                 if (isDestroyed()) return;

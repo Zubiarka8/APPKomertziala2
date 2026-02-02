@@ -92,7 +92,7 @@ public class SaskiaAdapter extends RecyclerView.Adapter<SaskiaAdapter.SaskiaView
         if (puntua > 0) {
             izena = izena.substring(0, puntua);
         }
-        izena = izena.replaceAll("[^a-zA-Z0-9_]", "_");
+        izena = izena.replaceAll("[^a-zA-Z0-9_]", "_").toLowerCase(Locale.ROOT);
         int id = context.getResources().getIdentifier(izena, "drawable", context.getPackageName());
         return id != 0 ? id : LEIHOKO_IRUDIA;
     }
