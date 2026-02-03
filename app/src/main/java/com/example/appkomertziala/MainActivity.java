@@ -1028,6 +1028,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (btnSaskia != null) {
             btnSaskia.setOnClickListener(v -> erakutsiSaskiaDialogoa());
         }
+        ImageButton btnEskaerak = findViewById(R.id.btnInbentarioaEskaerak);
+        if (btnEskaerak != null) {
+            btnEskaerak.setOnClickListener(v -> {
+                Intent intent = new Intent(this, EskaerakActivity.class);
+                startActivity(intent);
+            });
+        }
         saskiaBadgeEguneratu(tvSaskiaKopurua);
 
         new Thread(() -> {
@@ -1177,18 +1184,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 .setMessage(R.string.saskia_erosi_baieztatu)
                                 .setPositiveButton(R.string.bai, (d, w) -> {
                                     new Thread(() -> {
-                                        String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
-                                        if (komertzialKode == null) komertzialKode = "";
+                                        // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+                                        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                                            new com.example.appkomertziala.segurtasuna.SessionManager(MainActivity.this);
+                                        String komertzialKode = sessionManager.getKomertzialKodea();
+                                        
+                                        if (komertzialKode == null || komertzialKode.isEmpty()) {
+                                            runOnUiThread(() -> {
+                                                Toast.makeText(MainActivity.this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
+                                            });
+                                            return;
+                                        }
+                                        
                                         String zenbakia = "ESK-" + System.currentTimeMillis();
                                         String data = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(new java.util.Date());
                                         EskaeraGoiburua goi = new EskaeraGoiburua();
                                         goi.setZenbakia(zenbakia);
                                         goi.setData(data);
-                                        goi.setKomertzialKodea(komertzialKode);
-                                        if (komertzialKode != null && !komertzialKode.isEmpty()) {
-                                            Komertziala kom = db.komertzialaDao().kodeaBilatu(komertzialKode);
-                                            if (kom != null) goi.setKomertzialId(kom.getId());
-                                        }
+                                        goi.setKomertzialKodea(komertzialKode.trim());
+                                        Komertziala kom = db.komertzialaDao().kodeaBilatu(komertzialKode.trim());
+                                        if (kom != null) goi.setKomertzialId(kom.getId());
                                         goi.setOrdezkaritza("");
                                         goi.setBazkideaKodea("");
                                         db.eskaeraGoiburuaDao().txertatu(goi);

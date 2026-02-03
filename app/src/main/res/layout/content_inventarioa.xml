@@ -68,6 +68,22 @@
             android:layout_marginStart="@dimen/margin_small">
 
             <ImageButton
+                android:id="@+id/btnInbentarioaEskaerak"
+                android:layout_width="@dimen/action_button_size"
+                android:layout_height="@dimen/action_button_size"
+                android:background="@drawable/bg_action_button"
+                android:src="@drawable/ic_history_24"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/cd_eskaerak"
+                android:padding="@dimen/margin_small"/>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small">
+
+            <ImageButton
                 android:id="@+id/btnInbentarioaSaskia"
                 android:layout_width="@dimen/action_button_size"
                 android:layout_height="@dimen/action_button_size"
