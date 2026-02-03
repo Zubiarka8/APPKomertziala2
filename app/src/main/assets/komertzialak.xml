@@ -5,6 +5,7 @@
         <izena> Jon</izena>
         <abizena>Martinez</abizena>
         <posta>jon.martinez@email.com</posta>
+        <jaiotzeData>1991/03/21</jaiotzeData>
         <argazkia>persona5.jfif</argazkia>
     </komertziala>
     <komertziala>
@@ -15,9 +16,9 @@
         <jaiotzeData>1995/03/21</jaiotzeData>
         <argazkia>persona6.jfif</argazkia>
     </komertziala>
-        <komertziala>
+    <komertziala>
         <NAN>72596709J</NAN>
-        <izena>Ander</izena>
+        <izena>Ane</izena>
         <abizena>Garcia</abizena>
         <posta>ane.garcia@email.com</posta>
         <jaiotzeData>1995/03/21</jaiotzeData>

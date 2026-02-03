@@ -41,7 +41,7 @@ import com.example.appkomertziala.db.kontsultak.PartnerraDao;
         Logina.class,
         Agenda.class
     },
-    version = 9,
+    version = 12,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -212,6 +212,51 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 9 -> 10: komertzialak taulan abizena, posta, jaiotzeData, argazkia (XML komertzialak.xml egitura bateratu).
+     */
+    private static final Migration MIGRAZIO_9_10 = new Migration(9, 10) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            komertzialakZutabeakGehitu(db);
+        }
+    };
+
+    /**
+     * 10 -> 11: komertzialak taulan falta diren zutabeak gehitu (abizena, posta, jaiotzeData, argazkia).
+     * BD 10 bertsioz sortu bada entitate zaharrarekin (id, izena, kodea bakarrik), zutabeak hemen gehitzen dira.
+     */
+    private static final Migration MIGRAZIO_10_11 = new Migration(10, 11) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            komertzialakZutabeakGehitu(db);
+        }
+    };
+
+    /**
+     * 11 -> 12: komertzialak taulan entitate berriko zutabeak (abizena, posta, jaiotzeData, argazkia).
+     * BD 11 bertsioz entitate zaharrarekin sortu bada (3 zutabe bakarrik), zutabeak hemen gehitzen dira.
+     */
+    private static final Migration MIGRAZIO_11_12 = new Migration(11, 12) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            komertzialakZutabeakGehitu(db);
+        }
+    };
+
+    /** komertzialak taulan komertzialak.xml-eko eremu guztiak (abizena, posta, jaiotzeData, argazkia) badauden egiaztatu eta falta badira gehitu. */
+    private static void komertzialakZutabeakGehitu(SupportSQLiteDatabase db) {
+        if (!taulaExistitzenDa(db, "komertzialak")) return;
+        if (!zutabeaExistitzenDa(db, "komertzialak", "abizena"))
+            db.execSQL("ALTER TABLE komertzialak ADD COLUMN abizena TEXT");
+        if (!zutabeaExistitzenDa(db, "komertzialak", "posta"))
+            db.execSQL("ALTER TABLE komertzialak ADD COLUMN posta TEXT");
+        if (!zutabeaExistitzenDa(db, "komertzialak", "jaiotzeData"))
+            db.execSQL("ALTER TABLE komertzialak ADD COLUMN jaiotzeData TEXT");
+        if (!zutabeaExistitzenDa(db, "komertzialak", "argazkia"))
+            db.execSQL("ALTER TABLE komertzialak ADD COLUMN argazkia TEXT");
+    }
+
     /** Komertzialak taularen kontsultak. */
     public abstract KomertzialaDao komertzialaDao();
     /** Partnerrak taularen kontsultak. */
@@ -241,7 +286,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9)
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12)
                             .fallbackToDestructiveMigration()
                             .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
                             .build();

@@ -36,6 +36,7 @@
     <string name="error_user_required">Erabiltzailea beharrezkoa da</string>
     <string name="error_password_required">Pasahitza beharrezkoa da</string>
     <string name="login_success">Saioa hasita!</string>
+    <string name="login_error_erabiltzaile_pasahitz">Erabiltzailea edo pasahitza ez da zuzena. Kargatu loginak.xml (eta komertzialak.xml) lehenik.</string>
 
     <!-- Hasiera - goiko atala -->
     <string name="hasiera_ongietorri">Ongi etorri</string>

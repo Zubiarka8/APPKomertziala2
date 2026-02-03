@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Komertziala;
+import com.example.appkomertziala.db.eredua.Logina;
 import com.example.appkomertziala.xml.XMLKudeatzailea;
 import com.example.appkomertziala.xml.XmlBilatzailea;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -276,9 +277,29 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                 Toast.makeText(this, getString(R.string.xml_falta_da, "loginak.xml"), Toast.LENGTH_LONG).show();
                 return;
             }
-            Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+            final String userFinal = user;
+            final String passwordFinal = password;
+            new Thread(() -> {
+                AppDatabase db = AppDatabase.getInstance(this);
+                Logina logina = db.loginaDao().sarbideaBalidatu(userFinal, passwordFinal);
+                runOnUiThread(() -> {
+                    if (logina == null) {
+                        Toast.makeText(this, R.string.login_error_erabiltzaile_pasahitz, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    String komertzialKode = logina.getKomertzialKodea();
+                    Komertziala komertziala = (komertzialKode != null && !komertzialKode.isEmpty())
+                            ? db.komertzialaDao().kodeaBilatu(komertzialKode) : null;
+                    Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, MainActivity.class);
+                    if (komertziala != null) {
+                        intent.putExtra(MainActivity.EXTRA_KOMMERTZIALA_KODEA, komertziala.getKodea());
+                        intent.putExtra(MainActivity.EXTRA_KOMMERTZIALA_IZENA, komertziala.getIzena());
+                    }
+                    startActivity(intent);
+                    finish();
+                });
+            }).start();
         }
     }
 }

@@ -86,6 +86,10 @@ public class XMLEsportatzailea {
                 idazlea.startTag(null, "komertziala");
                 nodoaIdatzi(idazlea, "NAN", hutsaEz(k.getKodea()));
                 nodoaIdatzi(idazlea, "izena", hutsaEz(k.getIzena()));
+                nodoaIdatzi(idazlea, "abizena", hutsaEz(k.getAbizena()));
+                nodoaIdatzi(idazlea, "posta", hutsaEz(k.getPosta()));
+                nodoaIdatzi(idazlea, "jaiotzeData", hutsaEz(k.getJaiotzeData()));
+                nodoaIdatzi(idazlea, "argazkia", hutsaEz(k.getArgazkia()));
                 idazlea.endTag(null, "komertziala");
             }
             idazlea.endTag(null, "komertzialak");

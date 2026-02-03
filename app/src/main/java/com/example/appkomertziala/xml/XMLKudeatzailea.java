@@ -147,12 +147,15 @@ public class XMLKudeatzailea {
         return zerrenda.size();
     }
 
-    /** komertziala elementu bat irakurri (NAN, izena, abizena). */
+    /** komertziala elementu bat irakurri (NAN, izena, abizena, posta, jaiotzeData, argazkia). */
     private Komertziala komertzialaElementuaIrakurri(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "komertziala");
         String kodea = null;
         String izena = null;
         String abizena = null;
+        String posta = null;
+        String jaiotzeData = null;
+        String argazkia = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) continue;
             String name = parser.getName();
@@ -166,14 +169,31 @@ public class XMLKudeatzailea {
                 case "abizena":
                     abizena = testuaIrakurri(parser);
                     break;
+                case "posta":
+                    posta = testuaIrakurri(parser);
+                    break;
+                case "jaiotzeData":
+                    jaiotzeData = testuaIrakurri(parser);
+                    break;
+                case "argazkia":
+                    argazkia = testuaIrakurri(parser);
+                    break;
                 default:
                     atalBatJauzi(parser);
                     break;
             }
         }
-        String izenOsoa = (izena != null ? izena : "") + " " + (abizena != null ? abizena : "").trim();
+        String izenOsoa = (izena != null ? izena : "").trim() + " " + (abizena != null ? abizena : "").trim();
+        if (izenOsoa != null) izenOsoa = izenOsoa.trim();
         if (kodea == null) kodea = "";
-        return new Komertziala(izenOsoa, kodea);
+        Komertziala k = new Komertziala();
+        k.setIzena(izenOsoa != null ? izenOsoa : "");
+        k.setKodea(kodea);
+        k.setAbizena(abizena != null ? abizena : "");
+        k.setPosta(posta != null ? posta : "");
+        k.setJaiotzeData(jaiotzeData != null ? jaiotzeData : "");
+        k.setArgazkia(argazkia != null ? argazkia : "");
+        return k;
     }
 
     /**
