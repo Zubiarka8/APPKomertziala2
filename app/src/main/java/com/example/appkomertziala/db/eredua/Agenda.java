@@ -16,7 +16,9 @@ import androidx.room.PrimaryKey;
         @Index("bazkideaKodea"),
         @Index("bisitaData"),
         @Index("bazkideaId"),
-        @Index("komertzialaId")
+        @Index("komertzialaId"),
+        @Index("komertzialKodea"),
+        @Index(value = {"komertzialKodea", "bazkideaKodea", "bisitaData"}, unique = false)
     }
 )
 public class Agenda {
@@ -24,8 +26,14 @@ public class Agenda {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    /** Bisitaren data (yyyy-MM-dd edo yyyy-MM-dd HH:mm). */
+    /** Bisitaren data (yyyy-MM-dd). */
     private String bisitaData;
+
+    /** Bisitaren ordua (HH:mm formatua). */
+    private String ordua;
+
+    /** Lotutako komertzialaren kodea (komertzialak taulako kodea; erakusteko eta sinkronizaziorako). */
+    private String komertzialKodea;
 
     /** Lotutako bazkidearen kodea (bazkideak taulako kodea eremua; erakusteko). */
     private String bazkideaKodea;
@@ -57,6 +65,10 @@ public class Agenda {
     public void setId(long id) { this.id = id; }
     public String getBisitaData() { return bisitaData; }
     public void setBisitaData(String bisitaData) { this.bisitaData = bisitaData; }
+    public String getOrdua() { return ordua; }
+    public void setOrdua(String ordua) { this.ordua = ordua; }
+    public String getKomertzialKodea() { return komertzialKodea; }
+    public void setKomertzialKodea(String komertzialKodea) { this.komertzialKodea = komertzialKodea; }
     public String getBazkideaKodea() { return bazkideaKodea; }
     public void setBazkideaKodea(String bazkideaKodea) { this.bazkideaKodea = bazkideaKodea; }
     public Long getBazkideaId() { return bazkideaId; }

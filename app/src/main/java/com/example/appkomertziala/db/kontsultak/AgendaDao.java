@@ -13,7 +13,8 @@ import java.util.List;
 
 /**
  * Agenda (bisitak) taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
- * Hilabetearen arabera iragazteko kontsulta espezifikoa eskaintzen du.
+ * SEGURTASUNA: Sarbide kontrol zorrotza aplikatzen da. Query guztiek komertzialKodea filtroa dute.
+ * Ez erabili getAllVisits() - erabili getVisitsByKomertzial() ordez.
  */
 @Dao
 public interface AgendaDao {
@@ -34,26 +35,140 @@ public interface AgendaDao {
     @Delete
     int ezabatu(Agenda agenda);
 
-    /** Bisita guztiak itzuli, data arabera ordenatuta (berrienak lehenik). */
+    /**
+     * SEGURTASUNA: Metodo hau DEPRECATED da. Erabili getVisitsByKomertzial() ordez.
+     * @deprecated Sarbide kontrol zorrotzaren ondorioz, erabili getVisitsByKomertzial(String kodea) ordez
+     */
+    @Deprecated
     @Query("SELECT * FROM agenda_bisitak ORDER BY bisitaData DESC")
     List<Agenda> guztiak();
 
-    /** Gako nagusiaren arabera bisita bat bilatu. */
+    /**
+     * SEGURTASUNA: Komertzial baten bisitak bakarrik itzuli.
+     * Sarbide kontrol zorrotza: komertzial bakoitzak bere bisitak bakarrik ikus ditzake.
+     * 
+     * @param komertzialKodea Komertzialaren kodea (NAN edo identifikatzailea)
+     * @return Komertzialaren bisitak, data arabera ordenatuta (berrienak lehenik)
+     */
+    @Query("SELECT * FROM agenda_bisitak WHERE komertzialKodea = :komertzialKodea ORDER BY bisitaData DESC")
+    List<Agenda> getVisitsByKomertzial(String komertzialKodea);
+
+    /**
+     * SEGURTASUNA: Gako nagusiaren arabera bisita bat bilatu, baina bakarrik uneko komertzialarena bada.
+     * @param id Bisitaren ID
+     * @param komertzialKodea Komertzialaren kodea (segurtasuna bermatzeko)
+     */
+    @Query("SELECT * FROM agenda_bisitak WHERE id = :id AND komertzialKodea = :komertzialKodea LIMIT 1")
+    Agenda idzBilatuSegurua(long id, String komertzialKodea);
+
+    /** Gako nagusiaren arabera bisita bat bilatu (DEPRECATED - erabili idzBilatuSegurua ordez). */
+    @Deprecated
     @Query("SELECT * FROM agenda_bisitak WHERE id = :id LIMIT 1")
     Agenda idzBilatu(long id);
 
     /**
-     * Hilabetearen arabera bisitak itzuli.
-     * Uneko hilabeteko bisita guztiak (hileroko agenda esportatzeko).
+     * SEGURTASUNA: Hilabetearen arabera bisitak itzuli, uneko komertzialarenak bakarrik.
+     * @param komertzialKodea Komertzialaren kodea
      */
+    @Query("SELECT * FROM agenda_bisitak WHERE komertzialKodea = :komertzialKodea AND strftime('%Y-%m', bisitaData) = strftime('%Y-%m', 'now') ORDER BY bisitaData DESC")
+    List<Agenda> hilabetearenBisitak(String komertzialKodea);
+
+    /**
+     * SEGURTASUNA: Urte eta hilabete zehatzaren arabera bisitak itzuli, uneko komertzialarenak bakarrik.
+     * @param komertzialKodea Komertzialaren kodea
+     * @param urtea "yyyy" formatua
+     * @param hilabetea "MM" formatua (01-12)
+     */
+    @Query("SELECT * FROM agenda_bisitak WHERE komertzialKodea = :komertzialKodea AND strftime('%Y', bisitaData) = :urtea AND strftime('%m', bisitaData) = :hilabetea ORDER BY bisitaData DESC")
+    List<Agenda> hilabetearenBisitak(String komertzialKodea, String urtea, String hilabetea);
+
+    /**
+     * DEPRECATED: Erabili hilabetearenBisitak(String komertzialKodea, String urtea, String hilabetea) ordez.
+     */
+    @Deprecated
+    @Query("SELECT * FROM agenda_bisitak WHERE strftime('%Y', bisitaData) = :urtea AND strftime('%m', bisitaData) = :hilabetea ORDER BY bisitaData DESC")
+    List<Agenda> hilabetearenBisitak(String urtea, String hilabetea);
+
+    /**
+     * DEPRECATED: Erabili hilabetearenBisitak(String komertzialKodea) ordez.
+     */
+    @Deprecated
     @Query("SELECT * FROM agenda_bisitak WHERE strftime('%Y-%m', bisitaData) = strftime('%Y-%m', 'now') ORDER BY bisitaData DESC")
     List<Agenda> hilabetearenBisitak();
 
     /**
-     * Urte eta hilabete zehatzaren arabera bisitak itzuli.
-     * @param urtea "yyyy" formatua
-     * @param hilabetea "MM" formatua (01-12)
+     * SEGURTASUNA: Data zehatzaren arabera bisitak bilatu, uneko komertzialarenak bakarrik.
+     * @param data Bilaketa data (yyyy-MM-dd)
+     * @param komertzialKodea Komertzialaren kodea
      */
-    @Query("SELECT * FROM agenda_bisitak WHERE strftime('%Y', bisitaData) = :urtea AND strftime('%m', bisitaData) = :hilabetea ORDER BY bisitaData DESC")
-    List<Agenda> hilabetearenBisitak(String urtea, String hilabetea);
+    @Query("SELECT * FROM agenda_bisitak WHERE bisitaData = :data AND komertzialKodea = :komertzialKodea ORDER BY ordua ASC")
+    List<Agenda> bilatuDataz(String data, String komertzialKodea);
+
+    /**
+     * DEPRECATED: Erabili bilatuDataz(String data, String komertzialKodea) ordez.
+     */
+    @Deprecated
+    @Query("SELECT * FROM agenda_bisitak WHERE bisitaData = :data ORDER BY ordua ASC")
+    List<Agenda> bilatuDataz(String data);
+
+    /**
+     * SEGURTASUNA: Bazkide kodea edo izenaren arabera bilatu, uneko komertzialaren bisitak bakarrik.
+     * @param filter Bilaketa testua
+     * @param komertzialKodea Komertzialaren kodea
+     */
+    @Query("SELECT * FROM agenda_bisitak WHERE komertzialKodea = :komertzialKodea AND (bazkideaKodea LIKE '%' || :filter || '%' OR " +
+           "bazkideaId IN (SELECT id FROM bazkideak WHERE izena LIKE '%' || :filter || '%' OR abizena LIKE '%' || :filter || '%' OR nan LIKE '%' || :filter || '%')) " +
+           "ORDER BY bisitaData DESC")
+    List<Agenda> bilatuBezeroaz(String filter, String komertzialKodea);
+
+    /**
+     * DEPRECATED: Erabili bilatuBezeroaz(String filter, String komertzialKodea) ordez.
+     */
+    @Deprecated
+    @Query("SELECT * FROM agenda_bisitak WHERE bazkideaKodea LIKE '%' || :filter || '%' OR " +
+           "bazkideaId IN (SELECT id FROM bazkideak WHERE izena LIKE '%' || :filter || '%' OR abizena LIKE '%' || :filter || '%' OR nan LIKE '%' || :filter || '%') " +
+           "ORDER BY bisitaData DESC")
+    List<Agenda> bilatuBezeroaz(String filter);
+
+    /**
+     * SEGURTASUNA: Data tartearen arabera bilatu, uneko komertzialaren bisitak bakarrik.
+     * @param hasieraData Hasiera data (yyyy-MM-dd)
+     * @param amaieraData Amaiera data (yyyy-MM-dd)
+     * @param komertzialKodea Komertzialaren kodea
+     */
+    @Query("SELECT * FROM agenda_bisitak WHERE komertzialKodea = :komertzialKodea AND bisitaData >= :hasieraData AND bisitaData <= :amaieraData ORDER BY bisitaData DESC, ordua ASC")
+    List<Agenda> bilatuDataTarteaz(String hasieraData, String amaieraData, String komertzialKodea);
+
+    /**
+     * DEPRECATED: Erabili bilatuDataTarteaz(String hasieraData, String amaieraData, String komertzialKodea) ordez.
+     */
+    @Deprecated
+    @Query("SELECT * FROM agenda_bisitak WHERE bisitaData >= :hasieraData AND bisitaData <= :amaieraData ORDER BY bisitaData DESC, ordua ASC")
+    List<Agenda> bilatuDataTarteaz(String hasieraData, String amaieraData);
+
+    /**
+     * SEGURTASUNA: Bisita bat ezabatu, bakarrik uneko komertzialarena bada.
+     * @param id Bisitaren ID
+     * @param komertzialKodea Komertzialaren kodea (segurtasuna bermatzeko)
+     */
+    @Query("DELETE FROM agenda_bisitak WHERE id = :id AND komertzialKodea = :komertzialKodea")
+    int ezabatuSegurua(long id, String komertzialKodea);
+
+    /**
+     * SEGURTASUNA: Bisita bat eguneratu, bakarrik uneko komertzialarena bada.
+     * ONDO: Erabili @Update eguneratu() lehenik, gero egiaztatu komertzialKodea.
+     * HOBE: Erabili transakzio bat idzBilatuSegurua() eta eguneratu() erabiliz.
+     * 
+     * @param agenda Eguneratu behar den bisita (komertzialKodea eremua baliozkoa izan behar du)
+     * @param komertzialKodea Komertzialaren kodea (segurtasuna bermatzeko - egiaztatu agenda.komertzialKodea == komertzialKodea)
+     * @return Eguneratutako erregistro kopurua (1 baliozkoa bada, 0 bestela)
+     */
+    @Query("UPDATE agenda_bisitak SET bisitaData = :bisitaData, ordua = :ordua, bazkideaKodea = :bazkideaKodea, bazkideaId = :bazkideaId, deskribapena = :deskribapena, egoera = :egoera " +
+           "WHERE id = :id AND komertzialKodea = :komertzialKodea")
+    int eguneratuSegurua(long id, String bisitaData, String ordua, String bazkideaKodea, Long bazkideaId, String deskribapena, String egoera, String komertzialKodea);
+
+    /** Komertzial ID baten arabera bisitak bilatu (DEPRECATED - erabili getVisitsByKomertzial ordez). */
+    @Deprecated
+    @Query("SELECT * FROM agenda_bisitak WHERE komertzialaId = :komertzialaId ORDER BY bisitaData DESC, ordua ASC")
+    List<Agenda> bilatuKomertzialIdz(Long komertzialaId);
 }

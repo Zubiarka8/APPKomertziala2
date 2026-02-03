@@ -40,6 +40,8 @@
     <string name="error_password_required">Pasahitza beharrezkoa da</string>
     <string name="login_success">Saioa hasita!</string>
     <string name="login_error_erabiltzaile_pasahitz">Erabiltzailea edo pasahitza ez da zuzena. Kargatu loginak.xml (eta komertzialak.xml) lehenik.</string>
+    <string name="saioa_ez_dago_hasita">Saioa ez dago hasita. Mesedez, saioa hasi lehenik.</string>
+    <string name="zita_ezabatu_errorea">Errorea zita ezabatzean. Ez duzu sarbiderik edo zita ez da existitzen.</string>
 
     <!-- Hasiera - goiko atala -->
     <string name="hasiera_ongietorri">Ongi etorri</string>
@@ -145,24 +147,28 @@
     <string name="agenda_modulua_izenburua">Agenda (bisitak)</string>
     <string name="agenda_modulua_zerrenda_hutsa">Bisitarik ez. Gehitu bat «Bisita berria» botoiarekin.</string>
     <string name="agenda_modulua_bisita_berria">Bisita berria</string>
+    <string name="bilatu_bisitak">Bilatu (bazkidea, data...)</string>
     <string name="agenda_bisita_data">Bisitaren data</string>
-    <string name="agenda_bisita_partnerra">Partnerra</string>
+    <string name="agenda_bisita_partnerra">Bazkidea</string>
+    <string name="agenda_bisita_bazkidea">Bazkidea</string>
     <string name="agenda_bisita_deskribapena">Deskribapena</string>
     <string name="agenda_bisita_egoera">Egoera</string>
+    <string name="komertziala">Komertziala</string>
     <string name="egoera_egina">Egina</string>
     <string name="egoera_zain">Zain</string>
     <string name="egoera_deuseztatua">Deuseztatua</string>
     <string name="bisita_ezabatu_baieztatu">Bisita hau ezabatu nahi duzu?</string>
     <string name="bisita_ezabatu_ondo">Bisita ezabatuta.</string>
+    <string name="bisita_ez_da_aurkitu">Ez da bisita aurkitu.</string>
     <string name="bisita_ikusi_izenburua">Bisitaren xehetasunak</string>
     <string name="bisita_ondo_gordeta">Bisita gordeta.</string>
     <string name="bisita_errorea_data">Data beharrezkoa da.</string>
     <string name="bisita_errorea_data_formatua">Data formatua ez da zuzena (uuuu-hh-ee).</string>
-    <string name="bisita_errorea_partnerra">Hautatu partner bat.</string>
+    <string name="bisita_errorea_partnerra">Hautatu bazkide bat.</string>
     <string name="bisita_errorea_deskribapena_hutsa">Deskribapena beharrezkoa da.</string>
     <string name="bisita_errorea_deskribapena_luzea">Deskribapena luzeegia da (gehienez %1$d karaktere).</string>
     <string name="eremu_guztiak_bete_behar_dira">Errorea: Eremu guztiak bete behar dira.</string>
-    <string name="bisita_partnerra_ez_datu_basean">Partnerra ez da datu-basean (Partnerra taula). Eremua baliozkoa izan behar du.</string>
+    <string name="bisita_partnerra_ez_datu_basean">Bazkidea ez da datu-basean (Bazkideak taula). Eremua baliozkoa izan behar du.</string>
     <string name="postaz_fitxategia_hutsik">Fitxategia hutsik dago; ezin da postaz bidali.</string>
     <string name="barne_memoria_lekurik_ez">Barne-memorian ez dago nahikoa lekurik fitxategia idazteko.</string>
     <string name="postaz_gaia_hilero">[Techno Basque] Hileroko Agenda - %1$s</string>

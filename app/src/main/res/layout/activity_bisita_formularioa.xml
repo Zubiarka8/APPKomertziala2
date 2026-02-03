@@ -46,6 +46,25 @@
                         android:maxLines="1"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBisitaOrdua"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:hint="@string/zita_ordua"
+                    app:startIconDrawable="@drawable/ic_clock"
+                    app:startIconContentDescription="@string/zita_ordua_icon_cd"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBisitaOrdua"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="time"
+                        android:maxLines="1"
+                        android:hint="HH:mm"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -55,7 +74,7 @@
                     android:layout_marginBottom="@dimen/margin_small"/>
 
                 <Spinner
-                    android:id="@+id/spinnerBisitaPartnerra"
+                    android:id="@+id/spinnerBisitaBazkidea"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/margin_medium"

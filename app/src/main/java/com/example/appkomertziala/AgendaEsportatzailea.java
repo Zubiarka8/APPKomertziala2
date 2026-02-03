@@ -64,6 +64,7 @@ public class AgendaEsportatzailea {
 
     /**
      * AGENDA taulako (agenda_bisitak) hilabeteko bisitak XML egitura hierarkiko batean gorde.
+     * SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatzen dira.
      * Fitxategia: agenda.xml. Fitxategien egiaztapena: barne-memorian leku nahikoa; errore-kudeaketa (try-catch) log-ean euskaraz.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada (log-ean euskaraz)
@@ -74,7 +75,18 @@ public class AgendaEsportatzailea {
             return false;
         }
         try {
-            List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak();
+            // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+            com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                new com.example.appkomertziala.segurtasuna.SessionManager(testuingurua);
+            String komertzialKodea = sessionManager.getKomertzialKodea();
+            
+            if (komertzialKodea == null || komertzialKodea.isEmpty()) {
+                Log.e(ETIKETA_LOG, "Agenda XML ez sortu: saioa ez dago hasita.");
+                return false;
+            }
+            
+            // SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatu
+            List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak(komertzialKodea);
             try (OutputStream irteera = testuingurua.openFileOutput(FITXATEGI_XML, Context.MODE_PRIVATE)) {
                 XmlSerializer idazlea = Xml.newSerializer();
                 idazlea.setOutput(irteera, KODEKETA);
@@ -105,6 +117,7 @@ public class AgendaEsportatzailea {
 
     /**
      * Hileroko bisitak (agenda_bisitak) testu-fitxategi irakurgarri batean gorde.
+     * SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatzen dira.
      * Fitxategia: agenda.txt. Fitxategien egiaztapena eta errore-kudeaketa (try-catch) log-ean euskaraz.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada
@@ -115,7 +128,18 @@ public class AgendaEsportatzailea {
             return false;
         }
         try {
-            List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak();
+            // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+            com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                new com.example.appkomertziala.segurtasuna.SessionManager(testuingurua);
+            String komertzialKodea = sessionManager.getKomertzialKodea();
+            
+            if (komertzialKodea == null || komertzialKodea.isEmpty()) {
+                Log.e(ETIKETA_LOG, "Agenda TXT ez sortu: saioa ez dago hasita.");
+                return false;
+            }
+            
+            // SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatu
+            List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak(komertzialKodea);
             try (OutputStreamWriter idazlea = new OutputStreamWriter(
                     testuingurua.openFileOutput(FITXATEGI_TXT, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
                 for (Agenda a : hilabetekoak) {

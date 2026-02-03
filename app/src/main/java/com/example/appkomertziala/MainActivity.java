@@ -231,14 +231,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         TextView tvErabiltzaileIzena = findViewById(R.id.tvErabiltzaileIzena);
         if (tvErabiltzaileIzena == null) return;
 
-        Intent intent = getIntent();
-        if (intent == null) {
-            tvErabiltzaileIzena.setVisibility(View.GONE);
-            return;
-        }
-
-        // Lehenengo komertziala bilatu
-        String komertzialKodea = intent.getStringExtra(EXTRA_KOMMERTZIALA_KODEA);
+        // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+            new com.example.appkomertziala.segurtasuna.SessionManager(this);
+        String komertzialKodea = sessionManager.getKomertzialKodea();
+        String komertzialIzena = sessionManager.getKomertzialIzena();
+        
         if (komertzialKodea != null && !komertzialKodea.trim().isEmpty()) {
             // Komertziala datu-basean bilatu eta izena + abizena erakutsi
             new Thread(() -> {
@@ -270,7 +268,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        // Bestela bazkidea bilatu
+        // Bestela bazkidea bilatu (atzera-egokitasunerako, baina SEGURTASUNA: SessionManager lehenetsia da)
+        Intent intent = getIntent();
+        if (intent == null) {
+            tvErabiltzaileIzena.setVisibility(View.GONE);
+            return;
+        }
+        
         String bazkideaNan = intent.getStringExtra(EXTRA_BAZKIDEA_NAN);
         long bazkideaId = intent.getLongExtra(EXTRA_BAZKIDEA_ID, -1);
         
@@ -327,10 +331,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void setupAgendaCitaGehitu() {
         if (fabAgendaZitaGehitu != null) {
             fabAgendaZitaGehitu.setOnClickListener(v -> {
+                // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+                com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                    new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                String komertzialKode = sessionManager.getKomertzialKodea();
+                
+                if (komertzialKode == null || komertzialKode.isEmpty()) {
+                    Toast.makeText(this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
                 Intent intent = new Intent(this, BisitaFormularioActivity.class);
                 intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, -1L);
-                String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
-                if (komertzialKode != null) intent.putExtra(EXTRA_KOMMERTZIALA_KODEA, komertzialKode);
+                intent.putExtra(EXTRA_KOMMERTZIALA_KODEA, komertzialKode);
                 bisitaFormularioLauncher.launch(intent);
             });
         }
@@ -355,8 +368,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         new Thread(() -> {
             try {
+                // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+                com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                    new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                String komertzialKodea = sessionManager.getKomertzialKodea();
+                
+                if (komertzialKodea == null || komertzialKodea.isEmpty()) {
+                    runOnUiThread(() -> {
+                        if (!isDestroyed()) {
+                            tvHutsa.setVisibility(View.VISIBLE);
+                            tvHutsa.setText(getString(R.string.saioa_ez_dago_hasita));
+                            listContainer.removeAllViews();
+                        }
+                    });
+                    return;
+                }
+                
                 AppDatabase db = AppDatabase.getInstance(this);
-                List<Agenda> bisitak = db.agendaDao().guztiak();
+                // SEGURTASUNA: getVisitsByKomertzial erabili, ez guztiak()
+                List<Agenda> bisitak = db.agendaDao().getVisitsByKomertzial(komertzialKodea);
                 if (bisitak == null) bisitak = new ArrayList<>();
 
                 ArrayList<Object[]> erakusteko = new ArrayList<>();
@@ -450,10 +480,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /** Bisita editatzeko BisitaFormularioActivity ireki (Editatu botoia). Komertzialaren kodea bidaltzen da (sortzailearen ID erresolbatzeko). */
     private void editatuZita(long agendaId) {
+        // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+            new com.example.appkomertziala.segurtasuna.SessionManager(this);
+        String komertzialKode = sessionManager.getKomertzialKodea();
+        
+        if (komertzialKode == null || komertzialKode.isEmpty()) {
+            Toast.makeText(this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
+            return;
+        }
+        
         Intent intent = new Intent(this, BisitaFormularioActivity.class);
         intent.putExtra(BisitaFormularioActivity.EXTRA_BISITA_ID, agendaId);
-        String komertzialKode = getIntent() != null ? getIntent().getStringExtra(EXTRA_KOMMERTZIALA_KODEA) : null;
-        if (komertzialKode != null) intent.putExtra(EXTRA_KOMMERTZIALA_KODEA, komertzialKode);
+        intent.putExtra(EXTRA_KOMMERTZIALA_KODEA, komertzialKode);
         bisitaFormularioLauncher.launch(intent);
     }
 
@@ -464,13 +503,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setMessage(R.string.zita_ezabatu_baieztatu)
                 .setPositiveButton(R.string.bai, (dialog, which) -> {
                     new Thread(() -> {
-                        AppDatabase db = AppDatabase.getInstance(this);
-                        Agenda a = db.agendaDao().idzBilatu(agendaId);
-                        if (a != null) {
-                            db.agendaDao().ezabatu(a);
+                        // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+                        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                            new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                        String komertzialKodea = sessionManager.getKomertzialKodea();
+                        
+                        if (komertzialKodea == null || komertzialKodea.isEmpty()) {
                             runOnUiThread(() -> {
-                                Toast.makeText(this, R.string.zita_ezabatu_ondo, Toast.LENGTH_SHORT).show();
-                                kargatuAgendaZitak();
+                                Toast.makeText(this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
+                            });
+                            return;
+                        }
+                        
+                        AppDatabase db = AppDatabase.getInstance(this);
+                        // SEGURTASUNA: idzBilatuSegurua erabili, ez idzBilatu
+                        Agenda a = db.agendaDao().idzBilatuSegurua(agendaId, komertzialKodea);
+                        if (a != null) {
+                            // SEGURTASUNA: ezabatuSegurua erabili, ez ezabatu
+                            int emaitza = db.agendaDao().ezabatuSegurua(agendaId, komertzialKodea);
+                            runOnUiThread(() -> {
+                                if (emaitza > 0) {
+                                    Toast.makeText(this, R.string.zita_ezabatu_ondo, Toast.LENGTH_SHORT).show();
+                                    kargatuAgendaZitak();
+                                } else {
+                                    Toast.makeText(this, R.string.zita_ezabatu_errorea, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        } else {
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, R.string.zita_ezabatu_errorea, Toast.LENGTH_LONG).show();
                             });
                         }
                     }).start();
@@ -514,6 +575,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         MaterialButton btnSesioaItxi = findViewById(R.id.btnSesioaItxi);
         btnSesioaItxi.setOnClickListener(v -> {
+            // SEGURTASUNA: SessionManager erabiliz saioa itxi
+            com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                new com.example.appkomertziala.segurtasuna.SessionManager(this);
+            sessionManager.saioaItxi();
+            
             Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);

@@ -128,7 +128,11 @@ public class XMLKudeatzailea {
                 if (parser.getEventType() != XmlPullParser.START_TAG) continue;
                 String name = parser.getName();
                 if ("komertziala".equals(name)) {
-                    zerrenda.add(komertzialaElementuaIrakurri(parser));
+                    Komertziala k = komertzialaElementuaIrakurri(parser);
+                    // SEGURTASUNA: Null ez bada bakarrik gehitu (kodea baliozkoa dela egiaztatu)
+                    if (k != null) {
+                        zerrenda.add(k);
+                    }
                 } else {
                     atalBatJauzi(parser);
                 }
@@ -187,7 +191,14 @@ public class XMLKudeatzailea {
         }
         String izenOsoa = (izena != null ? izena : "").trim() + " " + (abizena != null ? abizena : "").trim();
         if (izenOsoa != null) izenOsoa = izenOsoa.trim();
-        if (kodea == null) kodea = "";
+        
+        // SEGURTASUNA: Komertzial kodea balidatu - kodea hutsik ez egotea egiaztatu
+        if (kodea == null || kodea.trim().isEmpty()) {
+            Log.w(ETIKETA, "komertzialaElementuaIrakurri: Komertzial baztertua, kodea hutsik dago (izena: " + izena + ")");
+            return null; // Null itzuli, ez da txertatuko
+        }
+        
+        kodea = kodea.trim();
         Komertziala k = new Komertziala();
         k.setIzena(izenOsoa != null ? izenOsoa : "");
         k.setKodea(kodea);
@@ -689,54 +700,170 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * agenda.xml inportatu. Bi formatu onartzen dira:
-     * - Agenda (agenda_bisitak): bisita > bisita_data, bazkidea_kodea, deskribapena, egoera.
+     * agenda.xml inportatu transakzio bakar batean (upsert logika).
+     * Bi formatu onartzen dira:
+     * - Agenda (agenda_bisitak): bisita > bisita_data, ordua, komertzial_kodea, bazkidea_kodea, deskribapena, egoera.
      * - EskaeraGoiburua (zitak zaharrak): bisita > zenbakia, data, komertzialKodea, ordezkaritza, bazkideaKodea.
+     * 
+     * Upsert logika: Komertzial bat existitzen bada (kodea), bere informazioa eguneratu; 
+     * existitzen ez bada, berria txertatu (OnConflictStrategy.REPLACE erabiliz).
+     * Transakzio bakar batean exekutatzen da errendimendua bermatzeko.
      */
     public int agendaInportatu(InputStream is) throws IOException, XmlPullParserException {
+        List<Agenda> bisitak = new ArrayList<>();
+        List<EskaeraGoiburua> eskaeraGoiburuak = new ArrayList<>();
+        
+        // XML parseatu lehenik
         XmlPullParser parser = Xml.newPullParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
         parser.setInput(is, "UTF-8");
         parser.nextTag();
         parser.require(XmlPullParser.START_TAG, null, "agenda");
-        int count = 0;
-        AgendaDao agendaDao = db.agendaDao();
-        EskaeraGoiburuaDao eskaeraDao = db.eskaeraGoiburuaDao();
+        
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) continue;
             if ("bisita".equals(parser.getName())) {
                 Map<String, String> map = bisitaElementuaMap(parser);
                 if (map.containsKey("bisita_data")) {
-                    Agenda a = new Agenda();
-                    a.setBisitaData(trimm(map.get("bisita_data")));
-                    // Compatibilidad: aceptar tanto partner_kodea como bazkidea_kodea
-                    String bazkideaKodea = trimm(map.get("bazkidea_kodea"));
-                    if (bazkideaKodea == null || bazkideaKodea.isEmpty()) {
-                        bazkideaKodea = trimm(map.get("partner_kodea"));
+                    // Agenda formatua
+                    Agenda a = bisitaMapToAgenda(map);
+                    if (a != null) {
+                        bisitak.add(a);
                     }
-                    a.setBazkideaKodea(bazkideaKodea);
-                    a.setDeskribapena(trimm(map.get("deskribapena")));
-                    a.setEgoera(trimm(map.get("egoera")));
-                    agendaDao.txertatu(a);
-                    count++;
                 } else {
+                    // EskaeraGoiburua formatua (zitak zaharrak)
                     EskaeraGoiburua goi = bisitaMapToEskaeraGoiburua(map);
-                    if (goi.getKomertzialKodea() != null && !goi.getKomertzialKodea().isEmpty()) {
-                        Komertziala kom = db.komertzialaDao().kodeaBilatu(goi.getKomertzialKodea().trim());
-                        if (kom != null) goi.setKomertzialId(kom.getId());
+                    if (goi != null) {
+                        eskaeraGoiburuak.add(goi);
                     }
-                    if (goi.getBazkideaKodea() != null && !goi.getBazkideaKodea().isEmpty()) {
-                        Bazkidea bazkidea = db.bazkideaDao().nanBilatu(goi.getBazkideaKodea().trim());
-                        if (bazkidea != null) goi.setBazkideaId(bazkidea.getId());
-                    }
-                    eskaeraDao.txertatu(goi);
-                    count++;
                 }
             } else {
                 atalBatJauzi(parser);
             }
         }
-        return count;
+        
+        if (bisitak.isEmpty() && eskaeraGoiburuak.isEmpty()) {
+            Log.w(ETIKETA, "agendaInportatu: XML hutsik dago edo ez da bisitarik aurkitu");
+            return 0;
+        }
+        
+        // Transakzioan gorde datu guztiak (errendimendu maximoa)
+        try {
+            int emaitzaKopurua = db.runInTransaction(() -> {
+                AgendaDao agendaDao = db.agendaDao();
+                EskaeraGoiburuaDao eskaeraDao = db.eskaeraGoiburuaDao();
+                
+                int kopurua = 0;
+                
+                // Bisitak prozesatu (upsert: komertzialKodea + bazkideaKodea + bisitaData gako konposatua)
+                for (Agenda bisita : bisitak) {
+                    try {
+                        // SEGURTASUNA: Komertzial kodea balidatu - kodea existitzen dela egiaztatu
+                        String komertzialKodea = bisita.getKomertzialKodea();
+                        if (komertzialKodea == null || komertzialKodea.trim().isEmpty()) {
+                            Log.w(ETIKETA, "agendaInportatu: Bisita baztertua, komertzialKodea hutsik dago (data: " + bisita.getBisitaData() + ")");
+                            continue;
+                        }
+                        
+                        komertzialKodea = komertzialKodea.trim();
+                        Komertziala komertziala = db.komertzialaDao().kodeaBilatu(komertzialKodea);
+                        if (komertziala == null) {
+                            Log.w(ETIKETA, "agendaInportatu: Bisita baztertua, komertzial kodea ez da existitzen: " + komertzialKodea + " (data: " + bisita.getBisitaData() + ")");
+                            continue;
+                        }
+                        
+                        // Komertziala baliozkoa da, IDa ezarri
+                        bisita.setKomertzialaId(komertziala.getId());
+                        bisita.setKomertzialKodea(komertzialKodea); // Ziurtatu kodea garbia dela
+                        
+                        // Bazkidea bilatu kodea erabiliz
+                        if (bisita.getBazkideaKodea() != null && !bisita.getBazkideaKodea().trim().isEmpty()) {
+                            Bazkidea bazkidea = db.bazkideaDao().nanBilatu(bisita.getBazkideaKodea().trim());
+                            if (bazkidea != null) {
+                                bisita.setBazkideaId(bazkidea.getId());
+                            }
+                        }
+                        
+                        // Upsert: REPLACE estrategia erabiliz (existitzen bada eguneratu, bestela sortu)
+                        long id = agendaDao.txertatu(bisita);
+                        if (id > 0) {
+                            kopurua++;
+                            Log.d(ETIKETA, "agendaInportatu: Bisita prozesatua (ID: " + id + ", komertzial: " + komertzialKodea + ", data: " + bisita.getBisitaData() + ")");
+                        }
+                    } catch (Exception e) {
+                        Log.e(ETIKETA, "agendaInportatu: Errorea bisita prozesatzean", e);
+                        // Jarraitu hurrengo bisitarekin
+                    }
+                }
+                
+                // EskaeraGoiburuak prozesatu
+                for (EskaeraGoiburua goi : eskaeraGoiburuak) {
+                    try {
+                        // SEGURTASUNA: Komertzial kodea balidatu - kodea existitzen dela egiaztatu
+                        String komertzialKodea = goi.getKomertzialKodea();
+                        if (komertzialKodea == null || komertzialKodea.trim().isEmpty()) {
+                            Log.w(ETIKETA, "agendaInportatu: EskaeraGoiburua baztertua, komertzialKodea hutsik dago (zenbakia: " + goi.getZenbakia() + ")");
+                            continue;
+                        }
+                        
+                        komertzialKodea = komertzialKodea.trim();
+                        Komertziala kom = db.komertzialaDao().kodeaBilatu(komertzialKodea);
+                        if (kom == null) {
+                            Log.w(ETIKETA, "agendaInportatu: EskaeraGoiburua baztertua, komertzial kodea ez da existitzen: " + komertzialKodea + " (zenbakia: " + goi.getZenbakia() + ")");
+                            continue;
+                        }
+                        
+                        // Komertziala baliozkoa da, IDa ezarri
+                        goi.setKomertzialId(kom.getId());
+                        goi.setKomertzialKodea(komertzialKodea); // Ziurtatu kodea garbia dela
+                        
+                        if (goi.getBazkideaKodea() != null && !goi.getBazkideaKodea().isEmpty()) {
+                            Bazkidea bazkidea = db.bazkideaDao().nanBilatu(goi.getBazkideaKodea().trim());
+                            if (bazkidea != null) goi.setBazkideaId(bazkidea.getId());
+                        }
+                        eskaeraDao.txertatu(goi);
+                        kopurua++;
+                        Log.d(ETIKETA, "agendaInportatu: EskaeraGoiburua prozesatua (zenbakia: " + goi.getZenbakia() + ", komertzial: " + komertzialKodea + ")");
+                    } catch (Exception e) {
+                        Log.e(ETIKETA, "agendaInportatu: Errorea eskaeraGoiburua prozesatzean", e);
+                    }
+                }
+                
+                Log.d(ETIKETA, "agendaInportatu: Transakzioa osatua - " + kopurua + " erregistro prozesatu");
+                return kopurua;
+            });
+            
+            return emaitzaKopurua;
+        } catch (Exception e) {
+            Log.e(ETIKETA, "agendaInportatu: Errorea transakzioan", e);
+            throw new RuntimeException("Errorea agenda inportatzean: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Bisita map bat Agenda entitatera bihurtu.
+     */
+    private Agenda bisitaMapToAgenda(Map<String, String> map) {
+        String bisitaData = trimm(map.get("bisita_data"));
+        if (bisitaData == null || bisitaData.isEmpty()) {
+            return null;
+        }
+        
+        Agenda a = new Agenda();
+        a.setBisitaData(bisitaData);
+        a.setOrdua(trimm(map.get("ordua")));
+        a.setKomertzialKodea(trimm(map.get("komertzial_kodea")));
+        
+        // Compatibilidad: aceptar tanto partner_kodea como bazkidea_kodea
+        String bazkideaKodea = trimm(map.get("bazkidea_kodea"));
+        if (bazkideaKodea == null || bazkideaKodea.isEmpty()) {
+            bazkideaKodea = trimm(map.get("partner_kodea"));
+        }
+        a.setBazkideaKodea(bazkideaKodea);
+        a.setDeskribapena(trimm(map.get("deskribapena")));
+        a.setEgoera(trimm(map.get("egoera")));
+        
+        return a;
     }
 
     private static String trimm(String s) {

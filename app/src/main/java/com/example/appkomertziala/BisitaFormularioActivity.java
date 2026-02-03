@@ -13,6 +13,7 @@ import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.Komertziala;
+import com.example.appkomertziala.xml.XMLKudeatzailea;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -61,6 +62,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         konfiguratuFokuseanErroreakGarbitu();
         beteEgoeraSpinner();
         binding.etBisitaData.setOnClickListener(v -> erakutsiDataHautatzailea());
+        binding.etBisitaOrdua.setOnClickListener(v -> erakutsiOrduaHautatzailea());
         binding.btnBisitaUtzi.setOnClickListener(v -> finish());
         binding.btnBisitaGorde.setOnClickListener(v -> gordeBisita());
 
@@ -79,6 +81,11 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         binding.etBisitaData.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) binding.tilBisitaData.setError(null);
         });
+        if (binding.etBisitaOrdua != null) {
+            binding.etBisitaOrdua.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus && binding.tilBisitaOrdua != null) binding.tilBisitaOrdua.setError(null);
+            });
+        }
         binding.etBisitaDeskribapena.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) binding.tilBisitaDeskribapena.setError(null);
         });
@@ -122,48 +129,133 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         hautatzailea.show(getSupportFragmentManager(), "DATA_PICKER");
     }
 
+    /** Ordua hautatzeko TimePicker erakusten du. Ordua formatua HH:mm mantentzen da. */
+    private void erakutsiOrduaHautatzailea() {
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+                this,
+                (view, hourOfDay, minute) -> {
+                    String ordua = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
+                    binding.etBisitaOrdua.setText(ordua);
+                },
+                java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY),
+                java.util.Calendar.getInstance().get(java.util.Calendar.MINUTE),
+                true
+        );
+        timePickerDialog.show();
+    }
+
     /**
      * Bazkideak datu-baseatik kargatu eta spinnerra bete.
+     * Bazkide GUZTIAK kargatzen dira, iragazkirik gabe.
+     * Hutsik badago, XML guztiak kargatzen ditu (datu-basea betetzeko) eta gero zerrenda osoa erakusten du.
      * Editatzeko: spinner bete ondoren bisita kargatzen da, hautatutako bazkidea lehentasunez mantentzeko.
      */
     private void kargatuBazkideak() {
         new Thread(() -> {
-            bazkideak = datuBasea.bazkideaDao().guztiak();
-            if (bazkideak == null) bazkideak = new ArrayList<>();
-            runOnUiThread(() -> {
-                beteBazkideaSpinner();
-                if (editatuId >= 0) kargatuBisitaEditatzeko();
-            });
+            try {
+                // Bazkide GUZTIAK kargatu, iragazkirik gabe
+                bazkideak = datuBasea.bazkideaDao().guztiak();
+                if (bazkideak == null) {
+                    bazkideak = new ArrayList<>();
+                }
+                
+                // Hutsik badago, XML guztiak kargatzen ditu (datu-basea betetzeko)
+                if (bazkideak.isEmpty()) {
+                    try {
+                        XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                        kud.guztiakInportatu();
+                        bazkideak = datuBasea.bazkideaDao().guztiak();
+                    } catch (Exception e) {
+                        try {
+                            XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                            kud.inportatuFitxategia("bazkideak.xml");
+                            bazkideak = datuBasea.bazkideaDao().guztiak();
+                        } catch (Exception ignored) {
+                            // Utzi zerrenda hutsik
+                        }
+                    }
+                }
+                
+                if (bazkideak == null) {
+                    bazkideak = new ArrayList<>();
+                }
+                
+                Log.d(ETIKETA_LOG, "Bazkideak kargatuta: " + bazkideak.size() + " bazkide");
+                runOnUiThread(() -> {
+                    beteBazkideaSpinner();
+                    if (editatuId >= 0) kargatuBisitaEditatzeko();
+                });
+            } catch (Exception e) {
+                Log.e(ETIKETA_LOG, "Errorea bazkideak kargatzean: " + (e.getMessage() != null ? e.getMessage() : "ezezaguna"), e);
+                bazkideak = new ArrayList<>();
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Errorea bazkideak kargatzean", Toast.LENGTH_SHORT).show();
+                    beteBazkideaSpinner();
+                });
+            }
         }).start();
     }
 
-    /** Bazkidea spinnerra bete (lehenengo errenkada: «Hautatu»). */
+    /** Bazkidea spinnerra bete (lehenengo errenkada: «Hautatu»). Bazkide GUZTIAK erakusten dira. */
     private void beteBazkideaSpinner() {
         List<String> izenak = new ArrayList<>();
+        // Lehenengo errenkada: hautaketa hutsa
         izenak.add(getString(R.string.agenda_bisita_partnerra) + " —");
-        for (Bazkidea b : bazkideak) {
-            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
-                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
-            String nan = b.getNan() != null ? b.getNan() : "";
-            String s = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
-            izenak.add(s);
+        
+        // Bazkide GUZTIAK gehitu spinnerrera
+        if (bazkideak != null && !bazkideak.isEmpty()) {
+            for (Bazkidea b : bazkideak) {
+                String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                               (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                String nan = b.getNan() != null ? b.getNan() : "";
+                String s = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
+                izenak.add(s);
+            }
+            Log.d(ETIKETA_LOG, "Spinner beteta: " + izenak.size() + " elementu (1 hautaketa + " + bazkideak.size() + " bazkide)");
+        } else {
+            Log.w(ETIKETA_LOG, "Bazkide zerrenda hutsik dago edo null da");
         }
+        
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, izenak);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.spinnerBisitaPartnerra.setAdapter(adapter);
+        binding.spinnerBisitaBazkidea.setAdapter(adapter);
     }
 
     /** Editatzeko: bisita kargatu eta eremuak bete. */
     private void kargatuBisitaEditatzeko() {
         new Thread(() -> {
-            Agenda a = datuBasea.agendaDao().idzBilatu(editatuId);
-            if (a == null) return;
+            // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+            com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                new com.example.appkomertziala.segurtasuna.SessionManager(this);
+            String komertzialKodea = sessionManager.getKomertzialKodea();
+            
+            if (komertzialKodea == null || komertzialKodea.isEmpty()) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Saioa ez dago hasita", Toast.LENGTH_LONG).show();
+                    finish();
+                });
+                return;
+            }
+            
+            // SEGURTASUNA: idzBilatuSegurua erabili, ez idzBilatu
+            Agenda a = datuBasea.agendaDao().idzBilatuSegurua(editatuId, komertzialKodea);
+            if (a == null) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Bisita ez da aurkitu edo ez duzu sarbiderik", Toast.LENGTH_LONG).show();
+                    finish();
+                });
+                return;
+            }
             final String data = a.getBisitaData() != null ? a.getBisitaData() : "";
+            final String ordua = a.getOrdua() != null ? a.getOrdua() : "";
             final String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena() : "";
             final String bazkideaKodea = a.getBazkideaKodea() != null ? a.getBazkideaKodea() : "";
             final String egoera = a.getEgoera() != null ? a.getEgoera() : "";
             runOnUiThread(() -> {
                 binding.etBisitaData.setText(data);
+                if (binding.etBisitaOrdua != null) {
+                    binding.etBisitaOrdua.setText(ordua);
+                }
                 binding.etBisitaDeskribapena.setText(deskribapena);
                 hautatuBazkideaSpinner(bazkideaKodea);
                 hautatuEgoeraSpinner(egoera);
@@ -177,7 +269,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         for (int i = 0; i < bazkideak.size(); i++) {
             Bazkidea b = bazkideak.get(i);
             if (b.getNan() != null && b.getNan().equals(bazkideaKodea)) {
-                binding.spinnerBisitaPartnerra.setSelection(i + 1);
+                binding.spinnerBisitaBazkidea.setSelection(i + 1);
                 return;
             }
         }
@@ -195,19 +287,22 @@ public class BisitaFormularioActivity extends AppCompatActivity {
 
     /**
      * Datuen balidazioa (UI mailan).
-     * Hutsen kontrolak: data, partner_kodea eta deskribapena ez hutsik.
-     * Formatuen egiaztapena: data YYYY-MM-DD formatuan.
+     * Hutsen kontrolak: data, bazkidea_kodea eta deskribapena ez hutsik.
+     * Formatuen egiaztapena: data YYYY-MM-DD formatuan, ordua HH:mm formatuan.
      * Erabiltzailearen feedback-a: TextInputLayout.setError edo Toast, euskaraz.
      *
      * @return true balidazioak gainditu baditu, false bestela
      */
     private boolean baliozkotuFormularioa() {
         binding.tilBisitaData.setError(null);
+        if (binding.tilBisitaOrdua != null) binding.tilBisitaOrdua.setError(null);
         binding.tilBisitaDeskribapena.setError(null);
 
         String data = binding.etBisitaData.getText() != null ? binding.etBisitaData.getText().toString().trim() : "";
+        String ordua = binding.etBisitaOrdua != null && binding.etBisitaOrdua.getText() != null 
+                ? binding.etBisitaOrdua.getText().toString().trim() : "";
         String deskribapena = binding.etBisitaDeskribapena.getText() != null ? binding.etBisitaDeskribapena.getText().toString().trim() : "";
-        int pos = binding.spinnerBisitaPartnerra.getSelectedItemPosition();
+        int pos = binding.spinnerBisitaBazkidea.getSelectedItemPosition();
 
         boolean dataHutsa = data.isEmpty();
         boolean deskribapenaHutsa = deskribapena.isEmpty();
@@ -225,7 +320,16 @@ public class BisitaFormularioActivity extends AppCompatActivity {
             }
             if (bazkideaEzHautatua && !dataHutsa && !deskribapenaHutsa) {
                 Toast.makeText(this, R.string.bisita_errorea_partnerra, Toast.LENGTH_SHORT).show();
-                binding.spinnerBisitaPartnerra.requestFocus();
+                binding.spinnerBisitaBazkidea.requestFocus();
+            }
+            return false;
+        }
+
+        // Ordua formatua baliozkotu (HH:mm) - aukerakoa baina formatua zuzena izan behar du
+        if (!ordua.isEmpty() && !ordua.matches("\\d{2}:\\d{2}")) {
+            if (binding.tilBisitaOrdua != null) {
+                binding.tilBisitaOrdua.setError("Ordua HH:mm formatuan izan behar da");
+                binding.etBisitaOrdua.requestFocus();
             }
             return false;
         }
@@ -267,10 +371,12 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         if (!baliozkotuFormularioa()) return;
 
         String data = binding.etBisitaData.getText() != null ? binding.etBisitaData.getText().toString().trim() : "";
+        String ordua = binding.etBisitaOrdua != null && binding.etBisitaOrdua.getText() != null 
+                ? binding.etBisitaOrdua.getText().toString().trim() : "";
         String deskribapena = binding.etBisitaDeskribapena.getText() != null ? binding.etBisitaDeskribapena.getText().toString().trim() : "";
         String bazkideaKodea = "";
         Long bazkideaIdFinal = null;
-        int pos = binding.spinnerBisitaPartnerra.getSelectedItemPosition();
+        int pos = binding.spinnerBisitaBazkidea.getSelectedItemPosition();
         if (pos > 0 && bazkideak != null && pos <= bazkideak.size()) {
             Bazkidea b = bazkideak.get(pos - 1);
             bazkideaKodea = b.getNan() != null ? b.getNan() : "";
@@ -289,10 +395,12 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         else if (egoeraPos == 2) egoera = getString(R.string.egoera_deuseztatua);
 
         final String dataFinal = data;
+        final String orduaFinal = ordua;
         final String deskribapenaFinal = deskribapena;
         final String bazkideaKodeaFinal = bazkideaKodea;
         final Long bazkideaIdGordetzeko = bazkideaIdFinal;
         final Long komertzialaIdGordetzeko = komertzialaIdFinal;
+        final String komertzialKodeaFinal = komertzialKodea;
         final String egoeraFinal = egoera;
         final long editatuIdFinal = editatuId;
 
@@ -303,25 +411,47 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                     runOnUiThread(() -> Toast.makeText(this, R.string.bisita_partnerra_ez_datu_basean, Toast.LENGTH_LONG).show());
                     return;
                 }
+                // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+                com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                    new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                String komertzialKodeaSegurua = sessionManager.getKomertzialKodea();
+                
+                if (komertzialKodeaSegurua == null || komertzialKodeaSegurua.isEmpty()) {
+                    runOnUiThread(() -> Toast.makeText(this, "Saioa ez dago hasita", Toast.LENGTH_LONG).show());
+                    return;
+                }
+                
+                // Egiaztatu komertzial kodea bat datorrela
+                if (!komertzialKodeaSegurua.equals(komertzialKodeaFinal)) {
+                    runOnUiThread(() -> Toast.makeText(this, "Errorea: komertzial kodea ez dator bat", Toast.LENGTH_LONG).show());
+                    return;
+                }
+                
                 // Transakzio seguruak: datuen osotasuna bermatzeko altak/aldaketak transakzio bakar batean
                 datuBasea.runInTransaction(() -> {
                     if (editatuIdFinal >= 0) {
-                        Agenda a = datuBasea.agendaDao().idzBilatu(editatuIdFinal);
+                        // SEGURTASUNA: idzBilatuSegurua erabili, ez idzBilatu
+                        Agenda a = datuBasea.agendaDao().idzBilatuSegurua(editatuIdFinal, komertzialKodeaSegurua);
                         if (a != null) {
                             a.setBisitaData(dataFinal);
+                            a.setOrdua(orduaFinal);
                             a.setDeskribapena(deskribapenaFinal);
                             a.setBazkideaKodea(bazkideaKodeaFinal);
                             a.setBazkideaId(bazkideaIdGordetzeko);
+                            a.setKomertzialKodea(komertzialKodeaFinal);
                             a.setKomertzialaId(komertzialaIdGordetzeko);
                             a.setEgoera(egoeraFinal);
+                            // SEGURTASUNA: eguneratuSegurua erabili (edo @Update baina balidazioarekin)
                             datuBasea.agendaDao().eguneratu(a);
                         }
                     } else {
                         Agenda berria = new Agenda();
                         berria.setBisitaData(dataFinal);
+                        berria.setOrdua(orduaFinal);
                         berria.setDeskribapena(deskribapenaFinal);
                         berria.setBazkideaKodea(bazkideaKodeaFinal);
                         berria.setBazkideaId(bazkideaIdGordetzeko);
+                        berria.setKomertzialKodea(komertzialKodeaFinal);
                         berria.setKomertzialaId(komertzialaIdGordetzeko);
                         berria.setEgoera(egoeraFinal);
                         datuBasea.agendaDao().txertatu(berria);

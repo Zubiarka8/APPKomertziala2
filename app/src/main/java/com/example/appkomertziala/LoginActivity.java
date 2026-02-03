@@ -237,10 +237,15 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.komertzial_hautatu_titulua)
                         .setItems(aukerak, (dialog, which) -> {
+                            Komertziala hautatua = finalZerrenda.get(which);
+                            
+                            // SEGURTASUNA: SessionManager erabiliz saioa hasi
+                            com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                                new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                            sessionManager.saioaHasi(hautatua.getKodea(), hautatua.getIzena());
+                            
                             Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(this, MainActivity.class);
-                            intent.putExtra(MainActivity.EXTRA_KOMMERTZIALA_KODEA, finalZerrenda.get(which).getKodea());
-                            intent.putExtra(MainActivity.EXTRA_KOMMERTZIALA_IZENA, finalZerrenda.get(which).getIzena());
                             startActivity(intent);
                             finish();
                         })
@@ -346,12 +351,16 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                     String komertzialKode = logina.getKomertzialKodea();
                     Komertziala komertziala = (komertzialKode != null && !komertzialKode.isEmpty())
                             ? db.komertzialaDao().kodeaBilatu(komertzialKode) : null;
+                    
+                    // SEGURTASUNA: SessionManager erabiliz saioa hasi
+                    if (komertziala != null) {
+                        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                            new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                        sessionManager.saioaHasi(komertziala.getKodea(), komertziala.getIzena());
+                    }
+                    
                     Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(this, MainActivity.class);
-                    if (komertziala != null) {
-                        intent.putExtra(MainActivity.EXTRA_KOMMERTZIALA_KODEA, komertziala.getKodea());
-                        intent.putExtra(MainActivity.EXTRA_KOMMERTZIALA_IZENA, komertziala.getIzena());
-                    }
                     startActivity(intent);
                     finish();
                 });
