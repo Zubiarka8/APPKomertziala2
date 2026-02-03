@@ -26,6 +26,9 @@
     <string name="btn_sartu_komertzial_gisa">Sartu komertzial gisa (kredentzialik gabe)</string>
     <string name="komertzial_hautatu_titulua">Hautatu komertziala</string>
     <string name="komertzial_zerrenda_hutsa">Komertzialik ez. Kargatu «Kargatu XML fitxategiak» eta hautatu komertzialak.xml lehenik.</string>
+    <string name="btn_sartu_bazkide_gisa">Sartu bazkide gisa (kredentzialik gabe)</string>
+    <string name="bazkide_hautatu_titulua">Hautatu bazkidea</string>
+    <string name="bazkide_zerrenda_hutsa">Bazkiderik ez. Kargatu «Kargatu XML fitxategiak» eta hautatu bazkideak.xml lehenik.</string>
     <string name="show_password">Erakutsi pasahitza</string>
     <string name="hide_password">Ezkutatu pasahitza</string>
 

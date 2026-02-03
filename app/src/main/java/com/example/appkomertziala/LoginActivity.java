@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appkomertziala.db.AppDatabase;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Logina;
 import com.example.appkomertziala.xml.XMLKudeatzailea;
@@ -95,6 +96,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         MaterialButton btnSelectCommercial = findViewById(R.id.btnSelectCommercial);
         MaterialButton btnLogin = findViewById(R.id.btnLogin);
         MaterialButton btnSartuKomertzialGisa = findViewById(R.id.btnSartuKomertzialGisa);
+        MaterialButton btnSartuBazkideGisa = findViewById(R.id.btnSartuBazkideGisa);
 
         btnLoadXml.setOnClickListener(v -> erakutsiXmlHautaketaDialogoa());
         MaterialButton btnInportatuGailutik = findViewById(R.id.btnInportatuGailutik);
@@ -102,6 +104,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         btnSelectCommercial.setOnClickListener(v -> erakutsiKomertzialHautaketaDialogoa());
         btnLogin.setOnClickListener(v -> attemptLogin());
         btnSartuKomertzialGisa.setOnClickListener(v -> sartuKomertzialGisa());
+        btnSartuBazkideGisa.setOnClickListener(v -> sartuBazkideGisa());
 
         // Al comienzo: cargar todos los komertzialak si la tabla está vacía (assets o barne-memoria)
         kargatuKomertzialakHasieran();
@@ -250,6 +253,54 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
     /** Komertzialen zerrenda erakusten du (hautatu komertziala botoirako). */
     private void erakutsiKomertzialHautaketaDialogoa() {
         sartuKomertzialGisa();
+    }
+
+    /** Bazkideen zerrenda datu-basean bilatu eta hautaketa-dialogoa erakusten du. Hutsik badago, XML guztiak kargatzen ditu (datu-basea betetzeko) eta gero zerrenda osoa erakusten du. */
+    private void sartuBazkideGisa() {
+        new Thread(() -> {
+            AppDatabase db = AppDatabase.getInstance(this);
+            List<Bazkidea> zerrenda = db.bazkideaDao().guztiak();
+            if (zerrenda.isEmpty()) {
+                try {
+                    XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                    kud.guztiakInportatu();
+                    zerrenda = db.bazkideaDao().guztiak();
+                } catch (Exception e) {
+                    try {
+                        XMLKudeatzailea kud = new XMLKudeatzailea(this);
+                        kud.inportatuFitxategia("bazkideak.xml");
+                        zerrenda = db.bazkideaDao().guztiak();
+                    } catch (Exception ignored) {
+                        // Utzi zerrenda hutsik
+                    }
+                }
+            }
+            final List<Bazkidea> finalZerrenda = zerrenda;
+            runOnUiThread(() -> {
+                if (finalZerrenda.isEmpty()) {
+                    Toast.makeText(this, R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String[] aukerak = new String[finalZerrenda.size()];
+                for (int i = 0; i < finalZerrenda.size(); i++) {
+                    Bazkidea b = finalZerrenda.get(i);
+                    String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                   (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                    String nan = b.getNan() != null ? b.getNan() : "";
+                    aukerak[i] = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
+                }
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.bazkide_hautatu_titulua)
+                        .setItems(aukerak, (dialog, which) -> {
+                            Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .setNegativeButton(R.string.xml_utzi, null)
+                        .show();
+            });
+        }).start();
     }
 
     private void attemptLogin() {

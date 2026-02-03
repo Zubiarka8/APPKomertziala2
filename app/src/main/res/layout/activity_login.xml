@@ -188,6 +188,16 @@
                     android:text="@string/btn_sartu_komertzial_gisa"
                     android:textSize="@dimen/text_size_medium"
                     app:cornerRadius="@dimen/button_corner_radius"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSartuBazkideGisa"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_height"
+                    android:layout_marginTop="@dimen/margin_medium"
+                    android:text="@string/btn_sartu_bazkide_gisa"
+                    android:textSize="@dimen/text_size_medium"
+                    app:cornerRadius="@dimen/button_corner_radius"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
