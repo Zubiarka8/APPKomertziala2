@@ -33,6 +33,21 @@
                     android:orientation="vertical"
                     android:padding="@dimen/margin_medium">
 
+                    <!-- 0. Erabiltzailearen izena (goialdean) -->
+                    <TextView
+                        android:id="@+id/tvErabiltzaileIzena"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:padding="@dimen/margin_medium"
+                        android:textSize="@dimen/text_size_large"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center"
+                        android:background="@color/card_background"
+                        android:elevation="2dp"
+                        android:visibility="gone"/>
+
                     <!-- 1. Logo eta izena -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"

@@ -38,6 +38,7 @@
     <string name="login_error_erabiltzaile_pasahitz">Erabiltzailea edo pasahitza ez da zuzena. Kargatu loginak.xml (eta komertzialak.xml) lehenik.</string>
 
     <string name="hasiera_ongietorri">Ongi etorri</string>
+    <string name="ongietorri">Ongi etorri, %1$s</string>
     <string name="esportatu_izenburua">Esportatu XML</string>
     <string name="esportazio_guztiak_izenburua">Esportazioak (XML + TXT)</string>
     <string name="agenda_esportazioak_hasieran">Agendako esportazioak (XML eta TXT) Hasiera fitxan daude, «Esportazioak» atalean.</string>

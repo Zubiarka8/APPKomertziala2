@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Agenda;
-import com.example.appkomertziala.db.eredua.Partnerra;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.io.File;
@@ -81,15 +81,21 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
                 if (guztiak == null) guztiak = new ArrayList<>();
                 List<AgendaBisitaAdapter.AgendaElementua> erakusteko = new ArrayList<>();
                 for (Agenda a : guztiak) {
-                    String partnerIzena = "";
-                    if (a.getPartnerKodea() != null && !a.getPartnerKodea().trim().isEmpty()) {
-                        Partnerra p = datuBasea.partnerraDao().kodeaBilatu(a.getPartnerKodea().trim());
-                        partnerIzena = p != null && p.getIzena() != null ? p.getIzena() : a.getPartnerKodea();
+                    String bazkideaIzena = "";
+                    if (a.getBazkideaKodea() != null && !a.getBazkideaKodea().trim().isEmpty()) {
+                        Bazkidea b = datuBasea.bazkideaDao().nanBilatu(a.getBazkideaKodea().trim());
+                        if (b != null) {
+                            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                            bazkideaIzena = izena.isEmpty() ? (b.getNan() != null ? b.getNan() : "") : izena;
+                        } else {
+                            bazkideaIzena = a.getBazkideaKodea();
+                        }
                     }
                     erakusteko.add(new AgendaBisitaAdapter.AgendaElementua(
                             a.getId(),
                             a.getBisitaData(),
-                            partnerIzena,
+                            bazkideaIzena,
                             a.getDeskribapena(),
                             a.getEgoera()));
                 }
@@ -116,7 +122,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
     public void onIkusi(AgendaBisitaAdapter.AgendaElementua elementua) {
         StringBuilder mezua = new StringBuilder();
         mezua.append(getString(R.string.agenda_bisita_data)).append(": ").append(elementua.bisitaData).append("\n");
-        mezua.append(getString(R.string.agenda_bisita_partnerra)).append(": ").append(elementua.partnerIzena).append("\n");
+        mezua.append(getString(R.string.agenda_bisita_partnerra)).append(": ").append(elementua.bazkideaIzena != null ? elementua.bazkideaIzena : "").append("\n");
         mezua.append(getString(R.string.agenda_bisita_deskribapena)).append(": ").append(elementua.deskribapena).append("\n");
         mezua.append(getString(R.string.agenda_bisita_egoera)).append(": ").append(elementua.egoera);
         new AlertDialog.Builder(this)

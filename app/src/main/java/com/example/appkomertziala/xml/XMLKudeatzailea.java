@@ -7,18 +7,20 @@ import android.util.Xml;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.db.eredua.Eskaera;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
+import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Logina;
-import com.example.appkomertziala.db.eredua.Partnerra;
 import com.example.appkomertziala.db.kontsultak.AgendaDao;
 import com.example.appkomertziala.db.kontsultak.BazkideaDao;
+import com.example.appkomertziala.db.kontsultak.EskaeraDao;
 import com.example.appkomertziala.db.kontsultak.EskaeraGoiburuaDao;
+import com.example.appkomertziala.db.kontsultak.EskaeraXehetasunaDao;
 import com.example.appkomertziala.db.kontsultak.KatalogoaDao;
 import com.example.appkomertziala.db.kontsultak.KomertzialaDao;
 import com.example.appkomertziala.db.kontsultak.LoginaDao;
-import com.example.appkomertziala.db.kontsultak.PartnerraDao;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * XML fitxategiak barne-memoriatik (edo assets-etik erreserba gisa) irakurtzeko eta datu-basean txertatu/eguneratu (upsert) egiteko kudeatzailea.
  * Ordezkaritzatik jasotako fitxategiak barne-memorian gorde ohi dira. Eragiketa guztiak hila nagusitik kanpo exekutatu behar dira.
- * XmlPullParser erabiltzen du. komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
+ * XmlPullParser erabiltzen du. komertzialak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
  */
 public class XMLKudeatzailea {
 
@@ -196,176 +198,140 @@ public class XMLKudeatzailea {
         return k;
     }
 
-    /**
-     * partnerrak.xml inportatu: barne-memoriatik (edo assets-etik) irakurri.
-     * Partner bakoitza bere komertzialKodea-rekin lotzen da (komertzialIdKodea mapa). Datu umezurtzik ez.
-     * Etiketak: partnerrak > partner > id, izena, helbidea, komertzial_id.
-     * Eragiketa hau hila nagusitik kanpo exekutatu behar da.
-     */
-    public int partnerrakInportatu() throws IOException, XmlPullParserException {
-        return partnerrakInportatu(barneFitxategiaEdoAssetsIreki("partnerrak.xml"));
-    }
-
-    /** Gailutik: sarrera-fluxu batetik partnerrak inportatu. */
-    public int partnerrakInportatu(InputStream is) throws IOException, XmlPullParserException {
-        if (komertzialIdKodea.isEmpty()) {
-            List<Komertziala> k = db.komertzialaDao().guztiak();
-            for (Komertziala kom : k) {
-                komertzialIdKodea.put(kom.getId(), kom.getKodea());
-            }
-        }
-        List<Partnerra> zerrenda = new ArrayList<>();
-        try (InputStream stream = is) {
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(stream, "UTF-8");
-            parser.nextTag();
-            parser.require(XmlPullParser.START_TAG, null, "partnerrak");
-            while (parser.next() != XmlPullParser.END_TAG) {
-                if (parser.getEventType() != XmlPullParser.START_TAG) continue;
-                if ("partner".equals(parser.getName())) {
-                    zerrenda.add(partnerElementuaIrakurri(parser));
-                } else {
-                    atalBatJauzi(parser);
-                }
-            }
-        }
-        PartnerraDao dao = db.partnerraDao();
-        List<Long> mantenduIds = new ArrayList<>(zerrenda.stream().map(Partnerra::getId).collect(Collectors.toList()));
-        for (Partnerra p : dao.guztiak()) {
-            if (p.getId() >= 1000) mantenduIds.add(p.getId());
-        }
-        if (mantenduIds.isEmpty()) {
-            dao.ezabatuGuztiak();
-        } else {
-            dao.ezabatuIdakEzDirenak(mantenduIds);
-        }
-        if (!zerrenda.isEmpty()) {
-            dao.txertatuGuztiak(zerrenda);
-        }
-        return zerrenda.size();
-    }
-
-    /** partner elementu bat irakurri (id, izena, helbidea, komertzial_id). */
-    private Partnerra partnerElementuaIrakurri(XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, null, "partner");
-        long id = 0;
-        String izena = "";
-        String helbidea = "";
-        long komertzialId = 1;
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
-            String name = parser.getName();
-            switch (name) {
-                case "id":
-                    id = parseLongSafe(testuaIrakurri(parser), 0);
-                    break;
-                case "izena":
-                    izena = testuaIrakurri(parser);
-                    break;
-                case "helbidea":
-                    helbidea = testuaIrakurri(parser);
-                    break;
-                case "komertzial_id":
-                    komertzialId = parseLongSafe(testuaIrakurri(parser), 1);
-                    break;
-                default:
-                    atalBatJauzi(parser);
-                    break;
-            }
-        }
-        String komertzialKodea = komertzialIdKodea.get(komertzialId);
-        if (komertzialKodea == null && !komertzialIdKodea.isEmpty()) {
-            komertzialKodea = komertzialIdKodea.values().iterator().next();
-        }
-        if (komertzialKodea != null && komertzialKodea.trim().isEmpty()) {
-            komertzialKodea = null;
-        }
-        Partnerra p = new Partnerra();
-        p.setId(id);
-        p.setKodea(String.valueOf(id));
-        p.setIzena(izena != null ? izena : "");
-        p.setHelbidea(helbidea != null ? helbidea : "");
-        p.setProbintzia(null);
-        p.setKomertzialKodea(komertzialKodea);
-        p.setSortutakoData(gaurkoData());
-        return p;
-    }
 
     /**
-     * bazkideak.xml inportatu: barne-memoriatik (edo assets-etik) irakurri. Partnerrak (id &lt; 1000) mantentzen dira.
+     * bazkideak.xml inportatu: barne-memoriatik (edo assets-etik) irakurri.
+     * Formato: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak
      */
     public int bazkideakInportatu() throws IOException, XmlPullParserException {
-        return bazkideakInportatu(barneFitxategiaEdoAssetsIreki("bazkideak.xml"));
+        try (InputStream is = barneFitxategiaEdoAssetsIreki("bazkideak.xml")) {
+            return bazkideakInportatu(is);
+        }
     }
 
-    /** Gailutik: sarrera-fluxu batetik bazkideak inportatu (bi irakurketak behar direnez, fluxua byte[] bihurtzen da). */
+    /** Gailutik: sarrera-fluxu batetik bazkideak inportatu (eskaerak barne). Transakzioan exekutatzen da errendimendu maximoa lortzeko. */
     public int bazkideakInportatu(InputStream is) throws IOException, XmlPullParserException {
-        byte[] data = irakurriGuztia(is);
-        if (komertzialIdKodea.isEmpty()) {
-            List<Komertziala> k = db.komertzialaDao().guztiak();
-            for (int i = 0; i < k.size(); i++) {
-                komertzialIdKodea.put((long) (i + 1), k.get(i).getKodea());
-            }
-        }
-        List<Partnerra> zerrenda = new ArrayList<>();
-        String lehenKodea = komertzialIdKodea.isEmpty() ? "" : komertzialIdKodea.values().iterator().next();
-        try (InputStream s1 = new ByteArrayInputStream(data)) {
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(s1, "UTF-8");
-            parser.nextTag();
-            parser.require(XmlPullParser.START_TAG, null, "bazkideak");
-            while (parser.next() != XmlPullParser.END_TAG) {
-                if (parser.getEventType() != XmlPullParser.START_TAG) continue;
-                if ("bazkidea".equals(parser.getName())) {
-                    Partnerra p = bazkideaElementuaIrakurri(parser, 1000L + zerrenda.size(), lehenKodea);
-                    if (p != null) zerrenda.add(p);
-                } else {
-                    atalBatJauzi(parser);
+        List<BazkideaEtaEskaerak> emaitzak = new ArrayList<>();
+        
+        // XML irakurri eta parseatu
+        XmlPullParser parser = Xml.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setInput(is, "UTF-8");
+        parser.nextTag();
+        parser.require(XmlPullParser.START_TAG, null, "bazkideak");
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
+            if ("bazkidea".equals(parser.getName())) {
+                BazkideaEtaEskaerak emaitza = bazkideaElementuaIrakurriBazkideaEtaEskaerak(parser);
+                if (emaitza.bazkidea != null) {
+                    emaitzak.add(emaitza);
                 }
+            } else {
+                atalBatJauzi(parser);
             }
         }
-        PartnerraDao dao = db.partnerraDao();
-        List<Long> mantenduIds = new ArrayList<>(zerrenda.stream().map(Partnerra::getId).collect(Collectors.toList()));
-        for (Partnerra p : dao.guztiak()) {
-            if (p.getId() < 1000) mantenduIds.add(p.getId());
+        
+        if (emaitzak.isEmpty()) {
+            Log.w(ETIKETA, "bazkideakInportatu: XML hutsik dago edo ez da bazkiderik aurkitu");
+            return 0;
         }
-        if (mantenduIds.isEmpty()) {
-            dao.ezabatuGuztiak();
-        } else {
-            dao.ezabatuIdakEzDirenak(mantenduIds);
-        }
-        if (!zerrenda.isEmpty()) {
-            dao.txertatuGuztiak(zerrenda);
-        }
-        List<Bazkidea> bazkideakZerrenda = new ArrayList<>();
-        try (InputStream s2 = new ByteArrayInputStream(data)) {
-            XmlPullParser parser2 = Xml.newPullParser();
-            parser2.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser2.setInput(s2, "UTF-8");
-            parser2.nextTag();
-            parser2.require(XmlPullParser.START_TAG, null, "bazkideak");
-            while (parser2.next() != XmlPullParser.END_TAG) {
-                if (parser2.getEventType() != XmlPullParser.START_TAG) continue;
-                if ("bazkidea".equals(parser2.getName())) {
-                    Bazkidea bazkidea = bazkideaElementuaIrakurriBazkidea(parser2);
-                    if (bazkidea != null) bazkideakZerrenda.add(bazkidea);
-                } else {
-                    atalBatJauzi(parser2);
+        
+        Log.d(ETIKETA, "bazkideakInportatu: " + emaitzak.size() + " bazkidea parseatu dira");
+        
+        // Transakzioan gorde datu guztiak (errendimendu maximoa)
+        try {
+            int emaitzaKopurua = db.runInTransaction(() -> {
+                BazkideaDao bazkideaDao = db.bazkideaDao();
+                EskaeraDao eskaeraDao = db.eskaeraDao();
+                
+                int kopurua = 0;
+                int eguneratutakoKopurua = 0;
+                for (BazkideaEtaEskaerak emaitza : emaitzak) {
+                    Bazkidea bazkidea = emaitza.bazkidea;
+                    
+                    if (bazkidea.getNan() == null || bazkidea.getNan().trim().isEmpty()) {
+                        Log.w(ETIKETA, "bazkideakInportatu: Bazkidea baztertua, NAN hutsik dago");
+                        continue;
+                    }
+                    
+                    // Bilatu existitzen den bazkidea NAN erabiliz
+                    Bazkidea existitzenDa = bazkideaDao.nanBilatu(bazkidea.getNan().trim());
+                    
+                    long bazkideaId;
+                    if (existitzenDa != null) {
+                        // Eguneratu: ID mantendu eta XML-etik datozen eremuak bakarrik eguneratu
+                        bazkidea.setId(existitzenDa.getId()); // ID mantendu
+                        // txertatu() REPLACE estrategia erabiliz (eguneratu baino fidagarriagoa Room-en)
+                        bazkideaId = bazkideaDao.txertatu(bazkidea);
+                        if (bazkideaId > 0) {
+                            eguneratutakoKopurua++;
+                            Log.d(ETIKETA, "bazkideakInportatu: Bazkidea eguneratua (NAN: " + bazkidea.getNan() + ", ID: " + bazkideaId + ")");
+                        } else {
+                            Log.e(ETIKETA, "bazkideakInportatu: Errorea bazkidea eguneratzean (NAN: " + bazkidea.getNan() + ")");
+                            continue;
+                        }
+                        
+                        // Ezabatu bazkidearen eskaera zaharrak
+                        eskaeraDao.ezabatuBazkidearenEskaerak(bazkideaId);
+                    } else {
+                        // Bazkidea berria txertatu
+                        bazkideaId = bazkideaDao.txertatu(bazkidea);
+                        if (bazkideaId > 0) {
+                            kopurua++;
+                            Log.d(ETIKETA, "bazkideakInportatu: Bazkidea berria txertatua (NAN: " + bazkidea.getNan() + ", ID: " + bazkideaId + ")");
+                        } else {
+                            Log.e(ETIKETA, "bazkideakInportatu: Errorea bazkidea txertatzean (NAN: " + bazkidea.getNan() + ")");
+                            continue;
+                        }
+                    }
+                    
+                    // Eskaerak txertatu bazkideaId-rekin (bazkideaId baliozkoa dela egiaztatu)
+                    if (!emaitza.eskaerak.isEmpty() && bazkideaId > 0) {
+                        // Egiaztatu bazkidea existitzen dela
+                        Bazkidea egiaztatua = bazkideaDao.idzBilatu(bazkideaId);
+                        if (egiaztatua == null) {
+                            Log.e(ETIKETA, "bazkideakInportatu: Bazkidea ez da existitzen ID: " + bazkideaId + ", eskaerak ez dira txertatuko");
+                        } else {
+                            for (Eskaera eskaera : emaitza.eskaerak) {
+                                eskaera.setBazkideaId(bazkideaId);
+                            }
+                            try {
+                                List<Long> eskaeraIds = eskaeraDao.txertatuGuztiak(emaitza.eskaerak);
+                                Log.d(ETIKETA, "bazkideakInportatu: " + eskaeraIds.size() + " eskaera txertatu dira bazkidea ID: " + bazkideaId);
+                            } catch (Exception e) {
+                                Log.e(ETIKETA, "bazkideakInportatu: Errorea eskaerak txertatzean bazkidea ID: " + bazkideaId, e);
+                                throw e; // Transakzioa atzera egingo du
+                            }
+                        }
+                    }
                 }
-            }
+                
+                Log.d(ETIKETA, "bazkideakInportatu: Transakzioa osatua - " + kopurua + " berri, " + eguneratutakoKopurua + " eguneratutako");
+                return kopurua > 0 ? kopurua : (eguneratutakoKopurua > 0 ? eguneratutakoKopurua : emaitzak.size());
+            });
+            
+            // Egiaztatu datuak gordeta daudela
+            BazkideaDao bazkideaDao = db.bazkideaDao();
+            List<Bazkidea> gordeta = bazkideaDao.guztiak();
+            Log.d(ETIKETA, "bazkideakInportatu: Datu-basean " + gordeta.size() + " bazkidea daude gordeta");
+            
+            return emaitzaKopurua;
+        } catch (Exception e) {
+            Log.e(ETIKETA, "bazkideakInportatu: Errorea transakzioan", e);
+            throw new RuntimeException("Errorea bazkideak inportatzean: " + e.getMessage(), e);
         }
-        BazkideaDao bazkideaDao = db.bazkideaDao();
-        bazkideaDao.ezabatuGuztiak();
-        if (!bazkideakZerrenda.isEmpty()) {
-            bazkideaDao.txertatuGuztiak(bazkideakZerrenda);
-        }
-        return zerrenda.size();
+    }
+    
+    /** Bazkidea eta bere eskaerak irakurtzeko emaitza klasea. */
+    private static class BazkideaEtaEskaerak {
+        Bazkidea bazkidea;
+        List<Eskaera> eskaerak = new ArrayList<>();
     }
 
-    /** bazkidea elementu bat irakurri taula bazkideak-erako (Bazkidea entitatea). */
-    private Bazkidea bazkideaElementuaIrakurriBazkidea(XmlPullParser parser) throws IOException, XmlPullParserException {
+    /** bazkidea elementu bat irakurri taula bazkideak-erako eta bere eskaerak (Bazkidea entitatea + Eskaera).
+     * Formato XML: bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak > eskaera
+     */
+    private BazkideaEtaEskaerak bazkideaElementuaIrakurriBazkideaEtaEskaerak(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "bazkidea");
         String nan = null;
         String izena = null;
@@ -374,11 +340,14 @@ public class XMLKudeatzailea {
         String posta = null;
         String jaiotzeData = null;
         String argazkia = null;
+        List<Eskaera> eskaerak = new ArrayList<>();
+        
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) continue;
             String name = parser.getName();
             if ("eskaerak".equals(name)) {
-                atalBatJauzi(parser);
+                // Irakurri eskaerak blokea
+                eskaerakBlokeaIrakurri(parser, eskaerak);
                 continue;
             }
             switch (name) {
@@ -408,77 +377,89 @@ public class XMLKudeatzailea {
                     break;
             }
         }
+        
         Bazkidea b = new Bazkidea();
-        b.setNan(nan != null ? nan : "");
-        b.setIzena(izena != null ? izena : "");
-        b.setAbizena(abizena != null ? abizena : "");
-        b.setTelefonoZenbakia(telefonoZenbakia != null ? telefonoZenbakia : "");
-        b.setPosta(posta != null ? posta : "");
-        b.setJaiotzeData(jaiotzeData != null ? jaiotzeData : "");
-        b.setArgazkia(argazkia != null ? argazkia : "");
-        return b;
+        b.setNan(nan != null ? nan.trim() : "");
+        b.setIzena(izena != null ? izena.trim() : "");
+        b.setAbizena(abizena != null ? abizena.trim() : "");
+        b.setTelefonoZenbakia(telefonoZenbakia != null ? telefonoZenbakia.trim() : "");
+        b.setPosta(posta != null ? posta.trim() : "");
+        b.setJaiotzeData(jaiotzeData != null ? jaiotzeData.trim() : "");
+        b.setArgazkia(argazkia != null ? argazkia.trim() : "");
+        
+        BazkideaEtaEskaerak emaitza = new BazkideaEtaEskaerak();
+        emaitza.bazkidea = b;
+        emaitza.eskaerak = eskaerak;
+        return emaitza;
     }
-
-    /** bazkidea elementu bat irakurri (NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia); eskaerak atala jauzi. */
-    private Partnerra bazkideaElementuaIrakurri(XmlPullParser parser, long idOffset, String komertzialKodea) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, null, "bazkidea");
-        String kodea = null;
-        String izena = null;
-        String abizena = null;
-        String telefonoa = null;
-        String posta = null;
-        String jaiotzeData = null;
-        String argazkia = null;
+    
+    /** eskaerak bloke bat irakurri (eskaera elementuak). */
+    private void eskaerakBlokeaIrakurri(XmlPullParser parser, List<Eskaera> eskaerak) 
+            throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, "eskaerak");
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) continue;
+            if ("eskaera".equals(parser.getName())) {
+                Eskaera eskaera = eskaeraElementuaIrakurri(parser);
+                if (eskaera != null) {
+                    eskaerak.add(eskaera);
+                }
+            } else {
+                atalBatJauzi(parser);
+            }
+        }
+    }
+    
+    /** eskaera elementu bat irakurri eta Eskaera entitatea sortu (eskaeraID, prodIzena, data, kopurua, prodArgazkia). */
+    private Eskaera eskaeraElementuaIrakurri(XmlPullParser parser) 
+            throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, "eskaera");
+        String eskaeraID = null;
+        String prodIzena = null;
+        String data = null;
+        String kopurua = null;
+        String prodArgazkia = null;
+        
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) continue;
             String name = parser.getName();
-            if ("eskaerak".equals(name)) {
-                atalBatJauzi(parser);
-                continue;
-            }
             switch (name) {
-                case "NAN":
-                    kodea = testuaIrakurri(parser);
+                case "eskaeraID":
+                    eskaeraID = testuaIrakurri(parser);
                     break;
-                case "izena":
-                    izena = testuaIrakurri(parser);
+                case "prodIzena":
+                    prodIzena = testuaIrakurri(parser);
                     break;
-                case "abizena":
-                    abizena = testuaIrakurri(parser);
+                case "data":
+                    data = testuaIrakurri(parser);
                     break;
-                case "telefonoZenbakia":
-                    telefonoa = testuaIrakurri(parser);
+                case "kopurua":
+                    kopurua = testuaIrakurri(parser);
                     break;
-                case "posta":
-                    posta = testuaIrakurri(parser);
-                    break;
-                case "jaiotzeData":
-                    jaiotzeData = testuaIrakurri(parser);
-                    break;
-                case "argazkia":
-                    argazkia = testuaIrakurri(parser);
+                case "prodArgazkia":
+                    prodArgazkia = testuaIrakurri(parser);
                     break;
                 default:
                     atalBatJauzi(parser);
                     break;
             }
         }
-        if (kodea == null) kodea = "BAZ-" + idOffset;
-        String izenOsoa = (izena != null ? izena : "") + " " + (abizena != null ? abizena : "").trim();
-        Partnerra p = new Partnerra();
-        p.setId(idOffset);
-        p.setKodea(kodea);
-        p.setIzena(izenOsoa);
-        p.setHelbidea("");
-        p.setProbintzia(null);
-        p.setKomertzialKodea(komertzialKodea);
-        p.setSortutakoData(gaurkoData());
-        p.setTelefonoa(telefonoa);
-        p.setPosta(posta);
-        p.setJaiotzeData(jaiotzeData);
-        p.setArgazkia(argazkia);
-        return p;
+        
+        if (eskaeraID == null || eskaeraID.trim().isEmpty()) {
+            return null;
+        }
+        
+        Eskaera eskaera = new Eskaera();
+        eskaera.setEskaeraID(eskaeraID.trim());
+        eskaera.setProdIzena(prodIzena != null ? prodIzena.trim() : "");
+        eskaera.setData(data != null ? data.trim() : "");
+        eskaera.setKopurua(kopurua != null ? (int) parseLongSafe(kopurua, 0) : 0);
+        eskaera.setProdArgazkia(prodArgazkia != null ? prodArgazkia.trim() : "");
+        // bazkideaId geroago eguneratuko da bazkidea gordeta dagoenean
+        
+        return eskaera;
     }
+
 
     /** Gaurko data yyyy-MM-dd formatuan (eguneko alta esportazioetarako). */
     private static String gaurkoData() {
@@ -709,8 +690,8 @@ public class XMLKudeatzailea {
 
     /**
      * agenda.xml inportatu. Bi formatu onartzen dira:
-     * - Agenda (agenda_bisitak): bisita > bisita_data, partner_kodea, deskribapena, egoera.
-     * - EskaeraGoiburua (zitak zaharrak): bisita > zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea.
+     * - Agenda (agenda_bisitak): bisita > bisita_data, bazkidea_kodea, deskribapena, egoera.
+     * - EskaeraGoiburua (zitak zaharrak): bisita > zenbakia, data, komertzialKodea, ordezkaritza, bazkideaKodea.
      */
     public int agendaInportatu(InputStream is) throws IOException, XmlPullParserException {
         XmlPullParser parser = Xml.newPullParser();
@@ -728,7 +709,12 @@ public class XMLKudeatzailea {
                 if (map.containsKey("bisita_data")) {
                     Agenda a = new Agenda();
                     a.setBisitaData(trimm(map.get("bisita_data")));
-                    a.setPartnerKodea(trimm(map.get("partner_kodea")));
+                    // Compatibilidad: aceptar tanto partner_kodea como bazkidea_kodea
+                    String bazkideaKodea = trimm(map.get("bazkidea_kodea"));
+                    if (bazkideaKodea == null || bazkideaKodea.isEmpty()) {
+                        bazkideaKodea = trimm(map.get("partner_kodea"));
+                    }
+                    a.setBazkideaKodea(bazkideaKodea);
                     a.setDeskribapena(trimm(map.get("deskribapena")));
                     a.setEgoera(trimm(map.get("egoera")));
                     agendaDao.txertatu(a);
@@ -739,9 +725,9 @@ public class XMLKudeatzailea {
                         Komertziala kom = db.komertzialaDao().kodeaBilatu(goi.getKomertzialKodea().trim());
                         if (kom != null) goi.setKomertzialId(kom.getId());
                     }
-                    if (goi.getPartnerKodea() != null && !goi.getPartnerKodea().isEmpty()) {
-                        Partnerra part = db.partnerraDao().kodeaBilatu(goi.getPartnerKodea().trim());
-                        if (part != null) goi.setPartnerId(part.getId());
+                    if (goi.getBazkideaKodea() != null && !goi.getBazkideaKodea().isEmpty()) {
+                        Bazkidea bazkidea = db.bazkideaDao().nanBilatu(goi.getBazkideaKodea().trim());
+                        if (bazkidea != null) goi.setBazkideaId(bazkidea.getId());
                     }
                     eskaeraDao.txertatu(goi);
                     count++;
@@ -777,18 +763,23 @@ public class XMLKudeatzailea {
         goi.setData(trimm(map.get("data")));
         goi.setKomertzialKodea(trimm(map.get("komertzialKodea")));
         goi.setOrdezkaritza(trimm(map.get("ordezkaritza")));
-        goi.setPartnerKodea(trimm(map.get("partnerKodea")));
+        // Compatibilidad: aceptar tanto partnerKodea como bazkideaKodea
+        String bazkideaKodea = trimm(map.get("bazkideaKodea"));
+        if (bazkideaKodea == null || bazkideaKodea.isEmpty()) {
+            bazkideaKodea = trimm(map.get("partnerKodea"));
+        }
+        goi.setBazkideaKodea(bazkideaKodea);
         return goi;
     }
 
-    /** bisita elementu bat irakurri (zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea). */
+    /** bisita elementu bat irakurri (zenbakia, data, komertzialKodea, ordezkaritza, bazkideaKodea). */
     private EskaeraGoiburua bisitaElementuaIrakurri(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "bisita");
         String zenbakia = "";
         String data = "";
         String komertzialKodea = "";
         String ordezkaritza = "";
-        String partnerKodea = "";
+        String bazkideaKodea = "";
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) continue;
             String name = parser.getName();
@@ -798,7 +789,8 @@ public class XMLKudeatzailea {
                 case "data": data = value; break;
                 case "komertzialKodea": komertzialKodea = value; break;
                 case "ordezkaritza": ordezkaritza = value; break;
-                case "partnerKodea": partnerKodea = value; break;
+                case "bazkideaKodea": bazkideaKodea = value; break;
+                case "partnerKodea": bazkideaKodea = value; break; // Compatibilidad
                 default: atalBatJauzi(parser); break;
             }
         }
@@ -808,13 +800,13 @@ public class XMLKudeatzailea {
         goi.setData(data != null ? data.trim() : "");
         goi.setKomertzialKodea(komertzialKodea != null ? komertzialKodea.trim() : "");
         goi.setOrdezkaritza(ordezkaritza != null ? ordezkaritza.trim() : "");
-        goi.setPartnerKodea(partnerKodea != null ? partnerKodea.trim() : "");
+        goi.setBazkideaKodea(bazkideaKodea != null ? bazkideaKodea.trim() : "");
         return goi;
     }
 
     /**
      * Gailutik hautatutako fitxategi bat inportatzen du (Uri / InputStream).
-     * Fitxategi-izenaren arabera: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
+     * Fitxategi-izenaren arabera: komertzialak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
      */
     public void inportatuSarreraFluxutik(InputStream is, String fitxategiIzena) throws IOException, XmlPullParserException {
         if (fitxategiIzena == null) fitxategiIzena = "";
@@ -830,7 +822,7 @@ public class XMLKudeatzailea {
                 break;
             }
             case "partnerrak.xml":
-                partnerrakInportatu(is);
+                // partnerrak.xml ya no se usa, se usa bazkideak.xml
                 break;
             case "bazkideak.xml":
                 bazkideakInportatu(is);
@@ -859,7 +851,7 @@ public class XMLKudeatzailea {
 
     /**
      * Fitxategi bat inportatzen du izenaren arabera (barne-memoriatik edo assets-etik).
-     * Onartutako fitxategiak: komertzialak.xml, partnerrak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
+     * Onartutako fitxategiak: komertzialak.xml, bazkideak.xml, loginak.xml, katalogoa.xml, agenda.xml.
      * agenda.xml barne-memorian gordeta egon behar du (esportatu ondoren inportatzeko).
      */
     public void inportatuFitxategia(String fitxategiIzena) throws IOException, XmlPullParserException {
@@ -869,11 +861,13 @@ public class XMLKudeatzailea {
                 komertzialakInportatuAssetsetik();
                 break;
             case "partnerrak.xml":
-                partnerrakInportatu();
+                // partnerrak.xml ya no se usa, se usa bazkideak.xml
                 break;
-            case "bazkideak.xml":
-                bazkideakInportatu();
+            case "bazkideak.xml": {
+                int kopurua = bazkideakInportatu();
+                Log.d(ETIKETA, "inportatuFitxategia: bazkideak.xml inportatua - " + kopurua + " bazkidea prozesatu dira");
                 break;
+            }
             case "loginak.xml":
                 loginakInportatu();
                 break;
@@ -891,12 +885,11 @@ public class XMLKudeatzailea {
     }
 
     /**
-     * XML guztiak ordena egokian inportatzen ditu (barne-memoriatik edo assets-etik): komertzialak -> partnerrak -> bazkideak -> loginak -> katalogoa.
+     * XML guztiak ordena egokian inportatzen ditu (barne-memoriatik edo assets-etik): komertzialak -> bazkideak -> loginak -> katalogoa.
      * Komertzialak assets-etik kargatzen dira (XML eguneratua datu-basean islatzeko).
      */
     public void guztiakInportatu() throws IOException, XmlPullParserException {
         komertzialakInportatuAssetsetik();
-        partnerrakInportatu();
         bazkideakInportatu();
         loginakInportatu();
         katalogoaInportatu();

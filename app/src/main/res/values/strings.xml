@@ -43,6 +43,7 @@
 
     <!-- Hasiera - goiko atala -->
     <string name="hasiera_ongietorri">Ongi etorri</string>
+    <string name="ongietorri">Ongi etorri, %1$s</string>
 
     <!-- Hasiera - esportazio aukerak (egunero / hilero) -->
     <string name="esportatu_izenburua">Esportatu XML</string>

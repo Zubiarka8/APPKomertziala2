@@ -7,15 +7,15 @@ import androidx.room.PrimaryKey;
 
 /**
  * Agenda entitatea: bisita bakoitzaren erregistroa.
- * Eremuak: gako nagusia (id), bisita_data, partner_kodea, partnerId (kanpo-gakoa Partnerra.id),
+ * Eremuak: gako nagusia (id), bisita_data, bazkidea_kodea, bazkideaId (kanpo-gakoa Bazkidea.id),
  * komertzialaId (kanpo-gakoa Komertziala.id, bisita sortu duen komertziala), deskribapena, egoera.
  */
 @Entity(
     tableName = "agenda_bisitak",
     indices = {
-        @Index("partnerKodea"),
+        @Index("bazkideaKodea"),
         @Index("bisitaData"),
-        @Index("partnerId"),
+        @Index("bazkideaId"),
         @Index("komertzialaId")
     }
 )
@@ -27,14 +27,14 @@ public class Agenda {
     /** Bisitaren data (yyyy-MM-dd edo yyyy-MM-dd HH:mm). */
     private String bisitaData;
 
-    /** Lotutako partnerraren/bazkidearen kodea (partnerrak taulako kodea eremua; erakusteko). */
-    private String partnerKodea;
+    /** Lotutako bazkidearen kodea (bazkideak taulako kodea eremua; erakusteko). */
+    private String bazkideaKodea;
 
     /**
-     * Lotutako partnerraren edo bazkidearen gako nagusia (kanpo-gakoa: Partnerra taulako id).
-     * Bisitatzen den pertsona (partnerra edo bazkidea).
+     * Lotutako bazkidearen gako nagusia (kanpo-gakoa: Bazkidea taulako id).
+     * Bisitatzen den pertsona (bazkidea).
      */
-    private Long partnerId;
+    private Long bazkideaId;
 
     /**
      * Bisita sortu duen komertzialaren gako nagusia (kanpo-gakoa: Komertzialak taulako id).
@@ -57,10 +57,19 @@ public class Agenda {
     public void setId(long id) { this.id = id; }
     public String getBisitaData() { return bisitaData; }
     public void setBisitaData(String bisitaData) { this.bisitaData = bisitaData; }
-    public String getPartnerKodea() { return partnerKodea; }
-    public void setPartnerKodea(String partnerKodea) { this.partnerKodea = partnerKodea; }
-    public Long getPartnerId() { return partnerId; }
-    public void setPartnerId(Long partnerId) { this.partnerId = partnerId; }
+    public String getBazkideaKodea() { return bazkideaKodea; }
+    public void setBazkideaKodea(String bazkideaKodea) { this.bazkideaKodea = bazkideaKodea; }
+    public Long getBazkideaId() { return bazkideaId; }
+    public void setBazkideaId(Long bazkideaId) { this.bazkideaId = bazkideaId; }
+    // Métodos de compatibilidad temporal (deprecated)
+    @Deprecated
+    public String getPartnerKodea() { return bazkideaKodea; }
+    @Deprecated
+    public void setPartnerKodea(String partnerKodea) { this.bazkideaKodea = partnerKodea; }
+    @Deprecated
+    public Long getPartnerId() { return bazkideaId; }
+    @Deprecated
+    public void setPartnerId(Long partnerId) { this.bazkideaId = partnerId; }
     public Long getKomertzialaId() { return komertzialaId; }
     public void setKomertzialaId(Long komertzialaId) { this.komertzialaId = komertzialaId; }
     public String getDeskribapena() { return deskribapena; }

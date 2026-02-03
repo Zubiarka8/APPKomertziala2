@@ -22,18 +22,21 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
     private List<AgendaElementua> zerrenda = new ArrayList<>();
     private OnBisitaEkintzaListener entzulea;
 
-    /** Bisita baten datuak eta partnerraren izena (erakusteko). */
+    /** Bisita baten datuak eta bazkidearen izena (erakusteko). */
     public static class AgendaElementua {
         public long id;
         public String bisitaData;
-        public String partnerIzena;
+        public String bazkideaIzena;
         public String deskribapena;
         public String egoera;
+        @Deprecated
+        public String partnerIzena; // Compatibilidad temporal
 
-        public AgendaElementua(long id, String bisitaData, String partnerIzena, String deskribapena, String egoera) {
+        public AgendaElementua(long id, String bisitaData, String bazkideaIzena, String deskribapena, String egoera) {
             this.id = id;
             this.bisitaData = bisitaData != null ? bisitaData : "";
-            this.partnerIzena = partnerIzena != null ? partnerIzena : "";
+            this.bazkideaIzena = bazkideaIzena != null ? bazkideaIzena : "";
+            this.partnerIzena = bazkideaIzena; // Compatibilidad
             this.deskribapena = deskribapena != null ? deskribapena : "";
             this.egoera = egoera != null ? egoera : "";
         }
@@ -67,7 +70,7 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
     public void onBindViewHolder(@NonNull BisitaViewHolder holder, int posizioa) {
         AgendaElementua e = zerrenda.get(posizioa);
         holder.itemAgendaData.setText(e.bisitaData != null ? e.bisitaData : "");
-        holder.itemAgendaPartnerra.setText(e.partnerIzena != null ? e.partnerIzena : "");
+        holder.itemAgendaPartnerra.setText(e.bazkideaIzena != null ? e.bazkideaIzena : (e.partnerIzena != null ? e.partnerIzena : ""));
         holder.itemAgendaDeskribapena.setText(e.deskribapena != null ? e.deskribapena : "");
         holder.itemAgendaEgoera.setText(e.egoera != null ? e.egoera : "");
         holder.btnIkusi.setOnClickListener(v -> {

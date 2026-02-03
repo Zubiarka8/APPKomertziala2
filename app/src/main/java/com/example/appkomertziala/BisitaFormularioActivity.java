@@ -11,8 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.appkomertziala.databinding.ActivityBisitaFormularioaBinding;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Agenda;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.Komertziala;
-import com.example.appkomertziala.db.eredua.Partnerra;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -26,7 +26,7 @@ import java.util.TimeZone;
 /**
  * Bisita berria sartzeko edo lehendik dagoen bisita editatzeko formularioa.
  * Datuen balidazioa (UI): hutsen kontrolak, formatuen egiaztapena, erabiltzailearen feedback-a TextInputLayout/Toast bidez, euskaraz.
- * Datu-basearen integritatea: kanpo-gakoen egiaztapena (partner_kodea Partnerra taulan), Room transakzio seguruak.
+ * Datu-basearen integritatea: kanpo-gakoen egiaztapena (bazkidea_kodea Bazkidea taulan), Room transakzio seguruak.
  */
 public class BisitaFormularioActivity extends AppCompatActivity {
 
@@ -42,7 +42,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
 
     private ActivityBisitaFormularioaBinding binding;
     private AppDatabase datuBasea;
-    private List<Partnerra> partnerrak;
+    private List<Bazkidea> bazkideak;
     private long editatuId = -1;
 
     @Override
@@ -64,7 +64,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         binding.btnBisitaUtzi.setOnClickListener(v -> finish());
         binding.btnBisitaGorde.setOnClickListener(v -> gordeBisita());
 
-        kargatuPartnerrak();
+        kargatuBazkideak();
         if (editatuId < 0) {
             String gaur = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault()).format(new Date());
             binding.etBisitaData.setText(gaur);
@@ -123,26 +123,29 @@ public class BisitaFormularioActivity extends AppCompatActivity {
     }
 
     /**
-     * Partnerrak datu-baseatik kargatu eta spinnerra bete.
-     * Editatzeko: spinner bete ondoren bisita kargatzen da, hautatutako partnerra lehentasunez mantentzeko.
+     * Bazkideak datu-baseatik kargatu eta spinnerra bete.
+     * Editatzeko: spinner bete ondoren bisita kargatzen da, hautatutako bazkidea lehentasunez mantentzeko.
      */
-    private void kargatuPartnerrak() {
+    private void kargatuBazkideak() {
         new Thread(() -> {
-            partnerrak = datuBasea.partnerraDao().guztiak();
-            if (partnerrak == null) partnerrak = new ArrayList<>();
+            bazkideak = datuBasea.bazkideaDao().guztiak();
+            if (bazkideak == null) bazkideak = new ArrayList<>();
             runOnUiThread(() -> {
-                betePartnerraSpinner();
+                beteBazkideaSpinner();
                 if (editatuId >= 0) kargatuBisitaEditatzeko();
             });
         }).start();
     }
 
-    /** Partnerra spinnerra bete (lehenengo errenkada: «Hautatu»). */
-    private void betePartnerraSpinner() {
+    /** Bazkidea spinnerra bete (lehenengo errenkada: «Hautatu»). */
+    private void beteBazkideaSpinner() {
         List<String> izenak = new ArrayList<>();
         izenak.add(getString(R.string.agenda_bisita_partnerra) + " —");
-        for (Partnerra p : partnerrak) {
-            String s = (p.getIzena() != null ? p.getIzena() : "") + " (" + (p.getKodea() != null ? p.getKodea() : "") + ")";
+        for (Bazkidea b : bazkideak) {
+            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+            String nan = b.getNan() != null ? b.getNan() : "";
+            String s = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
             izenak.add(s);
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, izenak);
@@ -157,23 +160,23 @@ public class BisitaFormularioActivity extends AppCompatActivity {
             if (a == null) return;
             final String data = a.getBisitaData() != null ? a.getBisitaData() : "";
             final String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena() : "";
-            final String partnerKodea = a.getPartnerKodea() != null ? a.getPartnerKodea() : "";
+            final String bazkideaKodea = a.getBazkideaKodea() != null ? a.getBazkideaKodea() : "";
             final String egoera = a.getEgoera() != null ? a.getEgoera() : "";
             runOnUiThread(() -> {
                 binding.etBisitaData.setText(data);
                 binding.etBisitaDeskribapena.setText(deskribapena);
-                hautatuPartnerraSpinner(partnerKodea);
+                hautatuBazkideaSpinner(bazkideaKodea);
                 hautatuEgoeraSpinner(egoera);
             });
         }).start();
     }
 
-    /** Partnerra spinnerrean hautatu kodearen arabera. */
-    private void hautatuPartnerraSpinner(String partnerKodea) {
-        if (partnerrak == null || partnerKodea == null || partnerKodea.isEmpty()) return;
-        for (int i = 0; i < partnerrak.size(); i++) {
-            Partnerra p = partnerrak.get(i);
-            if (p.getKodea() != null && p.getKodea().equals(partnerKodea)) {
+    /** Bazkidea spinnerrean hautatu kodearen arabera. */
+    private void hautatuBazkideaSpinner(String bazkideaKodea) {
+        if (bazkideak == null || bazkideaKodea == null || bazkideaKodea.isEmpty()) return;
+        for (int i = 0; i < bazkideak.size(); i++) {
+            Bazkidea b = bazkideak.get(i);
+            if (b.getNan() != null && b.getNan().equals(bazkideaKodea)) {
                 binding.spinnerBisitaPartnerra.setSelection(i + 1);
                 return;
             }
@@ -208,9 +211,9 @@ public class BisitaFormularioActivity extends AppCompatActivity {
 
         boolean dataHutsa = data.isEmpty();
         boolean deskribapenaHutsa = deskribapena.isEmpty();
-        boolean partnerraEzHautatua = pos <= 0 || partnerrak == null || pos > partnerrak.size();
+        boolean bazkideaEzHautatua = pos <= 0 || bazkideak == null || pos > bazkideak.size();
 
-        if (dataHutsa || deskribapenaHutsa || partnerraEzHautatua) {
+        if (dataHutsa || deskribapenaHutsa || bazkideaEzHautatua) {
             Toast.makeText(this, R.string.eremu_guztiak_bete_behar_dira, Toast.LENGTH_SHORT).show();
             if (dataHutsa) {
                 binding.tilBisitaData.setError(getString(R.string.bisita_errorea_data));
@@ -220,7 +223,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                 binding.tilBisitaDeskribapena.setError(getString(R.string.bisita_errorea_deskribapena_hutsa));
                 if (!dataHutsa) binding.etBisitaDeskribapena.requestFocus();
             }
-            if (partnerraEzHautatua && !dataHutsa && !deskribapenaHutsa) {
+            if (bazkideaEzHautatua && !dataHutsa && !deskribapenaHutsa) {
                 Toast.makeText(this, R.string.bisita_errorea_partnerra, Toast.LENGTH_SHORT).show();
                 binding.spinnerBisitaPartnerra.requestFocus();
             }
@@ -257,7 +260,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
 
     /**
      * Formularioa gorde: txertatu (berria) edo eguneratu (editatzeko).
-     * Datu-basearen integritatea: kanpo-gakoen egiaztapena (partner_kodea Partnerra taulan), transakzio seguruak.
+     * Datu-basearen integritatea: kanpo-gakoen egiaztapena (bazkidea_kodea Bazkidea taulan), transakzio seguruak.
      * Salbuespenen kudeaketa: try-catch, erroreak euskaraz Toast eta log.
      */
     private void gordeBisita() {
@@ -265,13 +268,13 @@ public class BisitaFormularioActivity extends AppCompatActivity {
 
         String data = binding.etBisitaData.getText() != null ? binding.etBisitaData.getText().toString().trim() : "";
         String deskribapena = binding.etBisitaDeskribapena.getText() != null ? binding.etBisitaDeskribapena.getText().toString().trim() : "";
-        String partnerKodea = "";
-        Long partnerIdFinal = null;
+        String bazkideaKodea = "";
+        Long bazkideaIdFinal = null;
         int pos = binding.spinnerBisitaPartnerra.getSelectedItemPosition();
-        if (pos > 0 && partnerrak != null && pos <= partnerrak.size()) {
-            Partnerra p = partnerrak.get(pos - 1);
-            partnerKodea = p.getKodea() != null ? p.getKodea() : "";
-            partnerIdFinal = p.getId();
+        if (pos > 0 && bazkideak != null && pos <= bazkideak.size()) {
+            Bazkidea b = bazkideak.get(pos - 1);
+            bazkideaKodea = b.getNan() != null ? b.getNan() : "";
+            bazkideaIdFinal = b.getId();
         }
         String komertzialKodea = getIntent() != null ? getIntent().getStringExtra(MainActivity.EXTRA_KOMMERTZIALA_KODEA) : null;
         Long komertzialaIdFinal = null;
@@ -287,16 +290,16 @@ public class BisitaFormularioActivity extends AppCompatActivity {
 
         final String dataFinal = data;
         final String deskribapenaFinal = deskribapena;
-        final String partnerKodeaFinal = partnerKodea;
-        final Long partnerIdGordetzeko = partnerIdFinal;
+        final String bazkideaKodeaFinal = bazkideaKodea;
+        final Long bazkideaIdGordetzeko = bazkideaIdFinal;
         final Long komertzialaIdGordetzeko = komertzialaIdFinal;
         final String egoeraFinal = egoera;
         final long editatuIdFinal = editatuId;
 
         new Thread(() -> {
             try {
-                // Kanpo-gakoen egiaztapena: partner_kodea Partnerra taulan existitzen dela ziurtatu (bisita sortu aurretik)
-                if (datuBasea.partnerraDao().kodeaBilatu(partnerKodeaFinal) == null) {
+                // Kanpo-gakoen egiaztapena: bazkidea_kodea Bazkidea taulan existitzen dela ziurtatu (bisita sortu aurretik)
+                if (datuBasea.bazkideaDao().nanBilatu(bazkideaKodeaFinal) == null) {
                     runOnUiThread(() -> Toast.makeText(this, R.string.bisita_partnerra_ez_datu_basean, Toast.LENGTH_LONG).show());
                     return;
                 }
@@ -307,8 +310,8 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                         if (a != null) {
                             a.setBisitaData(dataFinal);
                             a.setDeskribapena(deskribapenaFinal);
-                            a.setPartnerKodea(partnerKodeaFinal);
-                            a.setPartnerId(partnerIdGordetzeko);
+                            a.setBazkideaKodea(bazkideaKodeaFinal);
+                            a.setBazkideaId(bazkideaIdGordetzeko);
                             a.setKomertzialaId(komertzialaIdGordetzeko);
                             a.setEgoera(egoeraFinal);
                             datuBasea.agendaDao().eguneratu(a);
@@ -317,8 +320,8 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                         Agenda berria = new Agenda();
                         berria.setBisitaData(dataFinal);
                         berria.setDeskribapena(deskribapenaFinal);
-                        berria.setPartnerKodea(partnerKodeaFinal);
-                        berria.setPartnerId(partnerIdGordetzeko);
+                        berria.setBazkideaKodea(bazkideaKodeaFinal);
+                        berria.setBazkideaId(bazkideaIdGordetzeko);
                         berria.setKomertzialaId(komertzialaIdGordetzeko);
                         berria.setEgoera(egoeraFinal);
                         datuBasea.agendaDao().txertatu(berria);

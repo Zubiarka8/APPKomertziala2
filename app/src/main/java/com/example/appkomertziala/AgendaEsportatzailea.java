@@ -6,7 +6,7 @@ import android.util.Xml;
 
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Agenda;
-import com.example.appkomertziala.db.eredua.Partnerra;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -84,7 +84,7 @@ public class AgendaEsportatzailea {
                 for (Agenda a : hilabetekoak) {
                     idazlea.startTag(null, "bisita");
                     nodoaIdatzi(idazlea, "bisita_data", hutsaEz(a.getBisitaData()));
-                    nodoaIdatzi(idazlea, "partner_kodea", hutsaEz(a.getPartnerKodea()));
+                    nodoaIdatzi(idazlea, "bazkidea_kodea", hutsaEz(a.getBazkideaKodea()));
                     nodoaIdatzi(idazlea, "deskribapena", hutsaEz(a.getDeskribapena()));
                     nodoaIdatzi(idazlea, "egoera", hutsaEz(a.getEgoera()));
                     idazlea.endTag(null, "bisita");
@@ -120,9 +120,9 @@ public class AgendaEsportatzailea {
                     testuingurua.openFileOutput(FITXATEGI_TXT, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
                 for (Agenda a : hilabetekoak) {
                     String data = hutsaEz(a.getBisitaData());
-                    String partnerra = partnerrarenIzena(a.getPartnerKodea());
+                    String bazkidea = bazkidearenIzena(a.getBazkideaKodea());
                     String deskribapena = hutsaEz(a.getDeskribapena());
-                    idazlea.write(data + " - " + partnerra + " - " + deskribapena + "\n");
+                    idazlea.write(data + " - " + bazkidea + " - " + deskribapena + "\n");
                 }
                 idazlea.flush();
             }
@@ -145,13 +145,18 @@ public class AgendaEsportatzailea {
         idazlea.endTag(null, izena);
     }
 
-    /** Partnerraren izena itzuli kodearen arabera (Partnerra taula). */
-    private String partnerrarenIzena(String partnerKodea) {
-        if (partnerKodea == null || partnerKodea.trim().isEmpty()) {
+    /** Bazkidearen izena itzuli kodearen arabera (Bazkidea taula). */
+    private String bazkidearenIzena(String bazkideaKodea) {
+        if (bazkideaKodea == null || bazkideaKodea.trim().isEmpty()) {
             return "";
         }
-        Partnerra p = datuBasea.partnerraDao().kodeaBilatu(partnerKodea.trim());
-        return p != null ? hutsaEz(p.getIzena()) : partnerKodea;
+        Bazkidea b = datuBasea.bazkideaDao().nanBilatu(bazkideaKodea.trim());
+        if (b != null) {
+            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+            return izena.isEmpty() ? (b.getNan() != null ? b.getNan() : "") : izena;
+        }
+        return bazkideaKodea;
     }
 
     private static String hutsaEz(String s) {

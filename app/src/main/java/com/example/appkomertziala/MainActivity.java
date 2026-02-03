@@ -40,7 +40,7 @@ import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
-import com.example.appkomertziala.db.eredua.Partnerra;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
 import com.example.appkomertziala.xml.XmlBilatzailea;
 import com.example.appkomertziala.xml.XMLKudeatzailea;
@@ -85,6 +85,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     /** LoginActivity-k bidalitako komertzial hautatua (kredentzialik gabe sartu). */
     public static final String EXTRA_KOMMERTZIALA_KODEA = "komertziala_kodea";
     public static final String EXTRA_KOMMERTZIALA_IZENA = "komertziala_izena";
+    
+    /** LoginActivity-k bidalitako bazkidea hautatua (bazkide gisa sartu). */
+    public static final String EXTRA_BAZKIDEA_NAN = "bazkidea_nan";
+    public static final String EXTRA_BAZKIDEA_ID = "bazkidea_id";
 
     private View contentHasiera;
     private View contentAgenda;
@@ -149,7 +153,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         if (izena == null || izena.isEmpty()) izena = "katalogoa.xml";
                         XMLKudeatzailea kud = new XMLKudeatzailea(this);
                         kud.inportatuSarreraFluxutik(is, izena);
-                        runOnUiThread(() -> Toast.makeText(this, R.string.inportatu_ondo, Toast.LENGTH_SHORT).show());
+                        
+                        // UI eguneratu inportatutako fitxategiaren arabera
+                        String fitxategiIzena = izena.toLowerCase(Locale.ROOT);
+                        runOnUiThread(() -> {
+                            Toast.makeText(this, R.string.inportatu_ondo, Toast.LENGTH_SHORT).show();
+                            
+                            // Bazkideak.xml inportatuta bada, bazkide zerrenda eguneratu
+                            if (fitxategiIzena.equals("bazkideak.xml")) {
+                                if (contentBazkideak != null && contentBazkideak.getVisibility() == View.VISIBLE) {
+                                    kargatuBazkideakZerrenda();
+                                }
+                            }
+                            // Agenda.xml inportatuta bada, agenda zitak eguneratu
+                            else if (fitxategiIzena.equals("agenda.xml")) {
+                                if (contentAgenda != null && contentAgenda.getVisibility() == View.VISIBLE) {
+                                    kargatuAgendaZitak();
+                                }
+                            }
+                            // Katalogoa.xml inportatuta bada, inbentarioa eguneratu
+                            else if (fitxategiIzena.equals("katalogoa.xml")) {
+                                if (contentInventarioa != null && contentInventarioa.getVisibility() == View.VISIBLE) {
+                                    erakutsiInbentarioaEdukia();
+                                }
+                            }
+                        });
                     } catch (Exception e) {
                         String mezu = e.getMessage() != null ? e.getMessage() : "";
                         runOnUiThread(() -> Toast.makeText(this, getString(R.string.inportatu_errorea, mezu != null && !mezu.isEmpty() ? mezu : getString(R.string.errore_ezezaguna)), Toast.LENGTH_LONG).show());
@@ -186,6 +214,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnCall = findViewById(R.id.btnCall);
         btnEmail = findViewById(R.id.btnEmail);
 
+        // Erabiltzailearen izena kargatu eta erakutsi
+        kargatuErabiltzaileIzena();
+
         setupMap();
         setupBottomNav();
         setupContactButtons();
@@ -193,6 +224,103 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupAgendaCitaGehitu();
         setupBazkideaFab();
         erakutsiEsportazioBidea();
+    }
+
+    /** Saioa hasi duen erabiltzailearen izena eta abizena kargatu eta erakutsi hasiera atalean. */
+    private void kargatuErabiltzaileIzena() {
+        TextView tvErabiltzaileIzena = findViewById(R.id.tvErabiltzaileIzena);
+        if (tvErabiltzaileIzena == null) return;
+
+        Intent intent = getIntent();
+        if (intent == null) {
+            tvErabiltzaileIzena.setVisibility(View.GONE);
+            return;
+        }
+
+        // Lehenengo komertziala bilatu
+        String komertzialKodea = intent.getStringExtra(EXTRA_KOMMERTZIALA_KODEA);
+        if (komertzialKodea != null && !komertzialKodea.trim().isEmpty()) {
+            // Komertziala datu-basean bilatu eta izena + abizena erakutsi
+            new Thread(() -> {
+                try {
+                    AppDatabase db = AppDatabase.getInstance(this);
+                    Komertziala komertziala = db.komertzialaDao().kodeaBilatu(komertzialKodea.trim());
+                    
+                    runOnUiThread(() -> {
+                        if (komertziala != null) {
+                            String izena = komertziala.getIzena() != null ? komertziala.getIzena().trim() : "";
+                            String abizena = komertziala.getAbizena() != null && !komertziala.getAbizena().trim().isEmpty() 
+                                    ? " " + komertziala.getAbizena().trim() : "";
+                            String izenOsoa = izena + abizena;
+                            
+                            if (!izenOsoa.isEmpty()) {
+                                tvErabiltzaileIzena.setText(getString(R.string.ongietorri, izenOsoa));
+                                tvErabiltzaileIzena.setVisibility(View.VISIBLE);
+                            } else {
+                                tvErabiltzaileIzena.setVisibility(View.GONE);
+                            }
+                        } else {
+                            tvErabiltzaileIzena.setVisibility(View.GONE);
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> tvErabiltzaileIzena.setVisibility(View.GONE));
+                }
+            }).start();
+            return;
+        }
+
+        // Bestela bazkidea bilatu
+        String bazkideaNan = intent.getStringExtra(EXTRA_BAZKIDEA_NAN);
+        long bazkideaId = intent.getLongExtra(EXTRA_BAZKIDEA_ID, -1);
+        
+        if ((bazkideaNan != null && !bazkideaNan.trim().isEmpty()) || bazkideaId > 0) {
+            // Bazkidea datu-basean bilatu eta izena + abizena erakutsi
+            new Thread(() -> {
+                try {
+                    AppDatabase db = AppDatabase.getInstance(this);
+                    Bazkidea bazkidea = null;
+                    
+                    if (bazkideaId > 0) {
+                        bazkidea = db.bazkideaDao().idzBilatu(bazkideaId);
+                    } else if (bazkideaNan != null && !bazkideaNan.trim().isEmpty()) {
+                        bazkidea = db.bazkideaDao().nanBilatu(bazkideaNan.trim());
+                    }
+                    
+                    final Bazkidea finalBazkidea = bazkidea;
+                    runOnUiThread(() -> {
+                        if (finalBazkidea != null) {
+                            String izena = finalBazkidea.getIzena() != null ? finalBazkidea.getIzena().trim() : "";
+                            String abizena = finalBazkidea.getAbizena() != null && !finalBazkidea.getAbizena().trim().isEmpty() 
+                                    ? " " + finalBazkidea.getAbizena().trim() : "";
+                            String izenOsoa = izena + abizena;
+                            
+                            if (!izenOsoa.isEmpty()) {
+                                tvErabiltzaileIzena.setText(getString(R.string.ongietorri, izenOsoa));
+                                tvErabiltzaileIzena.setVisibility(View.VISIBLE);
+                            } else {
+                                // Izena hutsik badago, NAN erabili
+                                String nan = finalBazkidea.getNan() != null ? finalBazkidea.getNan().trim() : "";
+                                if (!nan.isEmpty()) {
+                                    tvErabiltzaileIzena.setText(getString(R.string.ongietorri, nan));
+                                    tvErabiltzaileIzena.setVisibility(View.VISIBLE);
+                                } else {
+                                    tvErabiltzaileIzena.setVisibility(View.GONE);
+                                }
+                            }
+                        } else {
+                            tvErabiltzaileIzena.setVisibility(View.GONE);
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> tvErabiltzaileIzena.setVisibility(View.GONE));
+                }
+            }).start();
+            return;
+        }
+
+        // Ez bada komertziala ezta bazkidea, ezkutatu
+        tvErabiltzaileIzena.setVisibility(View.GONE);
     }
 
     /** Agenda fitxako Extended FAB: bisita berria gehitzeko pantaila ireki (agenda_bisitak taula). */
@@ -234,15 +362,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ArrayList<Object[]> erakusteko = new ArrayList<>();
                 for (Agenda a : bisitak) {
                     String dataStr = a.getBisitaData() != null ? a.getBisitaData() : "";
-                    String partnerIzena = "";
-                    if (a.getPartnerKodea() != null && !a.getPartnerKodea().trim().isEmpty()) {
-                        Partnerra p = db.partnerraDao().kodeaBilatu(a.getPartnerKodea().trim());
-                        partnerIzena = p != null && p.getIzena() != null ? p.getIzena() : a.getPartnerKodea();
+                    String bazkideaIzena = "";
+                    if (a.getBazkideaKodea() != null && !a.getBazkideaKodea().trim().isEmpty()) {
+                        Bazkidea b = db.bazkideaDao().nanBilatu(a.getBazkideaKodea().trim());
+                        if (b != null) {
+                            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                            bazkideaIzena = izena.isEmpty() ? (b.getNan() != null ? b.getNan() : "") : izena;
+                        } else {
+                            bazkideaIzena = a.getBazkideaKodea();
+                        }
                     }
                     String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena().trim() : "";
                     String egoeraStr = a.getEgoera() != null ? a.getEgoera().trim() : "";
                     String zenb = "BIS-" + a.getId();
-                    erakusteko.add(new Object[]{dataStr, zenb, partnerIzena.isEmpty() ? "—" : partnerIzena, deskribapena, egoeraStr, a.getId()});
+                    erakusteko.add(new Object[]{dataStr, zenb, bazkideaIzena.isEmpty() ? "—" : bazkideaIzena, deskribapena, egoeraStr, a.getId()});
                 }
 
                 runOnUiThread(() -> {
@@ -257,14 +391,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     for (Object[] row : erakusteko) {
                         String dataStr = (String) row[0];
                         String zenb = (String) row[1];
-                        String partnerIzena = (String) row[2];
+                        String bazkideaIzena = (String) row[2];
                         String deskribapena = (String) row[3];
                         String egoeraStr = (String) row[4];
                         long agendaId = (Long) row[5];
                         View item = inflater.inflate(R.layout.item_zita, listContainer, false);
                         ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
                         ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
-                        ((TextView) item.findViewById(R.id.itemZitaPartnerra)).setText(partnerIzena);
+                        ((TextView) item.findViewById(R.id.itemZitaPartnerra)).setText(bazkideaIzena);
                         TextView tvOrdezk = item.findViewById(R.id.itemZitaOrdezkaritza);
                         if (!deskribapena.isEmpty()) {
                             tvOrdezk.setText(deskribapena);
@@ -278,7 +412,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         MaterialButton btnIkusi = item.findViewById(R.id.btnZitaIkusi);
                         MaterialButton btnEditatu = item.findViewById(R.id.btnZitaEditatu);
                         MaterialButton btnEzabatu = item.findViewById(R.id.btnZitaEzabatu);
-                        btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, partnerIzena, deskribapena, egoeraStr));
+                        btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, bazkideaIzena, deskribapena, egoeraStr));
                         btnEditatu.setOnClickListener(v -> editatuZita(agendaId));
                         btnEzabatu.setOnClickListener(v -> ezabatuZita(agendaId));
                         listContainer.addView(item);
@@ -296,12 +430,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): data, zenbakia, partnerra, deskribapena, egoera. */
-    private void erakutsiZitaXehetasunak(String dataStr, String zenbakia, String partnerIzena, String deskribapena, String egoera) {
+    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): data, zenbakia, bazkidea, deskribapena, egoera. */
+    private void erakutsiZitaXehetasunak(String dataStr, String zenbakia, String bazkideaIzena, String deskribapena, String egoera) {
         StringBuilder msg = new StringBuilder();
         msg.append(getString(R.string.zita_data)).append(": ").append(dataStr).append("\n");
         msg.append(getString(R.string.zita_zenbakia)).append(": ").append(zenbakia).append("\n");
-        msg.append(getString(R.string.zita_partnerra)).append(": ").append(partnerIzena).append("\n");
+        msg.append(getString(R.string.zita_partnerra)).append(": ").append(bazkideaIzena).append("\n");
         msg.append(getString(R.string.agenda_bisita_egoera)).append(": ").append(egoera != null && !egoera.isEmpty() ? egoera : "—").append("\n");
         if (deskribapena != null && !deskribapena.isEmpty()) {
             msg.append(getString(R.string.agenda_bisita_deskribapena)).append(": ").append(deskribapena).append("\n");
@@ -887,7 +1021,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                             if (kom != null) goi.setKomertzialId(kom.getId());
                                         }
                                         goi.setOrdezkaritza("");
-                                        goi.setPartnerKodea("");
+                                        goi.setBazkideaKodea("");
                                         db.eskaeraGoiburuaDao().txertatu(goi);
                                         for (SaskiaElementua e : saskia) {
                                             EskaeraXehetasuna x = new EskaeraXehetasuna();
@@ -966,10 +1100,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (XmlBilatzailea.bazkideakFaltaDa(this)) {
             sb.append(getString(R.string.xml_falta_da, "bazkideak.xml"));
         }
-        if (XmlBilatzailea.partnerrakFaltaDa(this)) {
-            if (sb.length() > 0) sb.append("\n");
-            sb.append(getString(R.string.xml_falta_da, "partnerrak.xml"));
-        }
+        // partnerrak.xml ez da beharrezkoa, bazkideak.xml erabiltzen da
         if (sb.length() > 0) {
             tvXmlFalta.setText(sb.toString());
             tvXmlFalta.setVisibility(View.VISIBLE);
@@ -1154,10 +1285,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (XmlBilatzailea.bazkideakFaltaDa(this)) {
             sb.append(getString(R.string.xml_falta_da, "bazkideak.xml"));
         }
-        if (XmlBilatzailea.partnerrakFaltaDa(this)) {
-            if (sb.length() > 0) sb.append("\n");
-            sb.append(getString(R.string.xml_falta_da, "partnerrak.xml"));
-        }
+        // partnerrak.xml ez da beharrezkoa, bazkideak.xml erabiltzen da
         if (sb.length() > 0) {
             tvAgendaXmlFalta.setText(sb.toString());
             tvAgendaXmlFalta.setVisibility(View.VISIBLE);

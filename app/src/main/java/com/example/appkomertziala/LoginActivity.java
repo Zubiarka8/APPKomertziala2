@@ -187,7 +187,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         }).start();
     }
 
-    /** XML guztiak ordena egokian kargatzen du (komertzialak, partnerrak, bazkideak, loginak, katalogoa). Hila nagusitik kanpo. */
+    /** XML guztiak ordena egokian kargatzen du (komertzialak, bazkideak, loginak, katalogoa). Hila nagusitik kanpo. */
     private void kargatuXmlGuztiak() {
         new Thread(() -> {
             try {
@@ -292,8 +292,13 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.bazkide_hautatu_titulua)
                         .setItems(aukerak, (dialog, which) -> {
+                            Bazkidea hautatutakoBazkidea = finalZerrenda.get(which);
                             Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(this, MainActivity.class);
+                            if (hautatutakoBazkidea != null) {
+                                intent.putExtra(MainActivity.EXTRA_BAZKIDEA_NAN, hautatutakoBazkidea.getNan());
+                                intent.putExtra(MainActivity.EXTRA_BAZKIDEA_ID, hautatutakoBazkidea.getId());
+                            }
                             startActivity(intent);
                             finish();
                         })

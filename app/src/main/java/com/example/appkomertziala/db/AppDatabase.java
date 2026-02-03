@@ -11,37 +11,37 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.db.eredua.Eskaera;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Logina;
-import com.example.appkomertziala.db.eredua.Partnerra;
 import com.example.appkomertziala.db.kontsultak.AgendaDao;
 import com.example.appkomertziala.db.kontsultak.BazkideaDao;
+import com.example.appkomertziala.db.kontsultak.EskaeraDao;
 import com.example.appkomertziala.db.kontsultak.EskaeraGoiburuaDao;
 import com.example.appkomertziala.db.kontsultak.EskaeraXehetasunaDao;
 import com.example.appkomertziala.db.kontsultak.KatalogoaDao;
 import com.example.appkomertziala.db.kontsultak.KomertzialaDao;
 import com.example.appkomertziala.db.kontsultak.LoginaDao;
-import com.example.appkomertziala.db.kontsultak.PartnerraDao;
 
 /**
  * Aplikazioko Room datu-basea: eredu-entitateak eta kontsulta-DAOak.
- * Erlazio-diagrama: Komertziala, Partnerra, Katalogoa, EskaeraGoiburua, EskaeraXehetasuna, Logina.
+ * Erlazio-diagrama: Komertziala, Bazkidea, Katalogoa, EskaeraGoiburua, EskaeraXehetasuna, Logina, Agenda.
  */
 @Database(
     entities = {
         Komertziala.class,
-        Partnerra.class,
         Bazkidea.class,
+        Eskaera.class,
         Katalogoa.class,
         EskaeraGoiburua.class,
         EskaeraXehetasuna.class,
         Logina.class,
         Agenda.class
     },
-    version = 12,
+    version = 15,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -244,6 +244,123 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 12 -> 13: Eliminar partnerrak taula y migrar a bazkideak.
+     * - Actualizar agenda_bisitak: partnerKodea -> bazkideaKodea, partnerId -> bazkideaId
+     * - Actualizar eskaera_goiburuak: partnerKodea -> bazkideaKodea, partnerId -> bazkideaId
+     * - Agregar campos faltantes a bazkideak (kodea, helbidea, probintzia, komertzialKodea, sortutakoData)
+     * - Migrar datos de partnerrak a bazkideak si existen
+     * - Eliminar tabla partnerrak
+     */
+    private static final Migration MIGRAZIO_12_13 = new Migration(12, 13) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            // Agregar campos faltantes a bazkideak si no existen
+            if (taulaExistitzenDa(db, "bazkideak")) {
+                if (!zutabeaExistitzenDa(db, "bazkideak", "kodea"))
+                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN kodea TEXT");
+                if (!zutabeaExistitzenDa(db, "bazkideak", "helbidea"))
+                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN helbidea TEXT");
+                if (!zutabeaExistitzenDa(db, "bazkideak", "probintzia"))
+                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN probintzia TEXT");
+                if (!zutabeaExistitzenDa(db, "bazkideak", "komertzialKodea"))
+                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN komertzialKodea TEXT");
+                if (!zutabeaExistitzenDa(db, "bazkideak", "sortutakoData"))
+                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN sortutakoData TEXT");
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_bazkideak_kodea ON bazkideak(kodea)");
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_bazkideak_komertzialKodea ON bazkideak(komertzialKodea)");
+            }
+
+            // Actualizar agenda_bisitak: renombrar columnas
+            if (taulaExistitzenDa(db, "agenda_bisitak")) {
+                if (zutabeaExistitzenDa(db, "agenda_bisitak", "partnerKodea") && !zutabeaExistitzenDa(db, "agenda_bisitak", "bazkideaKodea")) {
+                    db.execSQL("ALTER TABLE agenda_bisitak RENAME COLUMN partnerKodea TO bazkideaKodea");
+                }
+                if (zutabeaExistitzenDa(db, "agenda_bisitak", "partnerId") && !zutabeaExistitzenDa(db, "agenda_bisitak", "bazkideaId")) {
+                    db.execSQL("ALTER TABLE agenda_bisitak RENAME COLUMN partnerId TO bazkideaId");
+                }
+                // Recrear índices
+                db.execSQL("DROP INDEX IF EXISTS index_agenda_bisitak_partnerKodea");
+                db.execSQL("DROP INDEX IF EXISTS index_agenda_bisitak_partnerId");
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_agenda_bisitak_bazkideaKodea ON agenda_bisitak(bazkideaKodea)");
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_agenda_bisitak_bazkideaId ON agenda_bisitak(bazkideaId)");
+            }
+
+            // Actualizar eskaera_goiburuak: renombrar columnas
+            if (taulaExistitzenDa(db, "eskaera_goiburuak")) {
+                if (zutabeaExistitzenDa(db, "eskaera_goiburuak", "partnerKodea") && !zutabeaExistitzenDa(db, "eskaera_goiburuak", "bazkideaKodea")) {
+                    db.execSQL("ALTER TABLE eskaera_goiburuak RENAME COLUMN partnerKodea TO bazkideaKodea");
+                }
+                if (zutabeaExistitzenDa(db, "eskaera_goiburuak", "partnerId") && !zutabeaExistitzenDa(db, "eskaera_goiburuak", "bazkideaId")) {
+                    db.execSQL("ALTER TABLE eskaera_goiburuak RENAME COLUMN partnerId TO bazkideaId");
+                }
+                // Recrear índices
+                db.execSQL("DROP INDEX IF EXISTS index_eskaera_goiburuak_partnerKodea");
+                db.execSQL("DROP INDEX IF EXISTS index_eskaera_goiburuak_partnerId");
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_goiburuak_bazkideaKodea ON eskaera_goiburuak(bazkideaKodea)");
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_eskaera_goiburuak_bazkideaId ON eskaera_goiburuak(bazkideaId)");
+            }
+
+            // Migrar datos de partnerrak a bazkideak si la tabla partnerrak existe
+            if (taulaExistitzenDa(db, "partnerrak")) {
+                // Migrar datos: insertar partnerrak en bazkideak si no existen ya
+                // Mapear telefonoa (partnerrak) -> telefonoZenbakia (bazkideak)
+                // nan y abizena no existen en partnerrak, así que se dejan como NULL
+                db.execSQL("INSERT OR IGNORE INTO bazkideak (id, kodea, izena, abizena, helbidea, probintzia, komertzialKodea, sortutakoData, telefonoZenbakia, posta, jaiotzeData, argazkia) " +
+                           "SELECT id, kodea, izena, NULL as abizena, helbidea, probintzia, komertzialKodea, sortutakoData, telefonoa, posta, jaiotzeData, argazkia FROM partnerrak");
+                // Eliminar tabla partnerrak
+                db.execSQL("DROP TABLE IF EXISTS partnerrak");
+            }
+        }
+    };
+
+    /**
+     * 13 -> 14: Reconstruir bazkideak taula egitura ZUZEKIN (Foreign Key eta indize guztiak barne).
+     * SQLite-k ezin du Foreign Key bat gehitu ALTER TABLE-rekin, beraz "table swap" estrategia erabiltzen da:
+     * 1. Sortu bazkideak_new taula egitura ZUZEKIN (FK eta indize guztiak barne)
+     * 2. Kopiatu datu guztiak taula zaharretik berrira (zutabeak existitzen badira)
+     * 3. Ezabatu taula zaharra eta aldatu berriaren izena bazkideak izatera
+     */
+    private static final Migration MIGRAZIO_13_14 = new Migration(13, 14) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            if (!taulaExistitzenDa(db, "bazkideak")) {
+                // Taula ez badago, sortu egitura ZUZEKIN
+                db.execSQL("CREATE TABLE bazkideak (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT, helbidea TEXT, probintzia TEXT, komertzialKodea TEXT, sortutakoData TEXT, FOREIGN KEY(komertzialKodea) REFERENCES komertzialak(kodea) ON DELETE CASCADE)");
+                db.execSQL("CREATE INDEX index_bazkideak_nan ON bazkideak(nan)");
+                db.execSQL("CREATE INDEX index_bazkideak_izena ON bazkideak(izena)");
+                db.execSQL("CREATE INDEX index_bazkideak_kodea ON bazkideak(kodea)");
+                db.execSQL("CREATE INDEX index_bazkideak_komertzialKodea ON bazkideak(komertzialKodea)");
+                return;
+            }
+
+            // Table swap estrategia: sortu taula berria egitura ZUZEKIN
+            db.execSQL("CREATE TABLE bazkideak_new (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT, helbidea TEXT, probintzia TEXT, komertzialKodea TEXT, sortutakoData TEXT, FOREIGN KEY(komertzialKodea) REFERENCES komertzialak(kodea) ON DELETE CASCADE)");
+
+            // Kopiatu datu guztiak: XML-eko zutabeak (nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia)
+            // eta zutabe gehigarriak (kodea, helbidea, probintzia, komertzialKodea, sortutakoData)
+            // Migrazio 12->13-ak zutabe guztiak gehitzen ditu, beraz SELECT zuzena erabili
+            db.execSQL("INSERT INTO bazkideak_new (id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, kodea, helbidea, probintzia, komertzialKodea, sortutakoData) " +
+                       "SELECT id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, kodea, helbidea, probintzia, komertzialKodea, sortutakoData FROM bazkideak");
+
+            // Ezabatu taula zaharra eta indize zaharrak
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_nan");
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_izena");
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_kodea");
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_komertzialKodea");
+            db.execSQL("DROP TABLE bazkideak");
+
+            // Aldatu berriaren izena bazkideak izatera
+            db.execSQL("ALTER TABLE bazkideak_new RENAME TO bazkideak");
+
+            // Sortu indize berriak
+            db.execSQL("CREATE INDEX index_bazkideak_nan ON bazkideak(nan)");
+            db.execSQL("CREATE INDEX index_bazkideak_izena ON bazkideak(izena)");
+            db.execSQL("CREATE INDEX index_bazkideak_kodea ON bazkideak(kodea)");
+            db.execSQL("CREATE INDEX index_bazkideak_komertzialKodea ON bazkideak(komertzialKodea)");
+        }
+    };
+
     /** komertzialak taulan komertzialak.xml-eko eremu guztiak (abizena, posta, jaiotzeData, argazkia) badauden egiaztatu eta falta badira gehitu. */
     private static void komertzialakZutabeakGehitu(SupportSQLiteDatabase db) {
         if (!taulaExistitzenDa(db, "komertzialak")) return;
@@ -259,10 +376,10 @@ public abstract class AppDatabase extends RoomDatabase {
 
     /** Komertzialak taularen kontsultak. */
     public abstract KomertzialaDao komertzialaDao();
-    /** Partnerrak taularen kontsultak. */
-    public abstract PartnerraDao partnerraDao();
     /** Bazkideak taularen kontsultak. */
     public abstract BazkideaDao bazkideaDao();
+    /** Eskaerak taularen kontsultak. */
+    public abstract EskaeraDao eskaeraDao();
     /** Katalogoa taularen kontsultak. */
     public abstract KatalogoaDao katalogoaDao();
     /** Eskaera goiburuak taularen kontsultak. */
@@ -286,8 +403,8 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12)
-                            .fallbackToDestructiveMigration()
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12, MIGRAZIO_12_13, MIGRAZIO_13_14)
+                            .fallbackToDestructiveMigration()  // Eskema aldaketa handia: datu-base zaharra ezabatu eta berria sortu
                             .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
                             .build();
                 }

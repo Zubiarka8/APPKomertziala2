@@ -9,7 +9,6 @@ import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
-import com.example.appkomertziala.db.eredua.Partnerra;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -39,12 +38,12 @@ public class XMLEsportatzailea {
     }
 
     /**
-     * PARTNERRA taulatik eguneko alta duten bazkide zerrenda erauzi eta bazkide_berriak.xml fitxategian gorde.
-     * Eguneroko txostena: centralera egunero bidaltzeko soilik eguneko erregistro berriak hautatzen dira (sortutakoData = gaur).
-     * Emaitza bakoitza XML nodo baten bihurtzen da: bazkide_berriak > bazkidea > id, kodea, izena, helbidea, probintzia, komertzialKodea.
+     * BAZKIDEAK taulatik bazkide zerrenda erauzi eta bazkide_berriak.xml fitxategian gorde.
+     * ORAIN: Bazkide guztiak esportatzen dira (sortutakoData eremua ez dagoenez, ezin da eguneko altak iragazi).
+     * Emaitza bakoitza XML nodo baten bihurtzen da: bazkide_berriak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia.
      */
     public void bazkideBerriakEsportatu() throws IOException {
-        List<Partnerra> zerrenda = datuBasea.partnerraDao().egunekoAltaGuztiak();
+        List<Bazkidea> zerrenda = datuBasea.bazkideaDao().guztiak();
         String fitxategiIzena = "bazkide_berriak.xml";
         try (OutputStream irteera = testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE)) {
             XmlSerializer idazlea = Xml.newSerializer();
@@ -53,14 +52,17 @@ public class XMLEsportatzailea {
             idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
             // Erroote nodoa: bazkide_berriak
             idazlea.startTag(null, "bazkide_berriak");
-            for (Partnerra p : zerrenda) {
+            for (Bazkidea b : zerrenda) {
                 idazlea.startTag(null, "bazkidea");
-                nodoaIdatzi(idazlea, "id", String.valueOf(p.getId()));
-                nodoaIdatzi(idazlea, "kodea", hutsaEz(p.getKodea()));
-                nodoaIdatzi(idazlea, "izena", hutsaEz(p.getIzena()));
-                nodoaIdatzi(idazlea, "helbidea", hutsaEz(p.getHelbidea()));
-                nodoaIdatzi(idazlea, "probintzia", hutsaEz(p.getProbintzia()));
-                nodoaIdatzi(idazlea, "komertzialKodea", hutsaEz(p.getKomertzialKodea()));
+                nodoaIdatzi(idazlea, "NAN", hutsaEz(b.getNan()));
+                nodoaIdatzi(idazlea, "izena", hutsaEz(b.getIzena()));
+                nodoaIdatzi(idazlea, "abizena", hutsaEz(b.getAbizena()));
+                nodoaIdatzi(idazlea, "telefonoZenbakia", hutsaEz(b.getTelefonoZenbakia()));
+                nodoaIdatzi(idazlea, "posta", hutsaEz(b.getPosta()));
+                nodoaIdatzi(idazlea, "jaiotzeData", dataFormatuaBazkideak(hutsaEz(b.getJaiotzeData())));
+                nodoaIdatzi(idazlea, "argazkia", hutsaEz(b.getArgazkia()));
+                idazlea.startTag(null, "eskaerak");
+                idazlea.endTag(null, "eskaerak");
                 idazlea.endTag(null, "bazkidea");
             }
             idazlea.endTag(null, "bazkide_berriak");
@@ -199,7 +201,7 @@ public class XMLEsportatzailea {
                 nodoaIdatzi(idazlea, "data", hutsaEz(goi.getData()));
                 nodoaIdatzi(idazlea, "komertzialKodea", hutsaEz(goi.getKomertzialKodea()));
                 nodoaIdatzi(idazlea, "ordezkaritza", hutsaEz(goi.getOrdezkaritza()));
-                nodoaIdatzi(idazlea, "partnerKodea", hutsaEz(goi.getPartnerKodea()));
+                nodoaIdatzi(idazlea, "bazkidea_kodea", hutsaEz(goi.getBazkideaKodea()));
                 idazlea.endTag(null, "bisita");
             }
             idazlea.endTag(null, "agenda");
@@ -238,19 +240,20 @@ public class XMLEsportatzailea {
 
     // ----- TXT esportazioak (testu laua, Gmail eranskin gisa bidaltzeko) -----
 
-    /** Eguneko bazkide berriak bazkide_berriak.txt fitxategian (testu laua). */
+    /** Bazkideak bazkide_berriak.txt fitxategian esportatu (testu laua). ORAIN: Bazkide guztiak (sortutakoData eremua ez dagoenez). */
     public void bazkideBerriakEsportatuTxt() throws IOException {
-        List<Partnerra> zerrenda = datuBasea.partnerraDao().egunekoAltaGuztiak();
+        List<Bazkidea> zerrenda = datuBasea.bazkideaDao().guztiak();
         String fitxategiIzena = "bazkide_berriak.txt";
         try (Writer idazlea = new OutputStreamWriter(testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
             idazlea.write("=== BAZKIDE BERRIAK (eguneko altak) ===\n\n");
-            for (Partnerra p : zerrenda) {
-                idazlea.write("Id: " + p.getId() + "\n");
-                idazlea.write("Kodea: " + hutsaEz(p.getKodea()) + "\n");
-                idazlea.write("Izena: " + hutsaEz(p.getIzena()) + "\n");
-                idazlea.write("Helbidea: " + hutsaEz(p.getHelbidea()) + "\n");
-                idazlea.write("Probintzia: " + hutsaEz(p.getProbintzia()) + "\n");
-                idazlea.write("KomertzialKodea: " + hutsaEz(p.getKomertzialKodea()) + "\n");
+            for (Bazkidea b : zerrenda) {
+                idazlea.write("Id: " + b.getId() + "\n");
+                idazlea.write("NAN: " + hutsaEz(b.getNan()) + "\n");
+                idazlea.write("Izena: " + hutsaEz(b.getIzena()) + "\n");
+                idazlea.write("Abizena: " + hutsaEz(b.getAbizena()) + "\n");
+                idazlea.write("Telefonoa: " + hutsaEz(b.getTelefonoZenbakia()) + "\n");
+                idazlea.write("Posta: " + hutsaEz(b.getPosta()) + "\n");
+                idazlea.write("JaiotzeData: " + hutsaEz(b.getJaiotzeData()) + "\n");
                 idazlea.write("---\n");
             }
             idazlea.flush();
@@ -265,7 +268,7 @@ public class XMLEsportatzailea {
             idazlea.write("=== ESKAERA BERRIAK (egunekoak) ===\n\n");
             for (EskaeraGoiburua goi : goiburuak) {
                 idazlea.write("Eskaera zenbakia: " + hutsaEz(goi.getZenbakia()) + " | Data: " + hutsaEz(goi.getData()) + "\n");
-                idazlea.write("KomertzialKodea: " + hutsaEz(goi.getKomertzialKodea()) + " | Ordezkaritza: " + hutsaEz(goi.getOrdezkaritza()) + " | PartnerKodea: " + hutsaEz(goi.getPartnerKodea()) + "\n");
+                idazlea.write("KomertzialKodea: " + hutsaEz(goi.getKomertzialKodea()) + " | Ordezkaritza: " + hutsaEz(goi.getOrdezkaritza()) + " | BazkideaKodea: " + hutsaEz(goi.getBazkideaKodea()) + "\n");
                 List<EskaeraXehetasuna> xehetasunak = datuBasea.eskaeraXehetasunaDao().eskaerarenXehetasunak(goi.getZenbakia());
                 for (EskaeraXehetasuna x : xehetasunak) {
                     idazlea.write("  - " + hutsaEz(x.getArtikuluKodea()) + " | Kantitatea: " + x.getKantitatea() + " | Prezioa: " + x.getPrezioa() + "\n");
@@ -284,7 +287,7 @@ public class XMLEsportatzailea {
             idazlea.write("=== AGENDA (hilabeteko bisitak) ===\n\n");
             for (EskaeraGoiburua goi : hilabetekoak) {
                 idazlea.write("Zenbakia: " + hutsaEz(goi.getZenbakia()) + " | Data: " + hutsaEz(goi.getData()) + "\n");
-                idazlea.write("KomertzialKodea: " + hutsaEz(goi.getKomertzialKodea()) + " | Ordezkaritza: " + hutsaEz(goi.getOrdezkaritza()) + " | PartnerKodea: " + hutsaEz(goi.getPartnerKodea()) + "\n");
+                idazlea.write("KomertzialKodea: " + hutsaEz(goi.getKomertzialKodea()) + " | Ordezkaritza: " + hutsaEz(goi.getOrdezkaritza()) + " | BazkideaKodea: " + hutsaEz(goi.getBazkideaKodea()) + "\n");
                 idazlea.write("---\n");
             }
         }

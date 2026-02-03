@@ -6,12 +6,12 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 /**
- * Eskaera goiburua: Zenbakia, Data, Komertzial_Kodea/Id, Ordezkaritza, Partner_Kodea/Id.
- * Loturak: partnerId → Partnerra.id, komertzialId → Komertziala.id (aplikazioan erresolbatzen dira; migrazioek ez dute FK sortzen).
+ * Eskaera goiburua: Zenbakia, Data, Komertzial_Kodea/Id, Ordezkaritza, Bazkidea_Kodea/Id.
+ * Loturak: bazkideaId → Bazkidea.id, komertzialId → Komertziala.id (aplikazioan erresolbatzen dira; migrazioek ez dute FK sortzen).
  */
 @Entity(
     tableName = "eskaera_goiburuak",
-    indices = {@Index("komertzialKodea"), @Index("partnerKodea"), @Index("komertzialId"), @Index("partnerId")}
+    indices = {@Index("komertzialKodea"), @Index("bazkideaKodea"), @Index("komertzialId"), @Index("bazkideaId")}
 )
 public class EskaeraGoiburua {
 
@@ -25,10 +25,10 @@ public class EskaeraGoiburua {
     /** Lotutako komertzialaren ID (kanpo-gakoa: nor kudeatu duen). */
     private Long komertzialId;
     private String ordezkaritza;
-    /** Lotutako partnerraren kodea (XML / pantaila). */
-    private String partnerKodea;
-    /** Lotutako partnerraren ID (kanpo-gakoa: nor erosi duen). */
-    private Long partnerId;
+    /** Lotutako bazkidearen kodea (XML / pantaila). */
+    private String bazkideaKodea;
+    /** Lotutako bazkidearen ID (kanpo-gakoa: nor erosi duen). */
+    private Long bazkideaId;
 
     public EskaeraGoiburua() {}
 
@@ -42,8 +42,17 @@ public class EskaeraGoiburua {
     public void setKomertzialId(Long komertzialId) { this.komertzialId = komertzialId; }
     public String getOrdezkaritza() { return ordezkaritza; }
     public void setOrdezkaritza(String ordezkaritza) { this.ordezkaritza = ordezkaritza; }
-    public String getPartnerKodea() { return partnerKodea; }
-    public void setPartnerKodea(String partnerKodea) { this.partnerKodea = partnerKodea; }
-    public Long getPartnerId() { return partnerId; }
-    public void setPartnerId(Long partnerId) { this.partnerId = partnerId; }
+    public String getBazkideaKodea() { return bazkideaKodea; }
+    public void setBazkideaKodea(String bazkideaKodea) { this.bazkideaKodea = bazkideaKodea; }
+    public Long getBazkideaId() { return bazkideaId; }
+    public void setBazkideaId(Long bazkideaId) { this.bazkideaId = bazkideaId; }
+    // Métodos de compatibilidad temporal (deprecated)
+    @Deprecated
+    public String getPartnerKodea() { return bazkideaKodea; }
+    @Deprecated
+    public void setPartnerKodea(String partnerKodea) { this.bazkideaKodea = partnerKodea; }
+    @Deprecated
+    public Long getPartnerId() { return bazkideaId; }
+    @Deprecated
+    public void setPartnerId(Long partnerId) { this.bazkideaId = partnerId; }
 }

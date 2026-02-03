@@ -5,8 +5,21 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 /**
- * Bazkidea entitatea: bazkideak.xml egitura.
- * Taula: bazkideak. Eremuak: NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia.
+ * Bazkidea entitatea: bazkideak.xml egitura garbia.
+ * 
+ * XML-etik datozen eremuak bakarrik (bazkideak.xml):
+ * - NAN: Bazkidearen NAN identifikatzailea
+ * - izena: Izena
+ * - abizena: Abizena
+ * - telefonoZenbakia: Telefono zenbakia
+ * - posta: Posta elektronikoa
+ * - jaiotzeData: Jaiotze data (yyyy/MM/dd formatuan)
+ * - argazkia: Argazki fitxategiaren izena
+ * 
+ * Taula: bazkideak
+ * Indizeak: nan, izena
+ * 
+ * Eskaerak: Bazkidea bakoitzak hainbat Eskaera izan ditzake (One-to-Many).
  */
 @Entity(
     tableName = "bazkideak",
@@ -17,7 +30,9 @@ public class Bazkidea {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
+    /** Bazkidearen NAN identifikatzailea. */
     private String nan;
+
     private String izena;
     private String abizena;
     private String telefonoZenbakia;

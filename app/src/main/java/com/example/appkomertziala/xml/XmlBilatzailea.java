@@ -19,7 +19,6 @@ public final class XmlBilatzailea {
             "komertzialak.xml",
             "loginak.xml",
             "bazkideak.xml",
-            "partnerrak.xml",
             "katalogoa.xml"
     );
 
@@ -67,11 +66,6 @@ public final class XmlBilatzailea {
     /** Bazkideak atalerako beharrezkoa: bazkideak.xml */
     public static boolean bazkideakFaltaDa(Context context) {
         return faltaDa(context, "bazkideak.xml");
-    }
-
-    /** Partnerra atalerako beharrezkoa: partnerrak.xml */
-    public static boolean partnerrakFaltaDa(Context context) {
-        return faltaDa(context, "partnerrak.xml");
     }
 
     /** Katalogoa atalerako beharrezkoa: katalogoa.xml */

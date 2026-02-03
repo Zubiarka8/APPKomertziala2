@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.Komertziala;
-import com.example.appkomertziala.db.eredua.Partnerra;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
@@ -48,7 +48,7 @@ public class ZitaGehituActivity extends AppCompatActivity {
     private Spinner spinnerPartnerra;
     private AppDatabase datuBasea;
     private String komertzialKodea;
-    private List<Partnerra> partnerrak;
+    private List<Bazkidea> bazkideak;
     /** Editatzeko: eskaera zenbakia. Null bada zita berria da. */
     private String editatuZenbakia;
     /** Editatzeko: hautatu behar den partner kodea (spinnerra betetzen denean erabilia). */
@@ -85,7 +85,7 @@ public class ZitaGehituActivity extends AppCompatActivity {
         etData.setOnClickListener(v -> erakutsiDataHautatzailea());
         etCitaOrdua.setOnClickListener(v -> erakutsiOrduaHautatzailea());
 
-        kargatuPartnerrak();
+        kargatuBazkideak();
         if (editatuZenbakia != null && !editatuZenbakia.isEmpty()) {
             kargatuZitaEditatzeko();
         }
@@ -109,25 +109,25 @@ public class ZitaGehituActivity extends AppCompatActivity {
             final String orduaStr = ordua;
             final String zenb = goi.getZenbakia() != null ? goi.getZenbakia() : "";
             final String ordezk = goi.getOrdezkaritza() != null ? goi.getOrdezkaritza() : "";
-            final String partnerKode = goi.getPartnerKodea() != null ? goi.getPartnerKodea() : "";
-            editModePartnerKodea = partnerKode;
+            final String bazkideaKode = goi.getBazkideaKodea() != null ? goi.getBazkideaKodea() : "";
+            editModePartnerKodea = bazkideaKode;
             runOnUiThread(() -> {
                 etZenbakia.setText(zenb);
                 etZenbakia.setEnabled(false);
                 etData.setText(dataStr);
                 etCitaOrdua.setText(orduaStr);
                 etOrdezkaritza.setText(ordezk);
-                hautatuPartnerraSpinner(partnerKode);
+                hautatuBazkideaSpinner(bazkideaKode);
             });
         }).start();
     }
 
-    /** Spinnerrean partnerra hautatu kodearen arabera (editatzeko). */
-    private void hautatuPartnerraSpinner(String partnerKodea) {
-        if (partnerrak == null || partnerKodea.isEmpty()) return;
-        for (int i = 0; i < partnerrak.size(); i++) {
-            Partnerra p = partnerrak.get(i);
-            if (p.getKodea() != null && p.getKodea().equals(partnerKodea)) {
+    /** Spinnerrean bazkidea hautatu kodearen arabera (editatzeko). */
+    private void hautatuBazkideaSpinner(String bazkideaKodea) {
+        if (bazkideak == null || bazkideaKodea == null || bazkideaKodea.isEmpty()) return;
+        for (int i = 0; i < bazkideak.size(); i++) {
+            Bazkidea b = bazkideak.get(i);
+            if (b.getNan() != null && b.getNan().equals(bazkideaKodea)) {
                 spinnerPartnerra.setSelection(i + 1);
                 return;
             }
@@ -186,28 +186,32 @@ public class ZitaGehituActivity extends AppCompatActivity {
         picker.show(getSupportFragmentManager(), "ORDUA_PICKER");
     }
 
-    private void kargatuPartnerrak() {
+    private void kargatuBazkideak() {
         new Thread(() -> {
-            partnerrak = datuBasea.partnerraDao().komertzialarenPartnerrak(komertzialKodea);
-            if (partnerrak == null) {
-                partnerrak = new ArrayList<>();
+            // ORAIN: Bazkide guztiak kargatzen dira (komertzialKodea eremua ez dagoenez, ezin da iragazi)
+            bazkideak = datuBasea.bazkideaDao().guztiak();
+            if (bazkideak == null) {
+                bazkideak = new ArrayList<>();
             }
-            runOnUiThread(this::beteSpinnerPartnerrak);
+            runOnUiThread(this::beteSpinnerBazkideak);
         }).start();
     }
 
-    private void beteSpinnerPartnerrak() {
+    private void beteSpinnerBazkideak() {
         List<String> izenak = new ArrayList<>();
         izenak.add(getString(R.string.zita_partnerra) + " — " + getString(R.string.zita_utzi)); // leihoan hautaketa
-        for (Partnerra p : partnerrak) {
-            String s = (p.getIzena() != null ? p.getIzena() : "") + " (" + (p.getKodea() != null ? p.getKodea() : "") + ")";
+        for (Bazkidea b : bazkideak) {
+            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+            String nan = b.getNan() != null ? b.getNan() : "";
+            String s = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
             izenak.add(s);
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, izenak);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerPartnerra.setAdapter(adapter);
         if (editModePartnerKodea != null) {
-            hautatuPartnerraSpinner(editModePartnerKodea);
+            hautatuBazkideaSpinner(editModePartnerKodea);
         }
     }
 
@@ -228,13 +232,13 @@ public class ZitaGehituActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.zita_errorea_data, Toast.LENGTH_SHORT).show();
             return;
         }
-        String partnerKodea = "";
+        String bazkideaKodea = "";
         int pos = spinnerPartnerra.getSelectedItemPosition();
-        if (pos > 0 && partnerrak != null && pos <= partnerrak.size()) {
-            Partnerra p = partnerrak.get(pos - 1);
-            partnerKodea = p.getKodea() != null ? p.getKodea() : "";
+        if (pos > 0 && bazkideak != null && pos <= bazkideak.size()) {
+            Bazkidea b = bazkideak.get(pos - 1);
+            bazkideaKodea = b.getNan() != null ? b.getNan() : "";
         }
-        if (partnerKodea.isEmpty()) {
+        if (bazkideaKodea.isEmpty()) {
             Toast.makeText(this, R.string.zita_errorea_partner, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -244,15 +248,15 @@ public class ZitaGehituActivity extends AppCompatActivity {
         final String zenbakiaFinal = zenbakia;
         final String komertzialKodeaFinal = komertzialKodea;
         final String ordezkaritzaFinal = ordezkaritza.isEmpty() ? "" : ordezkaritza;
-        final String partnerKodeaFinal = partnerKodea;
+        final String bazkideaKodeaFinal = bazkideaKodea;
         runOnUiThread(() -> Toast.makeText(this, R.string.debug_zita_datu_basean, Toast.LENGTH_LONG).show());
         new Thread(() -> {
             try {
                 Komertziala kom = datuBasea.komertzialaDao().kodeaBilatu(komertzialKodeaFinal);
-                Partnerra part = datuBasea.partnerraDao().kodeaBilatu(partnerKodeaFinal);
+                Bazkidea bazkidea = datuBasea.bazkideaDao().nanBilatu(bazkideaKodeaFinal);
                 Long komertzialId = kom != null ? kom.getId() : null;
-                Long partnerId = part != null ? part.getId() : null;
-                Log.d(ETIKETA, "Gorde: komertzialId=" + komertzialId + ", partnerId=" + partnerId + ", editMode=" + editMode);
+                Long bazkideaId = bazkidea != null ? bazkidea.getId() : null;
+                Log.d(ETIKETA, "Gorde: komertzialId=" + komertzialId + ", bazkideaId=" + bazkideaId + ", editMode=" + editMode);
 
                 if (editMode) {
                     EskaeraGoiburua goi = datuBasea.eskaeraGoiburuaDao().zenbakiaBilatu(editatuZenbakia);
@@ -261,8 +265,8 @@ public class ZitaGehituActivity extends AppCompatActivity {
                         goi.setKomertzialKodea(komertzialKodeaFinal);
                         goi.setKomertzialId(komertzialId);
                         goi.setOrdezkaritza(ordezkaritzaFinal);
-                        goi.setPartnerKodea(partnerKodeaFinal);
-                        goi.setPartnerId(partnerId);
+                        goi.setBazkideaKodea(bazkideaKodeaFinal);
+                        goi.setBazkideaId(bazkideaId);
                         int errenkadak = datuBasea.eskaeraGoiburuaDao().eguneratu(goi);
                         Log.d(ETIKETA, "Gorde: eguneratu errenkadak=" + errenkadak);
                     } else {
@@ -278,8 +282,8 @@ public class ZitaGehituActivity extends AppCompatActivity {
                     goiBerria.setKomertzialKodea(komertzialKodeaFinal);
                     goiBerria.setKomertzialId(komertzialId);
                     goiBerria.setOrdezkaritza(ordezkaritzaFinal);
-                    goiBerria.setPartnerKodea(partnerKodeaFinal);
-                    goiBerria.setPartnerId(partnerId);
+                    goiBerria.setBazkideaKodea(bazkideaKodeaFinal);
+                    goiBerria.setBazkideaId(bazkideaId);
                     long id = datuBasea.eskaeraGoiburuaDao().txertatu(goiBerria);
                     Log.d(ETIKETA, "Gorde: txertatu id=" + id);
                 }

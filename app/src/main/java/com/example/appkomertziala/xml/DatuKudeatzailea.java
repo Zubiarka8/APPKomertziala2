@@ -35,7 +35,7 @@ public class DatuKudeatzailea {
 
     /**
      * Bazkide berriak esportatu (egunero).
-     * PARTNERRA taulatik eguneko alta guztiak erauzi eta bazkide_berriak.xml fitxategia sortu.
+     * BAZKIDEAK taulatik eguneko alta guztiak erauzi eta bazkide_berriak.xml fitxategia sortu.
      * Garrantzitsua: centralera egunero bidaltzeko soilik eguneko erregistro berriak bidaltzea, datu-kopuru handia saihesteko.
      *
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada
