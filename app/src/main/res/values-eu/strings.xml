@@ -133,6 +133,7 @@
     <string name="agenda_modulua_izenburua">Agenda (bisitak)</string>
     <string name="agenda_modulua_zerrenda_hutsa">Bisitarik ez. Gehitu bat «Bisita berria» botoiarekin.</string>
     <string name="agenda_modulua_bisita_berria">Bisita berria</string>
+    <string name="bilatu_bisitak">Bilatu (bazkidea, data, deskribapena, egoera...)</string>
     <string name="agenda_bisita_data">Bisitaren data</string>
     <string name="agenda_bisita_partnerra">Partnerra</string>
     <string name="agenda_bisita_bazkidea">Bazkidea</string>
@@ -144,6 +145,8 @@
     <string name="bisita_ezabatu_baieztatu">Bisita hau ezabatu nahi duzu?</string>
     <string name="bisita_ezabatu_ondo">Bisita ezabatuta.</string>
     <string name="bisita_ez_da_aurkitu">Ez da bisita aurkitu.</string>
+    <string name="bisita_ezabatu_errorea">Errorea bisita ezabatzean.</string>
+    <string name="bisita_ez_da_aurkitu_sarbiderik">Bisita ez da aurkitu edo ez duzu sarbiderik.</string>
     <string name="bisita_ikusi_izenburua">Bisitaren xehetasunak</string>
     <string name="bisita_ondo_gordeta">Bisita gordeta.</string>
     <string name="bisita_errorea_data">Data beharrezkoa da.</string>

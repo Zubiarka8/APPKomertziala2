@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ExtendedFloatingActionButton fabAgendaZitaGehitu;
     private ExtendedFloatingActionButton fabBazkideaGehitu;
     private ImageButton btnMap;
+    private TextInputEditText etAgendaBilatu;
 
     /** Inbentarioa: katalogo osoa (bilatzaileak iragazteko). */
     private List<Katalogoa> katalogoaOsoa = new ArrayList<>();
@@ -223,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupEsportazioBotoiak();
         setupAgendaCitaGehitu();
         setupBazkideaFab();
+        setupAgendaBilaketa();
         erakutsiEsportazioBidea();
     }
 
@@ -360,6 +362,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /** Agendako bilaketa funtzioa konfiguratu: testua sartzean bilaketa automatikoki exekutatzen da. */
+    private void setupAgendaBilaketa() {
+        etAgendaBilatu = findViewById(R.id.etAgendaBilatu);
+        if (etAgendaBilatu != null) {
+            etAgendaBilatu.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    String filter = s.toString().trim();
+                    if (filter.isEmpty()) {
+                        kargatuAgendaZitak(); // Guztiak kargatu
+                    } else {
+                        bilatuAgendaZitak(filter); // Bilaketa exekutatu
+                    }
+                }
+            });
+        }
+    }
+
     /** Agendako bisita zerrenda kargatu eta erakutsi (agenda_bisitak taula, agendaDao). */
     private void kargatuAgendaZitak() {
         LinearLayout listContainer = findViewById(R.id.list_agenda_zitak);
@@ -458,6 +484,83 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
             }
         }).start();
+    }
+
+    /** Agendako bilaketa exekutatu (data, bazkidea izena/kodea, deskribapena, egoera eremuen artean). */
+    private void bilatuAgendaZitak(String filter) {
+        LinearLayout listContainer = findViewById(R.id.list_agenda_zitak);
+        TextView tvHutsa = findViewById(R.id.tvAgendaZitakHutsa);
+        if (listContainer == null || tvHutsa == null) return;
+
+        com.example.appkomertziala.db.AgendaRepository repository = 
+            new com.example.appkomertziala.db.AgendaRepository(this);
+        
+        repository.bilatuOrokorra(filter, bisitak -> {
+            if (bisitak == null) bisitak = new ArrayList<>();
+            
+            AppDatabase db = AppDatabase.getInstance(this);
+            ArrayList<Object[]> erakusteko = new ArrayList<>();
+            for (Agenda a : bisitak) {
+                String dataStr = a.getBisitaData() != null ? a.getBisitaData() : "";
+                String bazkideaIzena = "";
+                if (a.getBazkideaKodea() != null && !a.getBazkideaKodea().trim().isEmpty()) {
+                    Bazkidea b = db.bazkideaDao().nanBilatu(a.getBazkideaKodea().trim());
+                    if (b != null) {
+                        String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                       (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                        bazkideaIzena = izena.isEmpty() ? (b.getNan() != null ? b.getNan() : "") : izena;
+                    } else {
+                        bazkideaIzena = a.getBazkideaKodea();
+                    }
+                }
+                String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena().trim() : "";
+                String egoeraStr = a.getEgoera() != null ? a.getEgoera().trim() : "";
+                String zenb = "BIS-" + a.getId();
+                erakusteko.add(new Object[]{dataStr, zenb, bazkideaIzena.isEmpty() ? "—" : bazkideaIzena, deskribapena, egoeraStr, a.getId()});
+            }
+
+            runOnUiThread(() -> {
+                if (isDestroyed()) return;
+                listContainer.removeAllViews();
+                if (erakusteko.isEmpty()) {
+                    tvHutsa.setVisibility(View.VISIBLE);
+                    return;
+                }
+                tvHutsa.setVisibility(View.GONE);
+                LayoutInflater inflater = getLayoutInflater();
+                for (Object[] row : erakusteko) {
+                    String dataStr = (String) row[0];
+                    String zenb = (String) row[1];
+                    String bazkideaIzena = (String) row[2];
+                    String deskribapena = (String) row[3];
+                    String egoeraStr = (String) row[4];
+                    long agendaId = (Long) row[5];
+                    View item = inflater.inflate(R.layout.item_zita, listContainer, false);
+                    ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
+                    ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
+                    ((TextView) item.findViewById(R.id.itemZitaPartnerra)).setText(bazkideaIzena);
+                    TextView tvOrdezk = item.findViewById(R.id.itemZitaOrdezkaritza);
+                    if (!deskribapena.isEmpty()) {
+                        tvOrdezk.setText(deskribapena);
+                        tvOrdezk.setVisibility(View.VISIBLE);
+                    }
+                    TextView tvEgoera = item.findViewById(R.id.itemZitaEgoera);
+                    if (tvEgoera != null && !egoeraStr.isEmpty()) {
+                        tvEgoera.setText(egoeraStr);
+                        tvEgoera.setVisibility(View.VISIBLE);
+                    }
+                    MaterialButton btnIkusi = item.findViewById(R.id.btnZitaIkusi);
+                    MaterialButton btnEditatu = item.findViewById(R.id.btnZitaEditatu);
+                    MaterialButton btnEzabatu = item.findViewById(R.id.btnZitaEzabatu);
+                    btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, bazkideaIzena, deskribapena, egoeraStr));
+                    btnEditatu.setOnClickListener(v -> editatuZita(agendaId));
+                    btnEzabatu.setOnClickListener(v -> ezabatuZita(agendaId));
+                    listContainer.addView(item);
+                }
+            });
+            
+            repository.itxi();
+        });
     }
 
     /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): data, zenbakia, bazkidea, deskribapena, egoera. */

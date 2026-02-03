@@ -309,6 +309,36 @@ public class AgendaRepository {
     }
 
     /**
+     * Bilaketa orokorra: bilatu data, bazkidea izena/kodea, deskribapena eta egoera eremuen artean.
+     * SEGURTASUNA: Uneko komertzialaren bisitak bakarrik bilatzen dira.
+     * @param filter Bilaketa testua
+     * @param callback Emaitza jaso behar duen callback
+     */
+    public void bilatuOrokorra(@NonNull String filter, @NonNull KargatuCallback callback) {
+        executorService.execute(() -> {
+            try {
+                // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
+                com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                    new com.example.appkomertziala.segurtasuna.SessionManager(context);
+                String komertzialKodea = sessionManager.getKomertzialKodea();
+                
+                if (komertzialKodea == null || komertzialKodea.isEmpty()) {
+                    Log.w(ETIKETA, "bilatuOrokorra: Saioa ez dago hasita");
+                    callback.onEmaitza(new java.util.ArrayList<>());
+                    return;
+                }
+                
+                // SEGURTASUNA: bilatuOrokorra segurua erabili
+                List<Agenda> bisitak = agendaDao.bilatuOrokorra(filter.trim(), komertzialKodea);
+                callback.onEmaitza(bisitak);
+            } catch (Exception e) {
+                Log.e(ETIKETA, "Errorea bisitak bilatzean orokorra: " + filter, e);
+                callback.onEmaitza(null);
+            }
+        });
+    }
+
+    /**
      * Hilabete zehatzaren arabera bisitak kargatu.
      * @param urtea Urtea (yyyy)
      * @param hilabetea Hilabetea (MM, 01-12)

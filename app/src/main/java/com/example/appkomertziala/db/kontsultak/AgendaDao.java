@@ -140,6 +140,26 @@ public interface AgendaDao {
     List<Agenda> bilatuDataTarteaz(String hasieraData, String amaieraData, String komertzialKodea);
 
     /**
+     * SEGURTASUNA: Bilaketa orokorra: bilatu data, bazkidea izena/kodea, deskribapena eta egoera eremuen artean.
+     * Uneko komertzialaren bisitak bakarrik bilatzen dira.
+     * @param filter Bilaketa testua (data, izena, deskribapena, egoera...)
+     * @param komertzialKodea Komertzialaren kodea
+     */
+    @Query("SELECT DISTINCT a.* FROM agenda_bisitak a " +
+           "LEFT JOIN bazkideak b ON a.bazkideaId = b.id " +
+           "WHERE a.komertzialKodea = :komertzialKodea AND (" +
+           "a.bisitaData LIKE '%' || :filter || '%' OR " +
+           "a.ordua LIKE '%' || :filter || '%' OR " +
+           "a.bazkideaKodea LIKE '%' || :filter || '%' OR " +
+           "a.deskribapena LIKE '%' || :filter || '%' OR " +
+           "a.egoera LIKE '%' || :filter || '%' OR " +
+           "b.izena LIKE '%' || :filter || '%' OR " +
+           "b.abizena LIKE '%' || :filter || '%' OR " +
+           "b.nan LIKE '%' || :filter || '%') " +
+           "ORDER BY a.bisitaData DESC, a.ordua ASC")
+    List<Agenda> bilatuOrokorra(String filter, String komertzialKodea);
+
+    /**
      * DEPRECATED: Erabili bilatuDataTarteaz(String hasieraData, String amaieraData, String komertzialKodea) ordez.
      */
     @Deprecated

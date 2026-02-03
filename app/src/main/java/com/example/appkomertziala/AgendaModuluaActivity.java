@@ -145,22 +145,16 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
         });
     }
 
-    /** Bilaketa exekutatu (bezeroaren edo dataren arabera). */
+    /** Bilaketa exekutatu (data, bazkidea izena/kodea, deskribapena, egoera eremuen artean). */
     private void bilatu(String filter) {
-        // Lehenengo bezeroaren arabera bilatu
-        repository.bilatuBezeroaz(filter, bisitak -> {
-            if (bisitak == null || bisitak.isEmpty()) {
-                // Bezeroaren arabera ez bada aurkitu, data formatua egiaztatu (yyyy-MM-dd)
-                if (filter.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                    repository.bilatuDataz(filter, bisitakData -> {
-                        erakutsiBilaketaEmaitzak(bisitakData);
-                    });
-                } else {
-                    erakutsiBilaketaEmaitzak(new ArrayList<>());
-                }
-            } else {
-                erakutsiBilaketaEmaitzak(bisitak);
-            }
+        if (filter == null || filter.trim().isEmpty()) {
+            kargatuZerrenda();
+            return;
+        }
+        
+        // Bilaketa orokorra erabili: data, bazkidea izena/kodea, deskribapena, egoera
+        repository.bilatuOrokorra(filter.trim(), bisitak -> {
+            erakutsiBilaketaEmaitzak(bisitak);
         });
     }
 
@@ -274,7 +268,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
                         
                         if (komertzialKodea == null || komertzialKodea.isEmpty()) {
                             runOnUiThread(() -> {
-                                Toast.makeText(this, "Saioa ez dago hasita", Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
                             });
                             return;
                         }
@@ -288,12 +282,12 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
                                     Toast.makeText(this, R.string.bisita_ezabatu_ondo, Toast.LENGTH_SHORT).show();
                                     kargatuZerrenda();
                                 } else {
-                                    Toast.makeText(this, "Errorea bisita ezabatzean", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(this, R.string.bisita_ezabatu_errorea, Toast.LENGTH_LONG).show();
                                 }
                             });
                         } else {
                             runOnUiThread(() -> {
-                                Toast.makeText(this, "Bisita ez da aurkitu edo ez duzu sarbiderik", Toast.LENGTH_LONG).show();
+                                Toast.makeText(this, R.string.bisita_ez_da_aurkitu_sarbiderik, Toast.LENGTH_LONG).show();
                             });
                         }
                     }).start();
