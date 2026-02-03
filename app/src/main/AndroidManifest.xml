@@ -32,7 +32,7 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".CitaGehituActivity"
+            android:name=".ZitaGehituActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
         <activity

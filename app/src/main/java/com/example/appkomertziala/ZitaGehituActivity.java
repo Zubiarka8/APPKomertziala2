@@ -30,7 +30,7 @@ import java.util.TimeZone;
  * Zita berria (EskaeraGoiburua) gehitzeko pantaila.
  * Komertzial kodearekin eta partner zerrendarekin.
  */
-public class CitaGehituActivity extends AppCompatActivity {
+public class ZitaGehituActivity extends AppCompatActivity {
 
     private static final String ETIKETA = "CitaGehitu";
 
@@ -268,7 +268,7 @@ public class CitaGehituActivity extends AppCompatActivity {
                     } else {
                         Log.e(ETIKETA, "Gorde: Ez da zita aurkitu zenbakiarekin: " + editatuZenbakia);
                         final String mezuZita = getString(R.string.errorea_gordetzean, "Ez da zita aurkitu.");
-                        runOnUiThread(() -> Toast.makeText(CitaGehituActivity.this, mezuZita, Toast.LENGTH_LONG).show());
+                        runOnUiThread(() -> Toast.makeText(ZitaGehituActivity.this, mezuZita, Toast.LENGTH_LONG).show());
                         return;
                     }
                 } else {

@@ -86,6 +86,16 @@ public class XMLKudeatzailea {
     }
 
     /**
+     * komertzialak.xml assets-etik inportatu eta datu-basea gainidatzi.
+     * «Kargatu XML» dialogotik komertzialak.xml hautatzean erabiltzen da, XML eguneratua datu-basean islatzeko.
+     */
+    public int komertzialakInportatuAssetsetik() throws IOException, XmlPullParserException {
+        try (InputStream is = assetsFitxategiaIreki("komertzialak.xml")) {
+            return komertzialakInportatu(is, false);
+        }
+    }
+
+    /**
      * Komertzialak kargatu bakarrik taula hutsik bada (login hasierako karga). Ez du inoiz datu-basean dauden
      * komertzialak gainidazten (gailutik inportatutakoak mantentzen dira).
      */
@@ -791,9 +801,14 @@ public class XMLKudeatzailea {
         String izena = fitxategiIzena.contains("/") ? fitxategiIzena.substring(fitxategiIzena.lastIndexOf('/') + 1) : fitxategiIzena;
         izena = izena.trim().toLowerCase(Locale.ROOT);
         switch (izena) {
-            case "komertzialak.xml":
-                komertzialakInportatu(is);
+            case "komertzialak.xml": {
+                byte[] data = irakurriGuztia(is);
+                komertzialakInportatu(new ByteArrayInputStream(data), false);
+                try (java.io.OutputStream out = context.openFileOutput("komertzialak.xml", Context.MODE_PRIVATE)) {
+                    out.write(data);
+                }
                 break;
+            }
             case "partnerrak.xml":
                 partnerrakInportatu(is);
                 break;
@@ -831,7 +846,7 @@ public class XMLKudeatzailea {
         if (fitxategiIzena == null) fitxategiIzena = "";
         switch (fitxategiIzena) {
             case "komertzialak.xml":
-                komertzialakInportatu();
+                komertzialakInportatuAssetsetik();
                 break;
             case "partnerrak.xml":
                 partnerrakInportatu();
@@ -857,10 +872,10 @@ public class XMLKudeatzailea {
 
     /**
      * XML guztiak ordena egokian inportatzen ditu (barne-memoriatik edo assets-etik): komertzialak -> partnerrak -> bazkideak -> loginak -> katalogoa.
-     * Upsert erabiltzen du; informazio berria da egia bakarra, datu umezurtzik ez uzten du.
+     * Komertzialak assets-etik kargatzen dira (XML eguneratua datu-basean islatzeko).
      */
     public void guztiakInportatu() throws IOException, XmlPullParserException {
-        komertzialakInportatu();
+        komertzialakInportatuAssetsetik();
         partnerrakInportatu();
         bazkideakInportatu();
         loginakInportatu();
