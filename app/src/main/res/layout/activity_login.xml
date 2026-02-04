@@ -208,22 +208,17 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Google Maps - Donostia -->
-        <!-- KRITIKOA: MapFragment hardware acceleration gatazkak eragiten ditu SurfaceFlinger-en -->
-        <!-- Software rendering erabili buffer ordena bermatzeko -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="@dimen/card_corner_radius"
             app:cardElevation="@dimen/card_elevation"
-            app:cardBackgroundColor="@color/card_background"
-            android:clipToPadding="true"
-            android:clipChildren="true">
+            app:cardBackgroundColor="@color/card_background">
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/map_height"
-                android:clipToPadding="true"
-                android:clipChildren="true">
+                android:layout_height="300dp"
+                android:minHeight="300dp">
 
                 <fragment
                     android:id="@+id/mapFragmentLogin"

@@ -127,82 +127,54 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         // Hasieran: komertzial guztiak kargatu taula hutsik badago (assets edo barne-memoria)
         kargatuKomertzialakHasieran();
 
-        // KRITIKOA: MapFragment rendering optimizazioa - SurfaceFlinger buffer ordena bermatzeko
-        // ViewTreeObserver erabili UI eguneraketa ordena bermatzeko
-        android.view.View rootView = findViewById(android.R.id.content);
-        if (rootView != null) {
-            rootView.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    rootView.getViewTreeObserver().removeOnPreDrawListener(this);
-                    // MapFragment kargatu UI errendimendua optimizatuta dagoenean
-                    konfiguratuMapFragment();
-                    return true;
-                }
-            });
-        } else {
-            // Fallback: zuzenean kargatu
-            konfiguratuMapFragment();
-        }
+        // MapFragment kargatu - post() erabiliz UI thread-ean exekutatzeko
+        findViewById(android.R.id.content).post(() -> konfiguratuMapFragment());
     }
 
     /**
-     * MapFragment konfiguratu rendering optimizazioekin.
-     * Software rendering erabiltzen du SurfaceFlinger buffer ordena bermatzeko.
+     * MapFragment konfiguratu eta kargatu.
      */
     private void konfiguratuMapFragment() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapFragmentLogin);
         if (mapFragment != null) {
-            // KRITIKOA: MapFragment-aren view-a software rendering moduan jarri
-            // Hau SurfaceFlinger-eko "Out of order buffers" errorea konpontzen du
+            // MapFragment view-a lortu eta hardware acceleration mantendu
             android.view.View mapView = mapFragment.getView();
             if (mapView != null) {
-                // Software rendering erabili buffer sinkronizazioa bermatzeko
-                mapView.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
-                // Clip optimizazioa - ViewGroup bada bakarrik aplikatu
+                // Hardware acceleration erabili (software rendering ez erabili)
+                mapView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
+                // Clip optimizazioa
                 if (mapView instanceof android.view.ViewGroup) {
                     android.view.ViewGroup viewGroup = (android.view.ViewGroup) mapView;
                     viewGroup.setClipToPadding(true);
                     viewGroup.setClipChildren(true);
                 }
             }
+            // Map-a kargatu
             mapFragment.getMapAsync(this);
         }
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        // KRITIKOA: Map rendering optimizazioa - frame buffer ordena bermatzeko
-        // UI eguneraketa bideratu invalidate baten bidez, ez zuzenean
-        
-        // Map konfigurazioa software rendering moduan
+        // Map konfigurazioa
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         
-        // Rendering optimizazioak
+        // UI settings
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.getUiSettings().setCompassEnabled(false); // Gehiegizko rendering saihestu
-        googleMap.getUiSettings().setMapToolbarEnabled(false); // Overhead murriztu
+        googleMap.getUiSettings().setCompassEnabled(false);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setZoomGesturesEnabled(true);
+        googleMap.getUiSettings().setScrollGesturesEnabled(true);
         
-        // Camera eguneraketa bideratu - invalidate ordena bermatzeko
-        android.view.View mapView = findViewById(R.id.mapFragmentLogin);
-        if (mapView != null) {
-            mapView.post(() -> {
-                LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
-                // Markatzailea (marker) Gipuzkoa egoitzan
-                googleMap.addMarker(new MarkerOptions()
-                        .position(donostia)
-                        .title(getString(R.string.contact_title)));
-            });
-        } else {
-            // Fallback: zuzenean exekutatu
-            LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
-            googleMap.addMarker(new MarkerOptions()
-                    .position(donostia)
-                    .title(getString(R.string.contact_title)));
-        }
+        // Camera eta marker konfiguratu
+        LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
+        
+        // Markatzailea (marker) Gipuzkoa egoitzan
+        googleMap.addMarker(new MarkerOptions()
+                .position(donostia)
+                .title(getString(R.string.contact_title)));
     }
 
     /** Assets-eko XML fitxategien zerrenda erakusten du; hautatutakoa (edo guztiak) kargatzen du. */
