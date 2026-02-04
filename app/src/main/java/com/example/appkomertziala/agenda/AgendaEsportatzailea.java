@@ -140,17 +140,75 @@ public class AgendaEsportatzailea {
             
             // SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatu
             List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak(komertzialKodea);
+            Log.d(ETIKETA_LOG, "Agenda TXT sortzen: " + hilabetekoak.size() + " bisita aurkitu dira komertzial kodea: " + komertzialKodea);
+            
+            // Fitxategiaren bidea lortu
+            File fitxategia = new File(testuingurua.getFilesDir(), FITXATEGI_TXT);
+            String bidea = fitxategia.getAbsolutePath();
+            Log.d(ETIKETA_LOG, "Agenda TXT fitxategia sortzen: " + bidea);
+            
             try (OutputStreamWriter idazlea = new OutputStreamWriter(
                     testuingurua.openFileOutput(FITXATEGI_TXT, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
+                int lerroKopurua = 0;
                 for (Agenda a : hilabetekoak) {
+                    // Datuak bildu
+                    long id = a.getId();
                     String data = hutsaEz(a.getBisitaData());
+                    String ordua = hutsaEz(a.getOrdua());
+                    String bisitarenKomertzialKodea = hutsaEz(a.getKomertzialKodea());
+                    String bisitarenBazkideaKodea = hutsaEz(a.getBazkideaKodea());
+                    Long bazkideaId = a.getBazkideaId();
+                    Long komertzialaId = a.getKomertzialaId();
                     String bazkidea = bazkidearenIzena(a.getBazkideaKodea());
                     String deskribapena = hutsaEz(a.getDeskribapena());
-                    idazlea.write(data + " - " + bazkidea + " - " + deskribapena + "\n");
+                    String egoera = hutsaEz(a.getEgoera());
+                    
+                    // Formato estructuratua: ID | Data | Ordua | KomertzialKodea | KomertzialaId | BazkideaKodea | BazkideaId | Bazkidea | Deskribapena | Egoera
+                    StringBuilder lerroa = new StringBuilder();
+                    lerroa.append("ID: ").append(id);
+                    lerroa.append(" | Data: ").append(data);
+                    if (!ordua.isEmpty()) {
+                        lerroa.append(" | Ordua: ").append(ordua);
+                    }
+                    if (!bisitarenKomertzialKodea.isEmpty()) {
+                        lerroa.append(" | KomertzialKodea: ").append(bisitarenKomertzialKodea);
+                    }
+                    if (komertzialaId != null) {
+                        lerroa.append(" | KomertzialaId: ").append(komertzialaId);
+                    }
+                    if (!bisitarenBazkideaKodea.isEmpty()) {
+                        lerroa.append(" | BazkideaKodea: ").append(bisitarenBazkideaKodea);
+                    }
+                    if (bazkideaId != null) {
+                        lerroa.append(" | BazkideaId: ").append(bazkideaId);
+                    }
+                    if (!bazkidea.isEmpty()) {
+                        lerroa.append(" | Bazkidea: ").append(bazkidea);
+                    }
+                    if (!deskribapena.isEmpty()) {
+                        lerroa.append(" | Deskribapena: ").append(deskribapena);
+                    }
+                    if (!egoera.isEmpty()) {
+                        lerroa.append(" | Egoera: ").append(egoera);
+                    }
+                    lerroa.append("\n");
+                    
+                    idazlea.write(lerroa.toString());
+                    lerroKopurua++;
                 }
                 idazlea.flush();
+                Log.d(ETIKETA_LOG, "Agenda TXT ondo sortu da: " + lerroKopurua + " lerro idatzi dira");
             }
-            return true;
+            
+            // Fitxategia sortu den egiaztatu
+            if (fitxategia.exists()) {
+                long tamaina = fitxategia.length();
+                Log.d(ETIKETA_LOG, "Agenda TXT fitxategia existitzen da: " + bidea + ", tamaina: " + tamaina + " byte");
+                return true;
+            } else {
+                Log.e(ETIKETA_LOG, "Agenda TXT fitxategia ez da sortu: " + bidea);
+                return false;
+            }
         } catch (IOException e) {
             Log.e(ETIKETA_LOG, "Agenda TXT sortzean akatsa: fitxategia idaztea huts egin du. Salbuespena: " + (e.getMessage() != null ? e.getMessage() : "ezezaguna"), e);
             return false;

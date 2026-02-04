@@ -14,6 +14,86 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_medium">
 
+        <!-- Bidalketa kodea -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/historial_kodea"
+                android:textSize="@dimen/text_size_normal"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"/>
+            
+            <TextView
+                android:id="@+id/itemHistorialKodea"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_normal"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+        </LinearLayout>
+
+        <!-- Helmuga -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/historial_helmuga"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_secondary"/>
+            
+            <TextView
+                android:id="@+id/itemHistorialHelmuga"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_primary"/>
+        </LinearLayout>
+
+        <!-- Data -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/historial_data"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_secondary"/>
+            
+            <TextView
+                android:id="@+id/itemHistorialData"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_primary"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider_color"
+            android:layout_marginBottom="@dimen/margin_small"/>
+
         <!-- Produktuaren izena -->
         <TextView
             android:id="@+id/itemHistorialProduktua"
@@ -24,6 +104,31 @@
             android:textColor="@color/text_primary"
             android:layout_marginBottom="@dimen/margin_small"/>
 
+        <!-- Producto ID -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/historial_producto_id"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_secondary"/>
+            
+            <TextView
+                android:id="@+id/itemHistorialProductoId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_primary"/>
+        </LinearLayout>
+
+        <!-- Eskatuta (Kantitatea) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -41,6 +146,30 @@
 
             <TextView
                 android:id="@+id/itemHistorialKantitatea"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_primary"/>
+        </LinearLayout>
+
+        <!-- Bidalita -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
+            
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/historial_bidalita"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_secondary"/>
+            
+            <TextView
+                android:id="@+id/itemHistorialBidalita"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_normal"
@@ -111,7 +240,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
             
             <TextView
                 android:layout_width="0dp"
@@ -134,6 +264,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnHistorialIkusi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:minHeight="56dp"
+            android:paddingVertical="16dp"
+            android:text="@string/historial_ikusi"
+            android:textAllCaps="false"
+            android:visibility="visible"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            style="@style/Widget.Material3.Button.TonalButton"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
 

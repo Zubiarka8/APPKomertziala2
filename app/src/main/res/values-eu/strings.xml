@@ -234,6 +234,14 @@
     <string name="historial_amaituta_true">Iritsi da</string>
     <string name="historial_amaituta_false">Ez da iritsi</string>
     <string name="historial_amaituta_eguneratu">Amaituta egoera eguneratuta</string>
+    <string name="historial_ikusi">Ikusi historiala</string>
+    <string name="historial_xehetasunak_izenburua">Historial xehetasunak</string>
+    <string name="historial_kodea">Bidalketa kodea</string>
+    <string name="historial_helmuga">Helmuga</string>
+    <string name="historial_data">Data</string>
+    <string name="historial_produktua">Produktua</string>
+    <string name="historial_producto_id">Produktu ID</string>
+    <string name="historial_bidalita">Bidalita</string>
     <string name="saskia_errorea_artikulu_kodea">Errorea: Artikulu kodea hutsik dago.</string>
     <string name="saskia_errorea_kopurua">Errorea: Kopurua 0 baino handiagoa izan behar da.</string>
     <string name="saskia_errorea_artikulu_ez_da_aurkitu">Errorea: Artikulua ez da aurkitu: %1$s</string>

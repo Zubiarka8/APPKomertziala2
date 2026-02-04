@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,6 +15,8 @@ import com.example.appkomertziala.adapter.HistorialErosketaAdapter;
 import com.example.appkomertziala.R;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.HistorialCompra;
+
+import java.util.Locale;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +74,10 @@ public class HistorialErosketaActivity extends AppCompatActivity {
             // Amaituta egoera eguneratu datu-basean
             eguneratuAmaitutaEgoera(historialId, amaituta);
         });
+        adapter.setOnIkusiHistorialListener((historialId) -> {
+            // Historial xehetasunak erakutsi
+            erakutsiHistorialXehetasunak(historialId);
+        });
         recyclerHistorial.setLayoutManager(new LinearLayoutManager(this));
         recyclerHistorial.setAdapter(adapter);
 
@@ -107,8 +114,12 @@ public class HistorialErosketaActivity extends AppCompatActivity {
                 // Historial bakoitzarentzat elementua sortu
                 List<HistorialErosketaAdapter.HistorialElementua> erakusteko = new ArrayList<>();
                 for (HistorialCompra historial : historialak) {
+                    // Datuak bildu
+                    String kodea = historial.getKodea();
+                    String helmuga = historial.getHelmuga();
+                    String data = historial.getData();
+                    
                     // Produktuaren izena: productoIzena erabili, hutsik badago productoId
-                    // Begiratu hemen ea produktu izena badaukagun
                     String produktua = historial.getProductoIzena();
                     if (produktua == null || produktua.trim().isEmpty()) {
                         produktua = historial.getProductoId();
@@ -117,23 +128,23 @@ public class HistorialErosketaActivity extends AppCompatActivity {
                         produktua = "";
                     }
                     
-                    // Kantitatea: eskatuta erabili
+                    String productoId = historial.getProductoId();
                     int kantitatea = historial.getEskatuta();
-                    
-                    // Prezio unitarioa
+                    int bidalita = historial.getBidalita();
                     double prezioUnit = historial.getPrezioUnit();
-                    
-                    // Prezio totala: kantitatea * prezio unitarioa
                     double prezioTotala = kantitatea * prezioUnit;
-                    
-                    // Historial ID eta amaituta egoera
                     long historialId = historial.getId();
                     boolean amaituta = historial.isAmaituta();
                     
                     // Elementua sortu eta zerrendara gehitu
                     erakusteko.add(new HistorialErosketaAdapter.HistorialElementua(
+                        kodea,
+                        helmuga,
+                        data,
                         produktua,
+                        productoId,
                         kantitatea,
+                        bidalita,
                         prezioUnit,
                         prezioTotala,
                         historialId,
@@ -201,6 +212,73 @@ public class HistorialErosketaActivity extends AppCompatActivity {
                 }
             } catch (Exception e) {
                 Log.e(ETIKETA, "Errorea amaituta egoera eguneratzean", e);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, getString(R.string.errorea_historiala_kargatzean), Toast.LENGTH_LONG).show();
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * Historial xehetasunak erakutsi dialog batean.
+     * 
+     * @param historialId HistorialCompra-ren ID
+     */
+    private void erakutsiHistorialXehetasunak(long historialId) {
+        new Thread(() -> {
+            try {
+                HistorialCompra historial = datuBasea.historialCompraDao().idzBilatu(historialId);
+                if (historial == null) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, getString(R.string.errorea_historiala_kargatzean), Toast.LENGTH_SHORT).show();
+                    });
+                    return;
+                }
+                
+                // Datuak bildu
+                String kodea = historial.getKodea() != null ? historial.getKodea() : "—";
+                String helmuga = historial.getHelmuga() != null ? historial.getHelmuga() : "—";
+                String data = historial.getData() != null ? historial.getData() : "—";
+                String produktua = historial.getProductoIzena();
+                if (produktua == null || produktua.trim().isEmpty()) {
+                    produktua = historial.getProductoId();
+                }
+                if (produktua == null || produktua.trim().isEmpty()) {
+                    produktua = "—";
+                }
+                String productoId = historial.getProductoId() != null ? historial.getProductoId() : "—";
+                int eskatuta = historial.getEskatuta();
+                int bidalita = historial.getBidalita();
+                double prezioUnit = historial.getPrezioUnit();
+                double prezioTotala = eskatuta * prezioUnit;
+                boolean amaituta = historial.isAmaituta();
+                String amaitutaStr = amaituta ? getString(R.string.historial_amaituta_true) : getString(R.string.historial_amaituta_false);
+                
+                // Mezua sortu
+                StringBuilder msg = new StringBuilder();
+                msg.append(getString(R.string.historial_kodea)).append(": ").append(kodea).append("\n");
+                msg.append(getString(R.string.historial_helmuga)).append(": ").append(helmuga).append("\n");
+                msg.append(getString(R.string.historial_data)).append(": ").append(data).append("\n");
+                msg.append(getString(R.string.historial_produktua)).append(": ").append(produktua).append("\n");
+                msg.append(getString(R.string.historial_producto_id)).append(": ").append(productoId).append("\n");
+                msg.append(getString(R.string.kantitatea)).append(": ").append(eskatuta).append("\n");
+                msg.append(getString(R.string.historial_bidalita)).append(": ").append(bidalita).append("\n");
+                msg.append(getString(R.string.prezio_unitarioa)).append(": ").append(String.format(Locale.getDefault(), "%.2f €", prezioUnit)).append("\n");
+                msg.append(getString(R.string.prezio_totala)).append(": ").append(String.format(Locale.getDefault(), "%.2f €", prezioTotala)).append("\n");
+                msg.append(getString(R.string.historial_amaituta)).append(": ").append(amaitutaStr);
+                
+                String msgStr = msg.toString();
+                
+                // Dialog erakutsi hilo nagusian
+                runOnUiThread(() -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.historial_xehetasunak_izenburua)
+                            .setMessage(msgStr)
+                            .setPositiveButton(R.string.ados, null)
+                            .show();
+                });
+            } catch (Exception e) {
+                Log.e(ETIKETA, "Errorea historial xehetasunak erakustean", e);
                 runOnUiThread(() -> {
                     Toast.makeText(this, getString(R.string.errorea_historiala_kargatzean), Toast.LENGTH_LONG).show();
                 });

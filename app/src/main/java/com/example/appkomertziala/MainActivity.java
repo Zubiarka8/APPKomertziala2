@@ -8,6 +8,7 @@ import android.provider.OpenableColumns;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -850,12 +851,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void esportatuAgendaTXT(AgendaEsportatzailea agendaEsportatzailea) {
         new Thread(() -> {
             boolean ondo = agendaEsportatzailea.agendaTXTSortu();
+            File fitxategia = new File(getFilesDir(), AgendaEsportatzailea.FITXATEGI_TXT);
+            String bidea = fitxategia.getAbsolutePath();
+            Log.d("MainActivity", "Agenda TXT esportatuta. Bidea: " + bidea + ", existitzen da: " + fitxategia.exists() + ", tamaina: " + (fitxategia.exists() ? fitxategia.length() : 0) + " byte");
+            
             runOnUiThread(() -> {
-                if (ondo) {
+                if (ondo && fitxategia.exists() && fitxategia.length() > 0) {
                     Toast.makeText(this, R.string.esportatu_agenda_ondo, Toast.LENGTH_SHORT).show();
+                    Log.d("MainActivity", "Agenda TXT ondo esportatuta. Bidea: " + bidea + ", tamaina: " + fitxategia.length() + " byte");
                     bidaliPostaz(AgendaEsportatzailea.FITXATEGI_TXT, getString(R.string.postaz_gaia_agenda_txt), "text/plain");
                 } else {
-                    Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
+                    String errorea = getString(R.string.esportatu_errorea_batzuetan);
+                    if (!fitxategia.exists()) {
+                        errorea += "\nFitxategia ez da sortu: " + bidea;
+                        Log.e("MainActivity", "Agenda TXT ez da sortu: " + bidea);
+                    } else if (fitxategia.length() == 0) {
+                        errorea += "\nFitxategia hutsik dago";
+                        Log.e("MainActivity", "Agenda TXT hutsik dago: " + bidea);
+                    }
+                    Toast.makeText(this, errorea, Toast.LENGTH_LONG).show();
                 }
             });
         }).start();
