@@ -5,16 +5,15 @@ import android.util.Log;
 import java.util.regex.Pattern;
 
 /**
- * NAN (DNI) balidatzailea: DNI/NAN identifikatzailearen formatua eta baliozkotasuna egiaztatzen du.
+ * NAN (DNI) balidatzailea: DNI/NAN identifikatzailearen formatua egiaztatzen du.
  * 
- * Formatu eskatua: DNI espainiarra (8 zifra + letra kontrol)
+ * Formatu eskatua: 8 zifra + letra (letra kontrolik egiaztatzen ez da)
  * - Formatu 1: 12345678A (zifrak + letra, espazio gabe)
  * - Formatu 2: 12345678-A (zifrak + gidoia + letra)
  * 
  * Balidazioak:
- * - Formatu zuzena: 8 zifra + letra kontrol
- * - Letra kontrol baliozkoa: algoritmo espainiarra erabiliz egiaztatzen da
- * - Zifrak bakarrik ez dira onartzen (letra kontrol beharrezkoa da)
+ * - Formatu zuzena: 8 zifra + letra (edozein letra)
+ * - Zifrak bakarrik ez dira onartzen (letra beharrezkoa da)
  */
 public class NanBalidatzailea {
 
@@ -22,12 +21,10 @@ public class NanBalidatzailea {
     
     /** DNI formatuaren patroia: 8 zifra + letra (gidoiarekin edo gabe) */
     private static final Pattern DNI_PATTERN = Pattern.compile("^\\d{8}[-]?[A-Za-z]$");
-    
-    /** Letra kontrol taula (DNI algoritmo espainiarra) */
-    private static final String LETRAK_KONTROL = "TRWAGMYFPDXBNJZSQVHLCKE";
 
     /**
-     * NAN/DNI balidatu: formatua eta letra kontrol egiaztatu.
+     * NAN/DNI balidatu: formatua egiaztatu (8 zifra + letra).
+     * Letra kontrolik egiaztatzen ez da, formatua bakarrik.
      * 
      * @param nan Balidatu behar den NAN/DNI
      * @return true baliozkoa bada, false bestela
@@ -45,40 +42,9 @@ public class NanBalidatzailea {
             Log.w(ETIKETA, "balidatuNan: Formatu okerra - " + nanTrimm + " (esperotakoa: 12345678A edo 12345678-A)");
             return false;
         }
-
-        // Gidoia kendu formatu uniforme baterako
-        String nanGarbia = nanTrimm.replace("-", "");
         
-        // Zifrak eta letra bereizi
-        String zifrak = nanGarbia.substring(0, 8);
-        char letraJaso = nanGarbia.charAt(8);
-        
-        // Zifrak baliozkoak direla egiaztatu (8 zifra)
-        try {
-            int zenbakia = Integer.parseInt(zifrak);
-            
-            // Letra kontrol kalkulatu
-            int indizea = zenbakia % 23;
-            char letraEsperatua = LETRAK_KONTROL.charAt(indizea);
-            
-            // Letra kontrol egiaztatu
-            if (letraJaso != letraEsperatua) {
-                Log.w(ETIKETA, "balidatuNan: Letra kontrol okerra - " + nanTrimm + 
-                      " (esperotakoa: " + zifrak + letraEsperatua + ")");
-                return false;
-            }
-            
-            Log.d(ETIKETA, "balidatuNan: NAN baliozkoa da - " + nanTrimm);
-            return true;
-            
-        } catch (NumberFormatException e) {
-            Log.w(ETIKETA, "balidatuNan: Zifrak parseatu ezin dira - " + nanTrimm);
-            return false;
-        } catch (Exception e) {
-            Log.w(ETIKETA, "balidatuNan: Errorea balidatzean - " + nanTrimm + ": " + 
-                  (e.getMessage() != null ? e.getMessage() : "ezezaguna"));
-            return false;
-        }
+        Log.d(ETIKETA, "balidatuNan: NAN formatua zuzena da - " + nanTrimm);
+        return true;
     }
 
     /**
@@ -89,7 +55,7 @@ public class NanBalidatzailea {
      */
     public static void balidatuNanEtaJaurti(String nan) throws IllegalArgumentException {
         if (!balidatuNan(nan)) {
-            String mezu = "Errorea: NAN formatua okerra edo baliozkoa ez da. Formatu eskatua: 8 zifra + letra kontrol (adibidez: 12345678A)";
+            String mezu = "Errorea: NAN formatua okerra da. Formatu eskatua: 8 zifra + letra (adibidez: 12345678A)";
             Log.e(ETIKETA, mezu + " - NAN jaso: " + nan);
             throw new IllegalArgumentException(mezu);
         }
@@ -128,7 +94,7 @@ public class NanBalidatzailea {
         }
         
         if (!balidatuNan(nan)) {
-            return "NAN formatua okerra edo baliozkoa ez da. Formatu eskatua: 8 zifra + letra kontrol (adibidez: 12345678A)";
+            return "NAN formatua okerra da. Formatu eskatua: 8 zifra + letra (adibidez: 12345678A)";
         }
         
         return null;
