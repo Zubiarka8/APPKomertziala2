@@ -393,16 +393,6 @@
                                 android:layout_marginBottom="@dimen/margin_small"/>
 
                             <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnEsportatuAgendaXml"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/button_height"
-                                android:layout_marginBottom="@dimen/margin_small"
-                                android:text="@string/btn_esportatu_agenda_xml"
-                                android:textSize="@dimen/text_size_small"
-                                app:cornerRadius="@dimen/button_corner_radius"/>
-
-                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnEsportatuAgendaTxt"
                                 style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="match_parent"

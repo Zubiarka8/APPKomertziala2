@@ -109,7 +109,6 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
 
         // Botoien listener-ak konfiguratu
         fabBisitaBerria.setOnClickListener(v -> irekiFormularioa(-1)); // Bisita berria gehitu
-        findViewById(R.id.btnAgendaEsportatuXml).setOnClickListener(v -> esportatuEtaBidali()); // Esportatu XML
         findViewById(R.id.btnAgendaEsportatuTxt).setOnClickListener(v -> esportatuEtaBidali()); // Esportatu TXT
 
         // Bisita zerrenda kargatu
@@ -530,7 +529,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
     }
 
     /**
-     * Barne-memorian dauden agenda.xml, agenda.txt eta agenda.csv fitxategiak
+     * Barne-memorian dauden agenda.txt eta agenda.csv fitxategiak
      * eranskin gisa bidaltzen ditu Gmail (edo beste posta-app) bidez.
      * 
      * Goazen esportazio honekin egurra ematera - fitxategiak postaz bidaltzen ditu.
@@ -542,12 +541,11 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
     private void bidaliPostazBiEranskin() {
         // Fitxategiak barne-memorian bilatu
         File karpeta = getFilesDir();
-        File xmlFitx = new File(karpeta, AgendaHileroEsportatzailea.FITXATEGI_XML);
         File txtFitx = new File(karpeta, AgendaHileroEsportatzailea.FITXATEGI_TXT);
         File csvFitx = new File(karpeta, AgendaHileroEsportatzailea.FITXATEGI_CSV);
         
         // Fitxategirik ez badago, errorea erakutsi
-        if (!xmlFitx.exists() && !txtFitx.exists() && !csvFitx.exists()) {
+        if (!txtFitx.exists() && !csvFitx.exists()) {
             Toast.makeText(this, R.string.postaz_fitxategi_ez, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -556,11 +554,6 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
         ArrayList<Uri> uriak = new ArrayList<>();
         try {
             String pakeIzena = getPackageName();
-            
-            // XML fitxategia existitzen bada eta hutsik ez bada, URI gehitu
-            if (xmlFitx.exists() && xmlFitx.length() > 0) {
-                uriak.add(androidx.core.content.FileProvider.getUriForFile(this, pakeIzena + ".fileprovider", xmlFitx));
-            }
             
             // TXT fitxategia existitzen bada eta hutsik ez bada, URI gehitu
             if (txtFitx.exists() && txtFitx.length() > 0) {

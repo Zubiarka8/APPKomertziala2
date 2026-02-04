@@ -36,14 +36,6 @@
                     android:textColor="@color/text_primary"/>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAgendaEsportatuXml"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_small"
-                    android:text="@string/btn_esportatu_agenda_xml"/>
-
-                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnAgendaEsportatuTxt"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="wrap_content"

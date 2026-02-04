@@ -670,7 +670,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MaterialButton btnBazkideBerriak = findViewById(R.id.btnEsportatuBazkideBerriak);
         MaterialButton btnEskaeraBerriak = findViewById(R.id.btnEsportatuEskaeraBerriak);
         MaterialButton btnEsportatuBazkideak = findViewById(R.id.btnEsportatuBazkideak);
-        MaterialButton btnEsportatuAgendaXml = findViewById(R.id.btnEsportatuAgendaXml);
         MaterialButton btnEsportatuAgendaTxt = findViewById(R.id.btnEsportatuAgendaTxt);
         MaterialButton btnEsportatuKatalogoa = findViewById(R.id.btnEsportatuKatalogoa);
         MaterialButton btnKatalogoaEguneratu = findViewById(R.id.btnKatalogoaEguneratu);
@@ -680,7 +679,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btnBazkideBerriak.setOnClickListener(v -> esportatuBazkideBerriak(datuKudeatzailea));
         btnEskaeraBerriak.setOnClickListener(v -> esportatuEskaeraBerriak(datuKudeatzailea));
         btnEsportatuBazkideak.setOnClickListener(v -> esportatuBazkideak(datuKudeatzailea));
-        btnEsportatuAgendaXml.setOnClickListener(v -> esportatuAgendaXML(agendaEsportatzailea));
         btnEsportatuAgendaTxt.setOnClickListener(v -> esportatuAgendaTXT(agendaEsportatzailea));
         btnEsportatuKatalogoa.setOnClickListener(v -> esportatuKatalogoa(datuKudeatzailea));
         btnKatalogoaEguneratu.setOnClickListener(v -> katalogoaEguneratu(datuKudeatzailea));
@@ -825,21 +823,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (ondo) {
                     Toast.makeText(this, R.string.esportatu_ondo, Toast.LENGTH_SHORT).show();
                     bidaliPostaz("bazkideak.xml", getString(R.string.postaz_gaia_bazkideak), "application/xml");
-                } else {
-                    Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }).start();
-    }
-
-    /** Esportatu XML (ofiziala): agenda.xml — ordezkaritzak datu-basea eguneratzeko. */
-    private void esportatuAgendaXML(AgendaEsportatzailea agendaEsportatzailea) {
-        new Thread(() -> {
-            boolean ondo = agendaEsportatzailea.agendaXMLSortu();
-            runOnUiThread(() -> {
-                if (ondo) {
-                    Toast.makeText(this, R.string.esportatu_agenda_ondo, Toast.LENGTH_SHORT).show();
-                    bidaliPostaz(AgendaEsportatzailea.FITXATEGI_XML, getString(R.string.postaz_gaia_agenda_xml), "application/xml");
                 } else {
                     Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
                 }

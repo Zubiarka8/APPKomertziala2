@@ -82,13 +82,13 @@ public class AgendaHileroEsportatzailea {
             // SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatu
             List<Agenda> bisitak = datuBasea.agendaDao().hilabetearenBisitak(komertzialKodea, urtea, hilabetea);
             
-            boolean xmlOndo = agendaXMLSortu(bisitak);
+            // XML exportazioa ezabatu - bakarrik TXT eta CSV esportatzen dira
             boolean txtOndo = agendaTXTSortu(bisitak);
             boolean csvOndo = agendaCSVSortu(bisitak);
             
-            boolean guztiakOndo = xmlOndo && txtOndo && csvOndo;
+            boolean guztiakOndo = txtOndo && csvOndo;
             if (guztiakOndo) {
-                Log.d(ETIKETA, "Hilabetearen bisitak esportatu dira: " + bisitak.size() + " bisita");
+                Log.d(ETIKETA, "Hilabetearen bisitak esportatu dira: " + bisitak.size() + " bisita (TXT eta CSV)");
             }
             return guztiakOndo;
         } catch (Exception e) {
