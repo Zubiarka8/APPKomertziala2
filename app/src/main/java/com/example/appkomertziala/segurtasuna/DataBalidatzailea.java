@@ -239,5 +239,88 @@ public class DataBalidatzailea {
         
         return null;
     }
+
+    /**
+     * Data eta ordua balidatu eta egiaztatu gaurko data/ordua baino lehenagokoa ez dela.
+     * 
+     * @param data Data yyyy/MM/dd formatuan
+     * @param ordua Ordua HH:mm formatuan (aukerakoa)
+     * @return null baliozkoa bada, errore-mezua bestela
+     */
+    public static String balidatuDataOrduaMezua(String data, String ordua) {
+        if (data == null || data.trim().isEmpty()) {
+            return "Data beharrezkoa da";
+        }
+        
+        // Lehenik formatua balidatu
+        String formatuErrorea = balidatuDataMezua(data);
+        if (formatuErrorea != null) {
+            return formatuErrorea;
+        }
+        
+        // Ordua formatua balidatu (aukerakoa baina formatua zuzena izan behar du)
+        if (ordua != null && !ordua.trim().isEmpty()) {
+            String orduaTrim = ordua.trim();
+            if (!orduaTrim.matches("\\d{2}:\\d{2}")) {
+                return "Ordua HH:mm formatuan izan behar da";
+            }
+        }
+        
+        try {
+            SimpleDateFormat sdfData = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
+            sdfData.setLenient(false);
+            Date parsedDate = sdfData.parse(data.trim());
+            
+            // Gaurko data eta ordua lortu
+            Calendar gaur = Calendar.getInstance();
+            Date gaurkoDataOrdua = gaur.getTime();
+            
+            // Parseatutako data normalizatu
+            Calendar dataCal = Calendar.getInstance();
+            dataCal.setTime(parsedDate);
+            
+            // Ordua gehitu baldin badago
+            if (ordua != null && !ordua.trim().isEmpty()) {
+                String[] orduaZatiak = ordua.trim().split(":");
+                if (orduaZatiak.length == 2) {
+                    try {
+                        int hour = Integer.parseInt(orduaZatiak[0]);
+                        int minute = Integer.parseInt(orduaZatiak[1]);
+                        if (hour >= 0 && hour < 24 && minute >= 0 && minute < 60) {
+                            dataCal.set(Calendar.HOUR_OF_DAY, hour);
+                            dataCal.set(Calendar.MINUTE, minute);
+                            dataCal.set(Calendar.SECOND, 0);
+                            dataCal.set(Calendar.MILLISECOND, 0);
+                        } else {
+                            return "Ordua baliozkoa izan behar da (00:00 - 23:59)";
+                        }
+                    } catch (NumberFormatException e) {
+                        return "Ordua formatua okerra da";
+                    }
+                } else {
+                    return "Ordua HH:mm formatuan izan behar da";
+                }
+            } else {
+                // Ordua ez badago, gaurko ordua lehenetsi
+                dataCal.set(Calendar.HOUR_OF_DAY, gaur.get(Calendar.HOUR_OF_DAY));
+                dataCal.set(Calendar.MINUTE, gaur.get(Calendar.MINUTE));
+                dataCal.set(Calendar.SECOND, 0);
+                dataCal.set(Calendar.MILLISECOND, 0);
+            }
+            
+            Date dataOrdua = dataCal.getTime();
+            
+            // Data eta ordua ezin dira gaurko data/ordua baino lehenagokoak izan
+            if (dataOrdua.before(gaurkoDataOrdua)) {
+                return "Data eta ordua ezin dira gaurko data eta ordua baino lehenagokoak izan";
+            }
+            
+            return null;
+            
+        } catch (ParseException e) {
+            Log.w(ETIKETA, "balidatuDataOrduaMezua: Parse errorea - " + data);
+            return "Data formatua okerra edo baliozkoa ez da";
+        }
+    }
 }
 

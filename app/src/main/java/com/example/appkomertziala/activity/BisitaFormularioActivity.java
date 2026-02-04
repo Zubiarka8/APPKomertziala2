@@ -103,27 +103,52 @@ public class BisitaFormularioActivity extends AppCompatActivity {
     }
 
     /**
-     * Eremuetan fokusa sartzean balidazio-erroreak garbitu (TextInputLayout.setError null).
+     * Eremuetan fokusa sartzean balidazio-erroreak garbitu (TextInputLayout.setError null eta TextView erroreak ezkutatu).
      * 
      * Erabiltzailearen feedback-a: erroreak soilik balidazio berrietan berriro erakusten dira.
      * Erabiltzaileak eremuan sartzean, errorea automatikoki garbitzen da - UX hobea.
      */
     private void konfiguratuFokuseanErroreakGarbitu() {
+        android.widget.TextView tvDataErrorea = findViewById(R.id.tvBisitaDataErrorea);
+        android.widget.TextView tvOrduaErrorea = findViewById(R.id.tvBisitaOrduaErrorea);
+        android.widget.TextView tvDeskribapenaErrorea = findViewById(R.id.tvBisitaDeskribapenaErrorea);
+        android.widget.TextView tvBazkideaErrorea = findViewById(R.id.tvBisitaBazkideaErrorea);
+        
         // Data eremua: fokusa sartzean errorea garbitu
         binding.etBisitaData.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) binding.tilBisitaData.setError(null);
+            if (hasFocus) {
+                binding.tilBisitaData.setError(null);
+                if (tvDataErrorea != null) tvDataErrorea.setVisibility(android.view.View.GONE);
+            }
         });
         
         // Ordua eremua: fokusa sartzean errorea garbitu (null bada ez egin)
         if (binding.etBisitaOrdua != null) {
             binding.etBisitaOrdua.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus && binding.tilBisitaOrdua != null) binding.tilBisitaOrdua.setError(null);
+                if (hasFocus) {
+                    if (binding.tilBisitaOrdua != null) binding.tilBisitaOrdua.setError(null);
+                    if (tvOrduaErrorea != null) tvOrduaErrorea.setVisibility(android.view.View.GONE);
+                }
             });
         }
         
         // Deskribapena eremua: fokusa sartzean errorea garbitu
         binding.etBisitaDeskribapena.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) binding.tilBisitaDeskribapena.setError(null);
+            if (hasFocus) {
+                binding.tilBisitaDeskribapena.setError(null);
+                if (tvDeskribapenaErrorea != null) tvDeskribapenaErrorea.setVisibility(android.view.View.GONE);
+            }
+        });
+        
+        // Bazkidea spinner: hautaketa aldatuzean errorea garbitu
+        binding.spinnerBisitaBazkidea.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if (tvBazkideaErrorea != null) tvBazkideaErrorea.setVisibility(android.view.View.GONE);
+            }
+            
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
         });
     }
 
@@ -411,14 +436,26 @@ public class BisitaFormularioActivity extends AppCompatActivity {
      * Datuen balidazioa (UI mailan).
      * Hutsen kontrolak: data, bazkidea_kodea eta deskribapena ez hutsik.
      * Formatuen egiaztapena: data YYYY-MM-DD formatuan, ordua HH:mm formatuan.
-     * Erabiltzailearen feedback-a: TextInputLayout.setError edo Toast, euskaraz.
+     * Data/ordua balidazioa: ezin dira gaurko data/ordua baino lehenagokoak izan.
+     * Erabiltzailearen feedback-a: TextInputLayout.setError eta TextView erroreak, euskaraz.
      *
      * @return true balidazioak gainditu baditu, false bestela
      */
     private boolean baliozkotuFormularioa() {
+        // Erroreak garbitu
         binding.tilBisitaData.setError(null);
         if (binding.tilBisitaOrdua != null) binding.tilBisitaOrdua.setError(null);
         binding.tilBisitaDeskribapena.setError(null);
+        
+        android.widget.TextView tvDataErrorea = findViewById(R.id.tvBisitaDataErrorea);
+        android.widget.TextView tvOrduaErrorea = findViewById(R.id.tvBisitaOrduaErrorea);
+        android.widget.TextView tvDeskribapenaErrorea = findViewById(R.id.tvBisitaDeskribapenaErrorea);
+        android.widget.TextView tvBazkideaErrorea = findViewById(R.id.tvBisitaBazkideaErrorea);
+        
+        if (tvDataErrorea != null) tvDataErrorea.setVisibility(android.view.View.GONE);
+        if (tvOrduaErrorea != null) tvOrduaErrorea.setVisibility(android.view.View.GONE);
+        if (tvDeskribapenaErrorea != null) tvDeskribapenaErrorea.setVisibility(android.view.View.GONE);
+        if (tvBazkideaErrorea != null) tvBazkideaErrorea.setVisibility(android.view.View.GONE);
 
         String data = binding.etBisitaData.getText() != null ? binding.etBisitaData.getText().toString().trim() : "";
         String ordua = binding.etBisitaOrdua != null && binding.etBisitaOrdua.getText() != null 
@@ -426,46 +463,82 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         String deskribapena = binding.etBisitaDeskribapena.getText() != null ? binding.etBisitaDeskribapena.getText().toString().trim() : "";
         int pos = binding.spinnerBisitaBazkidea.getSelectedItemPosition();
 
-        boolean dataHutsa = data.isEmpty();
-        boolean deskribapenaHutsa = deskribapena.isEmpty();
-        boolean bazkideaEzHautatua = pos <= 0 || bazkideak == null || pos > bazkideak.size();
+        boolean baliogabea = false;
 
-        if (dataHutsa || deskribapenaHutsa || bazkideaEzHautatua) {
-            Toast.makeText(this, R.string.eremu_guztiak_bete_behar_dira, Toast.LENGTH_SHORT).show();
-            if (dataHutsa) {
-                binding.tilBisitaData.setError(getString(R.string.bisita_errorea_data));
+        // Data hutsa balidatu
+        if (data.isEmpty()) {
+            String errorea = getString(R.string.bisita_errorea_data);
+            binding.tilBisitaData.setError(errorea);
+            if (tvDataErrorea != null) {
+                tvDataErrorea.setText(errorea);
+                tvDataErrorea.setVisibility(android.view.View.VISIBLE);
+            }
+            binding.etBisitaData.requestFocus();
+            baliogabea = true;
+        }
+
+        // Deskribapena hutsa balidatu
+        if (deskribapena.isEmpty()) {
+            String errorea = getString(R.string.bisita_errorea_deskribapena_hutsa);
+            binding.tilBisitaDeskribapena.setError(errorea);
+            if (tvDeskribapenaErrorea != null) {
+                tvDeskribapenaErrorea.setText(errorea);
+                tvDeskribapenaErrorea.setVisibility(android.view.View.VISIBLE);
+            }
+            if (!data.isEmpty()) binding.etBisitaDeskribapena.requestFocus();
+            baliogabea = true;
+        }
+
+        // Bazkidea ez hautatua balidatu
+        boolean bazkideaEzHautatua = pos <= 0 || bazkideak == null || pos > bazkideak.size();
+        if (bazkideaEzHautatua) {
+            String errorea = getString(R.string.bisita_errorea_bazkidea);
+            if (tvBazkideaErrorea != null) {
+                tvBazkideaErrorea.setText(errorea);
+                tvBazkideaErrorea.setVisibility(android.view.View.VISIBLE);
+            }
+            if (!data.isEmpty() && !deskribapena.isEmpty()) binding.spinnerBisitaBazkidea.requestFocus();
+            baliogabea = true;
+        }
+
+        if (baliogabea) {
+            return false;
+        }
+
+        // Data eta ordua balidatu (formatu eta gaurko data/ordua baino lehenagokoa ez)
+        String dataOrduaErrorea = DataBalidatzailea.balidatuDataOrduaMezua(data, ordua);
+        if (dataOrduaErrorea != null) {
+            // Errorea data edo ordua eremuan erakutsi
+            if (dataOrduaErrorea.contains("Ordua")) {
+                // Ordua errorea
+                if (binding.tilBisitaOrdua != null) {
+                    binding.tilBisitaOrdua.setError(dataOrduaErrorea);
+                }
+                if (tvOrduaErrorea != null) {
+                    tvOrduaErrorea.setText(dataOrduaErrorea);
+                    tvOrduaErrorea.setVisibility(android.view.View.VISIBLE);
+                }
+                if (binding.etBisitaOrdua != null) binding.etBisitaOrdua.requestFocus();
+            } else {
+                // Data errorea
+                binding.tilBisitaData.setError(dataOrduaErrorea);
+                if (tvDataErrorea != null) {
+                    tvDataErrorea.setText(dataOrduaErrorea);
+                    tvDataErrorea.setVisibility(android.view.View.VISIBLE);
+                }
                 binding.etBisitaData.requestFocus();
             }
-            if (deskribapenaHutsa) {
-                binding.tilBisitaDeskribapena.setError(getString(R.string.bisita_errorea_deskribapena_hutsa));
-                if (!dataHutsa) binding.etBisitaDeskribapena.requestFocus();
-            }
-            if (bazkideaEzHautatua && !dataHutsa && !deskribapenaHutsa) {
-                Toast.makeText(this, R.string.bisita_errorea_deskribapena_hutsa, Toast.LENGTH_SHORT).show();
-                binding.spinnerBisitaBazkidea.requestFocus();
-            }
             return false;
         }
 
-        // Ordua formatua baliozkotu (HH:mm) - aukerakoa baina formatua zuzena izan behar du
-        if (!ordua.isEmpty() && !ordua.matches("\\d{2}:\\d{2}")) {
-            if (binding.tilBisitaOrdua != null) {
-                binding.tilBisitaOrdua.setError("Ordua HH:mm formatuan izan behar da");
-                binding.etBisitaOrdua.requestFocus();
-            }
-            return false;
-        }
-
-        // Data formatua balidatu (yyyy/MM/dd)
-        String erroreMezua = DataBalidatzailea.balidatuDataMezua(data);
-        if (erroreMezua != null) {
-            binding.tilBisitaData.setError(erroreMezua);
-            binding.etBisitaData.requestFocus();
-            return false;
-        }
-
+        // Deskribapena luzeegia balidatu
         if (deskribapena.length() > DESKRIBAPENA_GEHIENEZKO_LUZERA) {
-            binding.tilBisitaDeskribapena.setError(getString(R.string.bisita_errorea_deskribapena_luzea, DESKRIBAPENA_GEHIENEZKO_LUZERA));
+            String errorea = getString(R.string.bisita_errorea_deskribapena_luzea, DESKRIBAPENA_GEHIENEZKO_LUZERA);
+            binding.tilBisitaDeskribapena.setError(errorea);
+            if (tvDeskribapenaErrorea != null) {
+                tvDeskribapenaErrorea.setText(errorea);
+                tvDeskribapenaErrorea.setVisibility(android.view.View.VISIBLE);
+            }
             binding.etBisitaDeskribapena.requestFocus();
             return false;
         }

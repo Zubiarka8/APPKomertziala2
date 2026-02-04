@@ -30,7 +30,7 @@
                     android:id="@+id/tilBisitaData"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
                     android:hint="@string/agenda_bisita_data"
                     app:startIconDrawable="@drawable/ic_calendar"
                     app:startIconContentDescription="@string/zita_data_icon_cd"
@@ -46,11 +46,21 @@
                         android:maxLines="1"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <TextView
+                    android:id="@+id/tvBisitaDataErrorea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone"/>
+
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBisitaOrdua"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
                     android:hint="@string/zita_ordua"
                     app:startIconDrawable="@drawable/ic_clock"
                     app:startIconContentDescription="@string/zita_ordua_icon_cd"
@@ -65,18 +75,38 @@
                         android:hint="HH:mm"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <TextView
+                    android:id="@+id/tvBisitaOrduaErrorea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone"/>
+
                 <Spinner
                     android:id="@+id/spinnerBisitaBazkidea"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
                     android:minHeight="@dimen/button_height"/>
+
+                <TextView
+                    android:id="@+id/tvBisitaBazkideaErrorea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone"/>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBisitaDeskribapena"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
                     android:hint="@string/agenda_bisita_deskribapena"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
@@ -89,6 +119,16 @@
                         android:maxLines="4"
                         android:maxLength="500"/>
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tvBisitaDeskribapenaErrorea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone"/>
 
                 <TextView
                     android:layout_width="wrap_content"

@@ -148,8 +148,12 @@
     <string name="bisita_ondo_gordeta">Bisita gordeta.</string>
     <string name="bisita_errorea_data">Data beharrezkoa da.</string>
     <string name="bisita_errorea_data_formatua">Data formatua ez da zuzena (uuuu-hh-ee).</string>
+    <string name="bisita_errorea_data_pasatua">Data ezin da gaurko eguna baino lehenagokoa izan.</string>
+    <string name="bisita_errorea_ordua_formatua">Ordua HH:mm formatuan izan behar da.</string>
+    <string name="bisita_errorea_data_ordua_pasatua">Data eta ordua ezin dira gaurko data eta ordua baino lehenagokoak izan.</string>
     <string name="bisita_errorea_deskribapena_hutsa">Deskribapena beharrezkoa da.</string>
     <string name="bisita_errorea_deskribapena_luzea">Deskribapena luzeegia da (gehienez %1$d karaktere).</string>
+    <string name="bisita_errorea_bazkidea">Bazkidea hautatu behar da.</string>
     <string name="eremu_guztiak_bete_behar_dira">Errorea: Eremu guztiak bete behar dira.</string>
     <string name="postaz_fitxategia_hutsik">Fitxategia hutsik dago; ezin da postaz bidali.</string>
     <string name="barne_memoria_lekurik_ez">Barne-memorian ez dago nahikoa lekurik fitxategia idazteko.</string>
