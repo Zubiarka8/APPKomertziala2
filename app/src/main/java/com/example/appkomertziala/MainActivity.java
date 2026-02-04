@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat;
 import com.example.appkomertziala.activity.BazkideaFormularioActivity;
 import com.example.appkomertziala.activity.BisitaFormularioActivity;
 import com.example.appkomertziala.activity.EskaerakActivity;
+import com.example.appkomertziala.activity.KomertzialaFormularioActivity;
 import com.example.appkomertziala.activity.LoginActivity;
 import com.example.appkomertziala.activity.ProduktuDetalaActivity;
 import com.example.appkomertziala.adapter.KatalogoaAdapter;
@@ -100,11 +101,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private View contentHasiera;
     private View contentAgenda;
+    private View contentErabiltzaileak;
     private View contentBazkideak;
+    private View contentKomertzialak;
     private View contentInbentarioa;
+    private com.google.android.material.tabs.TabLayout tabErabiltzaileak;
     private BottomNavigationView bottomNav;
     private ExtendedFloatingActionButton fabAgendaZitaGehitu;
     private ExtendedFloatingActionButton fabBazkideaGehitu;
+    private ExtendedFloatingActionButton fabKomertzialaGehitu;
     private ImageButton btnMap;
     private TextInputEditText etAgendaBilatu;
 
@@ -128,6 +133,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
                     kargatuBazkideakZerrenda();
+                }
+            });
+
+    private final ActivityResultLauncher<Intent> komertzialaFormularioLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    kargatuKomertzialakZerrenda();
                 }
             });
 
@@ -170,8 +183,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             
                             // Bazkideak.xml inportatuta bada, bazkide zerrenda eguneratu
                             if (fitxategiIzena.equals("bazkideak.xml")) {
+                                if (contentErabiltzaileak != null && contentErabiltzaileak.getVisibility() == View.VISIBLE) {
                                 if (contentBazkideak != null && contentBazkideak.getVisibility() == View.VISIBLE) {
                                     kargatuBazkideakZerrenda();
+                                    }
+                                }
+                            }
+                            // Komertzialak.xml inportatuta bada, komertzial zerrenda eguneratu
+                            if (fitxategiIzena.equals("komertzialak.xml")) {
+                                if (contentErabiltzaileak != null && contentErabiltzaileak.getVisibility() == View.VISIBLE) {
+                                    if (contentKomertzialak != null && contentKomertzialak.getVisibility() == View.VISIBLE) {
+                                        kargatuKomertzialakZerrenda();
+                                    }
                                 }
                             }
                             // Agenda.xml inportatuta bada, agenda zitak eguneratu
@@ -214,11 +237,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         contentHasiera = findViewById(R.id.content_hasiera);
         contentAgenda = findViewById(R.id.content_agenda);
+        contentErabiltzaileak = findViewById(R.id.content_erabiltzaileak);
         contentBazkideak = findViewById(R.id.content_bazkideak);
+        contentKomertzialak = findViewById(R.id.content_komertzialak);
         contentInbentarioa = findViewById(R.id.content_inbentarioa);
+        tabErabiltzaileak = findViewById(R.id.tabErabiltzaileak);
         bottomNav = findViewById(R.id.bottom_nav);
         fabAgendaZitaGehitu = findViewById(R.id.fabAgendaZitaGehitu);
         fabBazkideaGehitu = findViewById(R.id.fabBazkideaGehitu);
+        fabKomertzialaGehitu = findViewById(R.id.fabKomertzialaGehitu);
         btnMap = findViewById(R.id.btnMap);
         btnCall = findViewById(R.id.btnCall);
         btnEmail = findViewById(R.id.btnEmail);
@@ -232,6 +259,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupEsportazioBotoiak();
         setupAgendaCitaGehitu();
         setupBazkideaFab();
+        setupKomertzialaFab();
         setupAgendaBilaketa();
         erakutsiEsportazioBidea();
     }
@@ -366,6 +394,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Intent intent = new Intent(this, BazkideaFormularioActivity.class);
                 intent.putExtra(BazkideaFormularioActivity.EXTRA_BAZKIDEA_ID, -1L);
                 bazkideaFormularioLauncher.launch(intent);
+            });
+        }
+    }
+
+    /** Komertzialak fitxako Extended FAB: komertzial berria gehitzeko pantaila ireki (Material 3, Agenda bera altuera). */
+    private void setupKomertzialaFab() {
+        if (fabKomertzialaGehitu != null) {
+            fabKomertzialaGehitu.setOnClickListener(v -> {
+                Intent intent = new Intent(this, KomertzialaFormularioActivity.class);
+                intent.putExtra(KomertzialaFormularioActivity.EXTRA_KOMERTZIALA_ID, -1L);
+                komertzialaFormularioLauncher.launch(intent);
             });
         }
     }
@@ -876,24 +915,77 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void showContentForNavId(int navId) {
         contentHasiera.setVisibility(navId == R.id.hasiera ? View.VISIBLE : View.GONE);
         contentAgenda.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
-        contentBazkideak.setVisibility(navId == R.id.bazkideak ? View.VISIBLE : View.GONE);
+        contentErabiltzaileak.setVisibility(navId == R.id.erabiltzaileak ? View.VISIBLE : View.GONE);
         contentInbentarioa.setVisibility(navId == R.id.inbentarioa ? View.VISIBLE : View.GONE);
         if (fabAgendaZitaGehitu != null) {
             fabAgendaZitaGehitu.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
         }
         if (fabBazkideaGehitu != null) {
-            fabBazkideaGehitu.setVisibility(navId == R.id.bazkideak ? View.VISIBLE : View.GONE);
+            // Solo mostrar si estamos en erabiltzaileak Y en el tab de bazkideak
+            boolean erabiltzaileakTab = navId == R.id.erabiltzaileak;
+            boolean bazkideakTab = tabErabiltzaileak != null && tabErabiltzaileak.getSelectedTabPosition() == 0;
+            fabBazkideaGehitu.setVisibility(erabiltzaileakTab && bazkideakTab ? View.VISIBLE : View.GONE);
+        }
+        if (fabKomertzialaGehitu != null) {
+            // Solo mostrar si estamos en erabiltzaileak Y en el tab de komertzialak
+            boolean erabiltzaileakTab = navId == R.id.erabiltzaileak;
+            boolean komertzialakTab = tabErabiltzaileak != null && tabErabiltzaileak.getSelectedTabPosition() == 1;
+            fabKomertzialaGehitu.setVisibility(erabiltzaileakTab && komertzialakTab ? View.VISIBLE : View.GONE);
         }
         if (navId == R.id.agenda) {
             kargatuAgendaZitak();
             erakutsiAgendaXmlFalta();
         }
-        if (navId == R.id.bazkideak) {
+        if (navId == R.id.erabiltzaileak) {
+            konfiguratuErabiltzaileakTabs();
             erakutsiBazkideakEdukia();
         }
         if (navId == R.id.inbentarioa) {
             erakutsiInbentarioaEdukia();
         }
+    }
+    
+    /** Erabiltzaileak tab-ak konfiguratu: Bazkideak eta Komertzialak. */
+    private void konfiguratuErabiltzaileakTabs() {
+        if (tabErabiltzaileak == null) return;
+        
+        tabErabiltzaileak.removeAllTabs();
+        tabErabiltzaileak.addTab(tabErabiltzaileak.newTab().setText(R.string.tab_bazkideak));
+        tabErabiltzaileak.addTab(tabErabiltzaileak.newTab().setText(R.string.tab_komertzialak));
+        
+        tabErabiltzaileak.addOnTabSelectedListener(new com.google.android.material.tabs.TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(com.google.android.material.tabs.TabLayout.Tab tab) {
+                int position = tab.getPosition();
+                if (position == 0) {
+                    // Bazkideak tab
+                    if (contentBazkideak != null) contentBazkideak.setVisibility(View.VISIBLE);
+                    if (contentKomertzialak != null) contentKomertzialak.setVisibility(View.GONE);
+                    if (fabBazkideaGehitu != null) fabBazkideaGehitu.setVisibility(View.VISIBLE);
+                    if (fabKomertzialaGehitu != null) fabKomertzialaGehitu.setVisibility(View.GONE);
+                    erakutsiBazkideakEdukia();
+                } else if (position == 1) {
+                    // Komertzialak tab
+                    if (contentBazkideak != null) contentBazkideak.setVisibility(View.GONE);
+                    if (contentKomertzialak != null) contentKomertzialak.setVisibility(View.VISIBLE);
+                    if (fabBazkideaGehitu != null) fabBazkideaGehitu.setVisibility(View.GONE);
+                    if (fabKomertzialaGehitu != null) fabKomertzialaGehitu.setVisibility(View.VISIBLE);
+                    erakutsiKomertzialakEdukia();
+                }
+            }
+            
+            @Override
+            public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
+            
+            @Override
+            public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
+        });
+        
+        // Por defecto mostrar Bazkideak
+        if (contentBazkideak != null) contentBazkideak.setVisibility(View.VISIBLE);
+        if (contentKomertzialak != null) contentKomertzialak.setVisibility(View.GONE);
+        if (fabBazkideaGehitu != null) fabBazkideaGehitu.setVisibility(View.VISIBLE);
+        if (fabKomertzialaGehitu != null) fabKomertzialaGehitu.setVisibility(View.GONE);
     }
 
     /** Inbentarioa (Katalogoa) atala: bilatzailea, saskia, RecyclerView. */
@@ -1700,6 +1792,254 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 })
                 .setNegativeButton(R.string.ez, null)
                 .show();
+    }
+
+    /** Komertzialak atala: XML falta bada mezu hori; bestela datu-baseko komertzial zerrenda taulan erakutsi. */
+    private void erakutsiKomertzialakEdukia() {
+        TextView tvXmlFalta = findViewById(R.id.tvKomertzialakXmlFalta);
+        TextView tvHutsa = findViewById(R.id.tvKomertzialakHutsa);
+        View scrollTable = findViewById(R.id.scroll_table_komertzialak);
+        TableLayout tableKomertzialak = findViewById(R.id.table_komertzialak);
+        if (tvXmlFalta == null || tvHutsa == null || scrollTable == null || tableKomertzialak == null) return;
+
+        StringBuilder sb = new StringBuilder();
+        if (XmlBilatzailea.komertzialakFaltaDa(this)) {
+            sb.append(getString(R.string.xml_falta_da, "komertzialak.xml"));
+        }
+        if (sb.length() > 0) {
+            tvXmlFalta.setText(sb.toString());
+            tvXmlFalta.setVisibility(View.VISIBLE);
+            tvHutsa.setVisibility(View.GONE);
+            tableKomertzialak.removeAllViews();
+            scrollTable.setVisibility(View.GONE);
+            return;
+        }
+        tvXmlFalta.setVisibility(View.GONE);
+        scrollTable.setVisibility(View.VISIBLE);
+        setupKomertzialakBilatuEtaGehitu();
+        kargatuKomertzialakZerrenda();
+    }
+
+    /** Komertzialak atalean bilatzailea konfiguratu (behin bakarrik). */
+    private void setupKomertzialakBilatuEtaGehitu() {
+        TextInputEditText etBilatu = findViewById(R.id.etKomertzialakBilatu);
+        if (etBilatu != null && etBilatu.getTag() == null) {
+            etBilatu.setTag(true);
+            etBilatu.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override
+                public void afterTextChanged(Editable s) {
+                    kargatuKomertzialakZerrenda();
+                }
+            });
+        }
+        
+        MaterialButton btnGuztiakEzabatu = findViewById(R.id.btnKomertzialakGuztiakEzabatu);
+        if (btnGuztiakEzabatu != null) {
+            btnGuztiakEzabatu.setOnClickListener(v -> erakutsiKomertzialakGuztiakEzabatuBaieztapena());
+        }
+    }
+
+    /** Taula komertzialak (DB) kargatu: bilatzailearen testua aplikatu, taula bete, Editatu/Ezabatu botoiak. */
+    private void kargatuKomertzialakZerrenda() {
+        TextView tvHutsa = findViewById(R.id.tvKomertzialakHutsa);
+        TableLayout tableKomertzialak = findViewById(R.id.table_komertzialak);
+        TextInputEditText etBilatu = findViewById(R.id.etKomertzialakBilatu);
+        if (tvHutsa == null || tableKomertzialak == null) return;
+
+        final String filter = etBilatu != null && etBilatu.getText() != null ? etBilatu.getText().toString().trim() : "";
+
+        new Thread(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(this);
+                List<Komertziala> zerrenda = filter.isEmpty()
+                        ? db.komertzialaDao().guztiak()
+                        : db.komertzialaDao().bilatu(filter);
+                if (zerrenda == null) zerrenda = new ArrayList<>();
+                final List<Komertziala> lista = zerrenda;
+
+                runOnUiThread(() -> {
+                    if (isDestroyed()) return;
+                    tableKomertzialak.removeAllViews();
+                    if (lista.isEmpty()) {
+                        tvHutsa.setVisibility(View.VISIBLE);
+                        return;
+                    }
+                    tvHutsa.setVisibility(View.GONE);
+                    int paddingPx = getResources().getDimensionPixelSize(R.dimen.margin_small);
+
+                    // Goiburua: Izena, Abizena, Kodea, Akzioak
+                    TableRow headerRow = new TableRow(this);
+                    headerRow.setBackgroundColor(ContextCompat.getColor(this, R.color.primary_purple));
+                    float[] headerWeights = {1f, 1f, 1f, 0.5f};
+                    int[] headerResIds = {
+                            R.string.table_komertzial_izena,
+                            R.string.table_komertzial_abizena,
+                            R.string.table_komertzial_kodea,
+                            R.string.table_komertzial_akzioak
+                    };
+                    for (int i = 0; i < headerResIds.length; i++) {
+                        TextView h = new TextView(this);
+                        h.setText(getString(headerResIds[i]));
+                        h.setTextColor(ContextCompat.getColor(this, android.R.color.white));
+                        h.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+                        h.setTextSize(12);
+                        h.setTypeface(null, android.graphics.Typeface.BOLD);
+                        TableRow.LayoutParams lp = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, headerWeights[i]);
+                        h.setLayoutParams(lp);
+                        headerRow.addView(h);
+                    }
+                    tableKomertzialak.addView(headerRow);
+
+                    int rowBg = ContextCompat.getColor(this, R.color.card_background);
+                    int rowBgAlt = ContextCompat.getColor(this, R.color.background_light_gray);
+                    int textColor = ContextCompat.getColor(this, R.color.text_primary);
+                    int idx = 0;
+                    for (Komertziala k : lista) {
+                        TableRow row = new TableRow(this);
+                        row.setBackgroundColor(idx % 2 == 0 ? rowBg : rowBgAlt);
+                        row.setMinimumHeight(getResources().getDimensionPixelSize(R.dimen.button_height) / 2);
+                        String izena = k.getIzena() != null ? k.getIzena() : "";
+                        String abizena = k.getAbizena() != null ? k.getAbizena() : "";
+                        String kodea = k.getKodea() != null ? k.getKodea() : "";
+                        for (String value : new String[]{izena, abizena, kodea}) {
+                            TextView cell = new TextView(this);
+                            cell.setText(value);
+                            cell.setPadding(paddingPx, paddingPx, paddingPx, paddingPx);
+                            cell.setTextSize(11);
+                            cell.setTextColor(textColor);
+                            TableRow.LayoutParams lp = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+                            cell.setLayoutParams(lp);
+                            row.addView(cell);
+                        }
+                        LinearLayout akzioak = new LinearLayout(this);
+                        akzioak.setOrientation(LinearLayout.HORIZONTAL);
+                        akzioak.setGravity(android.view.Gravity.CENTER);
+                        int btnMargin = getResources().getDimensionPixelSize(R.dimen.margin_small) / 2;
+                        int iconSizePx = getResources().getDimensionPixelSize(R.dimen.icon_size_small);
+
+                        MaterialButton btnEditatu = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+                        btnEditatu.setMinimumWidth(0);
+                        btnEditatu.setMinimumHeight(0);
+                        btnEditatu.setPadding(btnMargin, btnMargin, btnMargin, btnMargin);
+                        btnEditatu.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_edit_24));
+                        btnEditatu.setIconSize(iconSizePx);
+                        btnEditatu.setIconPadding(0);
+                        btnEditatu.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primary_purple)));
+                        btnEditatu.setContentDescription(getString(R.string.btn_editatu));
+                        btnEditatu.setOnClickListener(v -> {
+                            Intent intent = new Intent(this, KomertzialaFormularioActivity.class);
+                            intent.putExtra(KomertzialaFormularioActivity.EXTRA_KOMERTZIALA_ID, k.getId());
+                            komertzialaFormularioLauncher.launch(intent);
+                        });
+                        LinearLayout.LayoutParams lpEdit = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lpEdit.setMarginEnd(btnMargin);
+                        akzioak.addView(btnEditatu, lpEdit);
+
+                        MaterialButton btnEzabatu = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+                        btnEzabatu.setMinimumWidth(0);
+                        btnEzabatu.setMinimumHeight(0);
+                        btnEzabatu.setPadding(btnMargin, btnMargin, btnMargin, btnMargin);
+                        btnEzabatu.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_delete_24));
+                        btnEzabatu.setIconSize(iconSizePx);
+                        btnEzabatu.setIconPadding(0);
+                        btnEzabatu.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.error_red)));
+                        btnEzabatu.setContentDescription(getString(R.string.btn_ezabatu));
+                        btnEzabatu.setOnClickListener(v -> ezabatuKomertziala(k));
+                        akzioak.addView(btnEzabatu);
+
+                        TableRow.LayoutParams lpAkzioak = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f);
+                        row.addView(akzioak, lpAkzioak);
+                        tableKomertzialak.addView(row);
+                        idx++;
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (!isDestroyed()) {
+                        Toast.makeText(this, getString(R.string.esportatu_errorea_batzuetan), Toast.LENGTH_LONG).show();
+                        tvHutsa.setVisibility(View.VISIBLE);
+                        tableKomertzialak.removeAllViews();
+                    }
+                });
+            }
+        }).start();
+    }
+
+    /** Komertziala ezabatu baieztapenarekin. */
+    private void ezabatuKomertziala(Komertziala k) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.btn_ezabatu)
+                .setMessage(R.string.komertzial_ezabatu_baieztatu_kudeatu)
+                .setPositiveButton(R.string.bai, (dialog, which) -> {
+                    new Thread(() -> {
+                        try {
+                            AppDatabase db = AppDatabase.getInstance(this);
+                            db.komertzialaDao().ezabatu(k);
+                            
+                            // XML eguneratu
+                            DatuKudeatzailea dk = new DatuKudeatzailea(this);
+                            List<Komertziala> zerrenda = db.komertzialaDao().guztiak();
+                            if (zerrenda == null) zerrenda = new ArrayList<>();
+                            dk.komertzialakEsportatuZerrenda(zerrenda);
+                            
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, R.string.komertzial_ondo_ezabatuta_kudeatu, Toast.LENGTH_SHORT).show();
+                                kargatuKomertzialakZerrenda();
+                            });
+                        } catch (Exception e) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, R.string.komertzial_ezabatu_errorea_kudeatu, Toast.LENGTH_LONG).show();
+                            });
+                        }
+                    }).start();
+                })
+                .setNegativeButton(R.string.ez, null)
+                .show();
+    }
+
+    /** Komertzial guztiak ezabatu baieztapenarekin. */
+    private void erakutsiKomertzialakGuztiakEzabatuBaieztapena() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.btn_ezabatu)
+                .setMessage(R.string.komertzial_guztiak_ezabatu_baieztatu)
+                .setPositiveButton(R.string.bai, (dialog, which) -> ezabatuKomertzialakGuztiak())
+                .setNegativeButton(R.string.ez, null)
+                .show();
+    }
+
+    /** Komertzial guztiak ezabatu: lehen XML eguneratu, gero datu-basea. */
+    private void ezabatuKomertzialakGuztiak() {
+        new Thread(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(this);
+                
+                // XML eguneratu (zerrenda hutsa)
+                DatuKudeatzailea dk = new DatuKudeatzailea(this);
+                List<Komertziala> zerrendaHutsa = new ArrayList<>();
+                if (!dk.komertzialakEsportatuZerrenda(zerrendaHutsa)) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, R.string.komertzial_guztiak_ezabatu_errorea, Toast.LENGTH_LONG).show();
+                    });
+                    return;
+                }
+                
+                // Datu-baseatik ezabatu guztiak
+                db.komertzialaDao().ezabatuGuztiak();
+                
+                runOnUiThread(() -> {
+                    Toast.makeText(this, R.string.komertzial_guztiak_ondo_ezabatuta, Toast.LENGTH_SHORT).show();
+                    kargatuKomertzialakZerrenda();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, R.string.komertzial_guztiak_ezabatu_errorea, Toast.LENGTH_LONG).show();
+                });
+            }
+        }).start();
     }
 
     /** Agenda atalean: beharrezko XMLak falta badira, Bazkideak/Inbentarioa moduan mezu bat erakutsi. */

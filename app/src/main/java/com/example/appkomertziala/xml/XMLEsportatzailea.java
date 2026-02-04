@@ -77,7 +77,14 @@ public class XMLEsportatzailea {
      * Nodoa: komertzialak > komertziala > NAN (kodea), izena.
      */
     public void komertzialakEsportatu() throws IOException {
-        List<Komertziala> zerrenda = datuBasea.komertzialaDao().guztiak();
+        komertzialakEsportatu(datuBasea.komertzialaDao().guztiak());
+    }
+
+    /**
+     * Emandako komertzial zerrenda komertzialak.xml fitxategian idatzi (formulario gorde/ezabatu: lehen XML, gero DB).
+     * Nodoa: komertzialak > komertziala > NAN (kodea), izena, abizena, posta, jaiotzeData, argazkia.
+     */
+    public void komertzialakEsportatu(List<Komertziala> zerrenda) throws IOException {
         String fitxategiIzena = "komertzialak.xml";
         try (OutputStream irteera = testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE)) {
             XmlSerializer idazlea = Xml.newSerializer();

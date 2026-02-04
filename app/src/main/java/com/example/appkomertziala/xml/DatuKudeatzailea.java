@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.db.eredua.Komertziala;
 
 /**
  * Room datu-basearen esportazio eta inportazio logika maiztasunaren arabera koordinatzen duen kudeatzailea.
@@ -128,6 +129,23 @@ public class DatuKudeatzailea {
             return false;
         } catch (Exception e) {
             Log.e(ETIKETA, "Bazkideak zerrenda esportatzean ustekabeko akatsa.", e);
+            return false;
+        }
+    }
+
+    /**
+     * Emandako komertzial zerrenda komertzialak.xml fitxategian idatzi (formulario gorde/ezabatu: lehen XML, gero DB).
+     * @return true idazketa ondo bukatu bada, false akatsen bat gertatu bada
+     */
+    public boolean komertzialakEsportatuZerrenda(List<Komertziala> zerrenda) {
+        try {
+            esportatzailea.komertzialakEsportatu(zerrenda);
+            return true;
+        } catch (IOException e) {
+            Log.e(ETIKETA, "Komertzialak zerrenda esportatzean akatsa.", e);
+            return false;
+        } catch (Exception e) {
+            Log.e(ETIKETA, "Komertzialak zerrenda esportatzean ustekabeko akatsa.", e);
             return false;
         }
     }

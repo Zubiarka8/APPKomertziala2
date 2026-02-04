@@ -46,6 +46,16 @@ public interface KomertzialaDao {
     @Query("SELECT * FROM komertzialak WHERE kodea = :kodea")
     Komertziala kodeaBilatu(String kodea);
 
+    /** Bilatzailea: izena, abizena, kodea edo postan testua bilatu. */
+    @Query("SELECT * FROM komertzialak WHERE " +
+            "(:filter IS NULL OR :filter = '' OR " +
+            "izena LIKE '%' || :filter || '%' OR " +
+            "abizena LIKE '%' || :filter || '%' OR " +
+            "kodea LIKE '%' || :filter || '%' OR " +
+            "posta LIKE '%' || :filter || '%') " +
+            "ORDER BY izena, abizena")
+    List<Komertziala> bilatu(String filter);
+
     /** Komertzial kopurua itzuli. */
     @Query("SELECT COUNT(*) FROM komertzialak")
     int kopurua();

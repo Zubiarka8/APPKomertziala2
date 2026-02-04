@@ -496,96 +496,209 @@
                 </LinearLayout>
             </ScrollView>
 
-            <!-- Bazkideak tab: Agenda antzeko diseinua (izenburua, hutsa, zerrenda) -->
-            <ScrollView
-                android:id="@+id/content_bazkideak"
+            <!-- Erabiltzaileak tab: TabLayout con Bazkideak y Komertzialak -->
+            <LinearLayout
+                android:id="@+id/content_erabiltzaileak"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fillViewport="true"
+                android:orientation="vertical"
                 android:visibility="gone">
 
-                <LinearLayout
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/erabiltzaileak_izenburua"
+                    android:textSize="@dimen/text_size_large"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginTop="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"/>
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabErabiltzaileak"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/margin_medium">
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_marginEnd="@dimen/margin_medium"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    app:tabMode="fixed"
+                    app:tabGravity="fill"/>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/bazkideak_izenburua"
-                        android:textSize="@dimen/text_size_large"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:layout_marginBottom="@dimen/margin_medium"/>
-
-                    <TextView
-                        android:id="@+id/tvBazkideakXmlFalta"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/margin_medium"
-                        android:textSize="@dimen/text_size_normal"
-                        android:textColor="@color/text_secondary"
-                        android:visibility="gone"/>
-
-                    <TextView
-                        android:id="@+id/tvBazkideakHutsa"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="@dimen/margin_large"
-                        android:text="@string/bazkideak_zerrenda_hutsa"
-                        android:textSize="@dimen/text_size_normal"
-                        android:textColor="@color/text_secondary"
-                        android:gravity="center"
-                        android:layout_marginBottom="@dimen/margin_medium"/>
+                <!-- Bazkideak sección -->
+                <ScrollView
+                    android:id="@+id/content_bazkideak"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="visible">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="@dimen/margin_small">
+                        android:orientation="vertical"
+                        android:padding="@dimen/margin_medium">
 
-                        <com.google.android.material.textfield.TextInputLayout
+                        <TextView
+                            android:id="@+id/tvBazkideakXmlFalta"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/bazkideak_bilatu"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                            android:layout_marginBottom="@dimen/margin_medium"
+                            android:textSize="@dimen/text_size_normal"
+                            android:textColor="@color/text_secondary"
+                            android:visibility="gone"/>
 
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etBazkideakBilatu"
+                        <TextView
+                            android:id="@+id/tvBazkideakHutsa"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="@dimen/margin_large"
+                            android:text="@string/bazkideak_zerrenda_hutsa"
+                            android:textSize="@dimen/text_size_normal"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center"
+                            android:layout_marginBottom="@dimen/margin_medium"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="@dimen/margin_small">
+
+                            <com.google.android.material.textfield.TextInputLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:inputType="text"
-                                android:maxLines="1"/>
-                        </com.google.android.material.textfield.TextInputLayout>
-                    </LinearLayout>
+                                android:hint="@string/bazkideak_bilatu"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_medium"
-                        app:cardCornerRadius="@dimen/card_corner_radius"
-                        app:cardElevation="@dimen/card_elevation"
-                        app:cardBackgroundColor="@color/card_background">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etBazkideakBilatu"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="text"
+                                    android:maxLines="1"/>
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
 
-                        <HorizontalScrollView
-                            android:id="@+id/scroll_table_bazkideak"
+                        <com.google.android.material.card.MaterialCardView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:scrollbars="horizontal">
+                            android:layout_marginTop="@dimen/margin_medium"
+                            app:cardCornerRadius="@dimen/card_corner_radius"
+                            app:cardElevation="@dimen/card_elevation"
+                            app:cardBackgroundColor="@color/card_background">
 
-                            <TableLayout
-                                android:id="@+id/table_bazkideak"
+                            <HorizontalScrollView
+                                android:id="@+id/scroll_table_bazkideak"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:scrollbars="horizontal">
+
+                                <TableLayout
+                                    android:id="@+id/table_bazkideak"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:stretchColumns="*"
+                                    android:shrinkColumns="*"
+                                    android:background="@color/card_background"/>
+                            </HorizontalScrollView>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                </ScrollView>
+
+                <!-- Komertzialak sección -->
+                <ScrollView
+                    android:id="@+id/content_komertzialak"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/margin_medium">
+
+                        <TextView
+                            android:id="@+id/tvKomertzialakXmlFalta"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_medium"
+                            android:textSize="@dimen/text_size_normal"
+                            android:textColor="@color/text_secondary"
+                            android:visibility="gone"/>
+
+                        <TextView
+                            android:id="@+id/tvKomertzialakHutsa"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="@dimen/margin_large"
+                            android:text="@string/komertzialak_zerrenda_hutsa_kudeatu"
+                            android:textSize="@dimen/text_size_normal"
+                            android:textColor="@color/text_secondary"
+                            android:gravity="center"
+                            android:layout_marginBottom="@dimen/margin_medium"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="@dimen/margin_small">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:hint="@string/komertzialak_bilatu"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etKomertzialakBilatu"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="text"
+                                    android:maxLines="1"/>
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnKomertzialakGuztiakEzabatu"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:stretchColumns="*"
-                                android:shrinkColumns="*"
-                                android:background="@color/card_background"/>
-                        </HorizontalScrollView>
-                    </com.google.android.material.card.MaterialCardView>
-                </LinearLayout>
-            </ScrollView>
+                                android:layout_marginStart="@dimen/margin_small"
+                                android:text="@string/komertzial_guztiak_ezabatu"
+                                android:icon="@android:drawable/ic_menu_delete"
+                                style="@style/Widget.Material3.Button.TonalButton"/>
+                        </LinearLayout>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_medium"
+                            app:cardCornerRadius="@dimen/card_corner_radius"
+                            app:cardElevation="@dimen/card_elevation"
+                            app:cardBackgroundColor="@color/card_background">
+
+                            <HorizontalScrollView
+                                android:id="@+id/scroll_table_komertzialak"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:scrollbars="horizontal">
+
+                                <TableLayout
+                                    android:id="@+id/table_komertzialak"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:stretchColumns="*"
+                                    android:shrinkColumns="*"
+                                    android:background="@color/card_background"/>
+                            </HorizontalScrollView>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                </ScrollView>
+            </LinearLayout>
 
             <!-- Inbentarioa (Katalogoa): izenburua, XML falta, zerrenda hutsa, RecyclerView -->
             <include
@@ -619,6 +732,19 @@
                 android:visibility="gone"
                 android:contentDescription="@string/cd_bazkidea_gehitu"
                 android:text="@string/fab_bazkide_berria"
+                app:icon="@drawable/ic_add_24"/>
+
+            <!-- Extended FAB Komertzialak: komertzial berria (berdin altuera, Material 3) -->
+            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                android:id="@+id/fabKomertzialaGehitu"
+                style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="@dimen/margin_medium"
+                android:visibility="gone"
+                android:contentDescription="@string/cd_komertziala_gehitu"
+                android:text="@string/fab_komertzial_berria"
                 app:icon="@drawable/ic_add_24"/>
         </FrameLayout>
 

@@ -9,9 +9,9 @@
         android:icon="@drawable/ic_nav_calendar"
         android:title="@string/nav_agenda"/>
     <item
-        android:id="@+id/bazkideak"
+        android:id="@+id/erabiltzaileak"
         android:icon="@drawable/ic_nav_groups"
-        android:title="@string/nav_bazkideak"/>
+        android:title="@string/nav_erabiltzaileak"/>
     <item
         android:id="@+id/inbentarioa"
         android:icon="@drawable/ic_nav_inventory"

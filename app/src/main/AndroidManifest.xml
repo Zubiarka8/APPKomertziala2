@@ -48,6 +48,10 @@
             android:exported="false"
             android:parentActivityName=".MainActivity" />
         <activity
+            android:name=".activity.KomertzialaFormularioActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+        <activity
             android:name=".activity.ProduktuDetalaActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />

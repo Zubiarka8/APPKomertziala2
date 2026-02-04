@@ -66,6 +66,19 @@
     <string name="komertzialak_zerrenda_hutsa_kudeatu">Komertzialik ez datu-basean. Kargatu komertzialak.xml lehenik.</string>
     <string name="komertzialak_kudeatu_oharra">Luze-sakatu komertzial bat ezabatzeko. Aldaketa datu-basean gordetzen da.</string>
     <string name="komertzial_ezabatu_errorea">Ezin izan da komertziala ezabatu datu-basean (erreferentziak ditu agian).</string>
+    <string name="komertzial_berria">Komertzial berria</string>
+    <string name="komertzial_editatu">Komertziala editatu</string>
+    <string name="komertzial_gorde">Gorde</string>
+    <string name="komertzial_gorde_baieztatu">Seguru zaude gorde nahi duzula?</string>
+    <string name="komertzial_errorea_izena_beharrezkoa">Izena beharrezkoa da.</string>
+    <string name="komertzial_errorea_kodea_beharrezkoa">Kodea beharrezkoa da.</string>
+    <string name="komertzial_ondo_gordeta">Komertziala ondo gorde da.</string>
+    <string name="komertzial_guztiak_ezabatu">Guztiak ezabatu</string>
+    <string name="komertzial_guztiak_ezabatu_baieztatu">Komertzial GUZTIAK datu-basean ezabatu nahi dituzu? Ekintza hau ezin da desegin.</string>
+    <string name="komertzial_guztiak_ondo_ezabatuta">Komertzial guztiak datu-basean ezabatu dira.</string>
+    <string name="komertzial_guztiak_ezabatu_errorea">Errorea komertzial guztiak ezabatzean.</string>
+    <string name="fab_komertzial_berria">Komertzial berria</string>
+    <string name="cd_komertziala_gehitu">Komertzial berria gehitu</string>
     <string name="btn_esportatu_bazkide_berriak">Bazkide berriak (bazkide_berriak.xml)</string>
     <string name="btn_esportatu_bazkideak">Bazkideak (bazkideak.xml)</string>
     <string name="btn_esportatu_eskaera_berriak">Eskaera berriak / Bidalketak (eskaera_berriak.xml)</string>
@@ -101,8 +114,12 @@
     <!-- Nabigazio-menua (beheko menua) -->
     <string name="nav_hasiera">Hasiera</string>
     <string name="nav_agenda">Agenda</string>
+    <string name="nav_erabiltzaileak">Erabiltzaileak</string>
     <string name="nav_bazkideak">Bazkideak</string>
     <string name="nav_inbentarioa">Inbentarioa</string>
+    <string name="erabiltzaileak_izenburua">Erabiltzaileak</string>
+    <string name="tab_bazkideak">Bazkideak</string>
+    <string name="tab_komertzialak">Komertzialak</string>
 
     <!-- Harremana (Gipuzkoa egoitza) -->
     <string name="contact_title">Gipuzkoa egoitza</string>
@@ -189,6 +206,19 @@
     <string name="table_bazkide_jaiotze_data">Jaiotze data</string>
     <string name="table_bazkide_argazkia">Argazkia</string>
     <string name="table_bazkide_akzioak">Akzioak</string>
+
+    <!-- Komertzialak atala -->
+    <string name="komertzialak_izenburua">Komertzialak</string>
+    <string name="komertzialak_bilatu">Bilatu (izena, kodea, posta…)</string>
+    <string name="table_komertzial_izena">Izena</string>
+    <string name="table_komertzial_abizena">Abizena</string>
+    <string name="table_komertzial_kodea">Kodea</string>
+    <string name="table_komertzial_posta">Posta</string>
+    <string name="table_komertzial_akzioak">Akzioak</string>
+    <string name="komertzial_ezabatu_baieztatu_kudeatu">Komertzial hau datu-basean ezabatu nahi duzu?</string>
+    <string name="komertzial_ondo_ezabatuta_kudeatu">Komertziala datu-basean ezabatu da.</string>
+    <string name="komertzial_ezabatu_errorea_kudeatu">Ezin izan da komertziala ezabatu datu-basean (erreferentziak ditu agian).</string>
+
     <string name="bazkidea_izenburu">Bazkidea</string>
     <string name="bazkidea_berria">Bazkide berria</string>
     <string name="bazkidea_editatu">Bazkidea editatu</string>
