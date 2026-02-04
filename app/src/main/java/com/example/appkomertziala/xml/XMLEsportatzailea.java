@@ -5,6 +5,7 @@ import android.util.Xml;
 
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.db.eredua.Eskaera;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
@@ -102,7 +103,7 @@ public class XMLEsportatzailea {
 
     /**
      * Bazkideak taulako datu guztiak bazkideak.xml fitxategian gorde (assets/bazkideak.xml egitura).
-     * Nodoa: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak.
+     * Nodoa: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak > eskaera.
      */
     public void bazkideakEsportatu() throws IOException {
         bazkideakEsportatu(datuBasea.bazkideaDao().guztiak());
@@ -110,7 +111,7 @@ public class XMLEsportatzailea {
 
     /**
      * Emandako bazkide zerrenda bazkideak.xml fitxategian idatzi (formulario bat gorde/ezabatu baino lehen XML eguneratzeko).
-     * Nodoa: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak.
+     * Nodoa: bazkideak > bazkidea > NAN, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia > eskaerak > eskaera.
      */
     public void bazkideakEsportatu(List<Bazkidea> zerrenda) throws IOException {
         if (zerrenda == null) zerrenda = new ArrayList<>();
@@ -131,6 +132,19 @@ public class XMLEsportatzailea {
                 nodoaIdatzi(idazlea, "jaiotzeData", dataFormatuaBazkideak(hutsaEz(b.getJaiotzeData())));
                 nodoaIdatzi(idazlea, "argazkia", hutsaEz(b.getArgazkia()));
                 idazlea.startTag(null, "eskaerak");
+                // Bazkidearen eskaerak kargatu eta idatzi
+                List<Eskaera> eskaerak = datuBasea.eskaeraDao().bazkidearenEskaerak(b.getId());
+                if (eskaerak != null) {
+                    for (Eskaera e : eskaerak) {
+                        idazlea.startTag(null, "eskaera");
+                        nodoaIdatzi(idazlea, "eskaeraID", hutsaEz(e.getEskaeraID()));
+                        nodoaIdatzi(idazlea, "prodIzena", hutsaEz(e.getProdIzena()));
+                        nodoaIdatzi(idazlea, "data", dataFormatuaBazkideak(hutsaEz(e.getData())));
+                        nodoaIdatzi(idazlea, "kopurua", String.valueOf(e.getKopurua()));
+                        nodoaIdatzi(idazlea, "prodArgazkia", hutsaEz(e.getProdArgazkia()));
+                        idazlea.endTag(null, "eskaera");
+                    }
+                }
                 idazlea.endTag(null, "eskaerak");
                 idazlea.endTag(null, "bazkidea");
             }
