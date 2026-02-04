@@ -274,24 +274,6 @@ public class XMLEsportatzailea {
         }
     }
 
-    /** Eguneko eskaera berriak eskaera_berriak.txt fitxategian (testu laua). */
-    public void eskaeraBerriakEsportatuTxt() throws IOException {
-        List<EskaeraGoiburua> goiburuak = datuBasea.eskaeraGoiburuaDao().egunekoEskaerak();
-        String fitxategiIzena = "eskaera_berriak.txt";
-        try (Writer idazlea = new OutputStreamWriter(testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
-            idazlea.write("=== ESKAERA BERRIAK (egunekoak) ===\n\n");
-            for (EskaeraGoiburua goi : goiburuak) {
-                idazlea.write("Eskaera zenbakia: " + hutsaEz(goi.getZenbakia()) + " | Data: " + hutsaEz(goi.getData()) + "\n");
-                idazlea.write("KomertzialKodea: " + hutsaEz(goi.getKomertzialKodea()) + " | Ordezkaritza: " + hutsaEz(goi.getOrdezkaritza()) + " | BazkideaKodea: " + hutsaEz(goi.getBazkideaKodea()) + "\n");
-                List<EskaeraXehetasuna> xehetasunak = datuBasea.eskaeraXehetasunaDao().eskaerarenXehetasunak(goi.getZenbakia());
-                for (EskaeraXehetasuna x : xehetasunak) {
-                    idazlea.write("  - " + hutsaEz(x.getArtikuluKodea()) + " | Kantitatea: " + x.getKantitatea() + " | Prezioa: " + x.getPrezioa() + "\n");
-                }
-                idazlea.write("---\n");
-            }
-            idazlea.flush();
-        }
-    }
 
     /** Hilabeteko agenda agenda.txt fitxategian (testu laua). */
     public void agendaEsportatuTxt() throws IOException {

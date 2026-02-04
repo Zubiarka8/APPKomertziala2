@@ -667,21 +667,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         DatuKudeatzailea datuKudeatzailea = new DatuKudeatzailea(this);
         AgendaEsportatzailea agendaEsportatzailea = new AgendaEsportatzailea(this);
         MaterialButton btnEsportatuKomertzialak = findViewById(R.id.btnEsportatuKomertzialak);
-        MaterialButton btnBazkideBerriak = findViewById(R.id.btnEsportatuBazkideBerriak);
         MaterialButton btnEskaeraBerriak = findViewById(R.id.btnEsportatuEskaeraBerriak);
         MaterialButton btnEsportatuBazkideak = findViewById(R.id.btnEsportatuBazkideak);
         MaterialButton btnEsportatuAgendaTxt = findViewById(R.id.btnEsportatuAgendaTxt);
         MaterialButton btnEsportatuKatalogoa = findViewById(R.id.btnEsportatuKatalogoa);
-        MaterialButton btnKatalogoaEguneratu = findViewById(R.id.btnKatalogoaEguneratu);
         if (btnEsportatuKomertzialak != null) btnEsportatuKomertzialak.setOnClickListener(v -> esportatuKomertzialak(datuKudeatzailea));
-        MaterialButton btnKomertzialakKudeatu = findViewById(R.id.btnKomertzialakKudeatu);
-        if (btnKomertzialakKudeatu != null) btnKomertzialakKudeatu.setOnClickListener(v -> erakutsiKomertzialakKudeatuDialogoa());
-        btnBazkideBerriak.setOnClickListener(v -> esportatuBazkideBerriak(datuKudeatzailea));
         btnEskaeraBerriak.setOnClickListener(v -> esportatuEskaeraBerriak(datuKudeatzailea));
         btnEsportatuBazkideak.setOnClickListener(v -> esportatuBazkideak(datuKudeatzailea));
         btnEsportatuAgendaTxt.setOnClickListener(v -> esportatuAgendaTXT(agendaEsportatzailea));
         btnEsportatuKatalogoa.setOnClickListener(v -> esportatuKatalogoa(datuKudeatzailea));
-        btnKatalogoaEguneratu.setOnClickListener(v -> katalogoaEguneratu(datuKudeatzailea));
         MaterialButton btnInportatuGailutik = findViewById(R.id.btnInportatuGailutik);
         if (btnInportatuGailutik != null) {
             btnInportatuGailutik.setOnClickListener(v -> inportatuGailutikLauncher.launch(new String[]{"application/xml", "text/xml", "*/*"}));
@@ -714,101 +708,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    /** Komertzialak zerrenda datu-basean irakurri eta kudeatu-dialogoa erakusten du. Ezabatu luze-sakatzean; datu-basean idazten da. */
-    private void erakutsiKomertzialakKudeatuDialogoa() {
-        new Thread(() -> {
-            AppDatabase db = AppDatabase.getInstance(this);
-            List<Komertziala> zerrenda = db.komertzialaDao().guztiak();
-            runOnUiThread(() -> {
-                if (zerrenda.isEmpty()) {
-                    Toast.makeText(this, R.string.komertzialak_zerrenda_hutsa_kudeatu, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                final ArrayList<Komertziala> zerrendaMutagarri = new ArrayList<>(zerrenda);
-                String[] aukerak = new String[zerrendaMutagarri.size()];
-                for (int i = 0; i < zerrendaMutagarri.size(); i++) {
-                    Komertziala k = zerrendaMutagarri.get(i);
-                    aukerak[i] = (k.getIzena() != null ? k.getIzena().trim() : "") + " (" + (k.getKodea() != null ? k.getKodea() : "") + ")";
-                }
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, aukerak);
-                ListView listView = new ListView(this);
-                listView.setAdapter(adapter);
-                listView.setMinimumHeight(400);
-                android.widget.LinearLayout wrap = new android.widget.LinearLayout(this);
-                wrap.setOrientation(android.widget.LinearLayout.VERTICAL);
-                android.widget.TextView oharra = new android.widget.TextView(this);
-                oharra.setText(R.string.komertzialak_kudeatu_oharra);
-                int pad = (int) (16 * getResources().getDisplayMetrics().density);
-                oharra.setPadding(pad, pad * 3 / 4, pad, pad / 2);
-                oharra.setTextSize(12);
-                oharra.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
-                wrap.addView(oharra);
-                listView.setMinimumHeight(400);
-                wrap.addView(listView);
-                AlertDialog dialog = new AlertDialog.Builder(this)
-                        .setTitle(R.string.komertzialak_kudeatu_titulua)
-                        .setView(wrap)
-                        .setNegativeButton(R.string.xml_utzi, null)
-                        .create();
-                listView.setOnItemLongClickListener((parent, view, position, id) -> {
-                    Komertziala k = zerrendaMutagarri.get(position);
-                    new AlertDialog.Builder(this)
-                            .setTitle(R.string.btn_ezabatu)
-                            .setMessage(R.string.komertzial_ezabatu_baieztatu)
-                            .setPositiveButton(R.string.bai, (d, w) -> {
-                                new Thread(() -> {
-                                    try {
-                                        db.komertzialaDao().ezabatu(k);
-                                    } catch (Exception e) {
-                                        runOnUiThread(() -> Toast.makeText(this, R.string.komertzial_ezabatu_errorea, Toast.LENGTH_LONG).show());
-                                        return;
-                                    }
-                                    List<Komertziala> berria = db.komertzialaDao().guztiak();
-                                    runOnUiThread(() -> {
-                                        zerrendaMutagarri.clear();
-                                        zerrendaMutagarri.addAll(berria);
-                                        adapter.clear();
-                                        for (Komertziala x : berria) {
-                                            adapter.add((x.getIzena() != null ? x.getIzena().trim() : "") + " (" + (x.getKodea() != null ? x.getKodea() : "") + ")");
-                                        }
-                                        adapter.notifyDataSetChanged();
-                                        Toast.makeText(this, R.string.komertzial_ondo_ezabatuta, Toast.LENGTH_SHORT).show();
-                                        if (zerrendaMutagarri.isEmpty()) dialog.dismiss();
-                                    });
-                                }).start();
-                            })
-                            .setNegativeButton(R.string.ez, null)
-                            .show();
-                    return true;
-                });
-                dialog.show();
-            });
-        }).start();
-    }
 
-    private void esportatuBazkideBerriak(DatuKudeatzailea datuKudeatzailea) {
-        new Thread(() -> {
-            boolean ondo = datuKudeatzailea.bazkideBerriakEsportatu();
-            if (ondo) datuKudeatzailea.bazkideBerriakEsportatuTxt();
-            runOnUiThread(() -> {
-                if (ondo) {
-                    Toast.makeText(this, R.string.esportatu_ondo, Toast.LENGTH_SHORT).show();
-                    bidaliPostazXmlTxt("bazkide_berriak.xml", "bazkide_berriak.txt", getString(R.string.postaz_gaia_bazkide_berriak));
-                } else {
-                    Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }).start();
-    }
 
     private void esportatuEskaeraBerriak(DatuKudeatzailea datuKudeatzailea) {
         new Thread(() -> {
             boolean ondo = datuKudeatzailea.eskaeraBerriakEsportatu();
-            if (ondo) datuKudeatzailea.eskaeraBerriakEsportatuTxt();
             runOnUiThread(() -> {
                 if (ondo) {
                     Toast.makeText(this, R.string.esportatu_ondo, Toast.LENGTH_SHORT).show();
-                    bidaliPostazXmlTxt("eskaera_berriak.xml", "eskaera_berriak.txt", getString(R.string.postaz_gaia_eskaera_berriak));
+                    bidaliPostaz("eskaera_berriak.xml", getString(R.string.postaz_gaia_eskaera_berriak), "application/xml");
                 } else {
                     Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
                 }
@@ -948,12 +856,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    private void katalogoaEguneratu(DatuKudeatzailea datuKudeatzailea) {
-        new Thread(() -> {
-            boolean ondo = datuKudeatzailea.katalogoaEguneratu();
-            runOnUiThread(() -> Toast.makeText(this, ondo ? R.string.katalogoa_ondo_berritu_datu_zaharrak : R.string.esportatu_errorea_batzuetan, Toast.LENGTH_LONG).show());
-        }).start();
-    }
 
     private void setupMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()

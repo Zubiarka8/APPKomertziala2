@@ -132,19 +132,6 @@ public class DatuKudeatzailea {
         }
     }
 
-    /** Eskaera berriak TXT formatuan esportatu (Gmail eranskin gisa). */
-    public boolean eskaeraBerriakEsportatuTxt() {
-        try {
-            esportatzailea.eskaeraBerriakEsportatuTxt();
-            return true;
-        } catch (IOException e) {
-            Log.e(ETIKETA, "Eskaera berriak TXT esportatzean akatsa.", e);
-            return false;
-        } catch (Exception e) {
-            Log.e(ETIKETA, "Eskaera berriak TXT esportatzean ustekabeko akatsa.", e);
-            return false;
-        }
-    }
 
     /**
      * Katalogoa esportatu (astero). Katalogo guztia katalogoa.xml fitxategian gorde Gmail bidez bidaltzeko.

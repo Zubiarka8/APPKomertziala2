@@ -511,7 +511,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
             // Errorea data edo ordua eremuan erakutsi
             if (dataOrduaErrorea.contains("Ordua")) {
                 // Ordua errorea
-                if (binding.tilBisitaOrdua != null) {
+            if (binding.tilBisitaOrdua != null) {
                     binding.tilBisitaOrdua.setError(dataOrduaErrorea);
                 }
                 if (tvOrduaErrorea != null) {

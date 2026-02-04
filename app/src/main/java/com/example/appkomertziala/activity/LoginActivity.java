@@ -168,13 +168,13 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         googleMap.getUiSettings().setScrollGesturesEnabled(true);
         
         // Camera eta marker konfiguratu
-        LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
+                LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
         
-        // Markatzailea (marker) Gipuzkoa egoitzan
-        googleMap.addMarker(new MarkerOptions()
-                .position(donostia)
-                .title(getString(R.string.contact_title)));
+                // Markatzailea (marker) Gipuzkoa egoitzan
+                googleMap.addMarker(new MarkerOptions()
+                        .position(donostia)
+                        .title(getString(R.string.contact_title)));
     }
 
     /** Assets-eko XML fitxategien zerrenda erakusten du; hautatutakoa (edo guztiak) kargatzen du. */

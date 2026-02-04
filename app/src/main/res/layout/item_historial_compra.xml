@@ -211,7 +211,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginBottom="@dimen/margin_small">
-            
+
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -220,7 +220,7 @@
                 android:textSize="@dimen/text_size_normal"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"/>
-            
+
             <TextView
                 android:id="@+id/itemHistorialPrezioTotala"
                 android:layout_width="wrap_content"

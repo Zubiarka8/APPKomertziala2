@@ -303,26 +303,6 @@
                                 app:cornerRadius="@dimen/button_corner_radius"/>
 
                             <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnKomertzialakKudeatu"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/button_height"
-                                android:layout_marginBottom="@dimen/margin_small"
-                                android:text="@string/btn_komertzialak_kudeatu"
-                                android:textSize="@dimen/text_size_small"
-                                app:cornerRadius="@dimen/button_corner_radius"/>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnEsportatuBazkideBerriak"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/button_height"
-                                android:layout_marginBottom="@dimen/margin_small"
-                                android:text="@string/btn_esportatu_bazkide_berriak"
-                                android:textSize="@dimen/text_size_small"
-                                app:cornerRadius="@dimen/button_corner_radius"/>
-
-                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnEsportatuEskaeraBerriak"
                                 style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="match_parent"
@@ -357,28 +337,8 @@
                                 style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="@dimen/button_height"
-                                android:layout_marginBottom="@dimen/margin_small"
-                                android:text="@string/btn_esportatu_katalogoa"
-                                android:textSize="@dimen/text_size_small"
-                                app:cornerRadius="@dimen/button_corner_radius"/>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnKatalogoaEguneratu"
-                                style="@style/Widget.Material3.Button.OutlinedButton"
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/button_height"
-                                android:layout_marginBottom="@dimen/margin_small"
-                                android:text="@string/btn_katalogoa_eguneratu"
-                                android:textSize="@dimen/text_size_small"
-                                app:cornerRadius="@dimen/button_corner_radius"/>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnInportatuGailutik"
-                                style="@style/Widget.Material3.Button.TonalButton"
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/button_height"
                                 android:layout_marginBottom="@dimen/margin_medium"
-                                android:text="@string/btn_inportatu_gailutik"
+                                android:text="@string/btn_esportatu_katalogoa"
                                 android:textSize="@dimen/text_size_small"
                                 app:cornerRadius="@dimen/button_corner_radius"/>
 
@@ -402,10 +362,29 @@
                                 android:textSize="@dimen/text_size_small"
                                 app:cornerRadius="@dimen/button_corner_radius"/>
 
-                            <!-- Sesioa itxi -->
+                            <!-- Beste aukera batzuk -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/esportatu_atala_beste_aukerak"
+                                android:textSize="@dimen/text_size_normal"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="@dimen/margin_small"/>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnInportatuGailutik"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_marginBottom="@dimen/margin_small"
+                                android:text="@string/btn_inportatu_gailutik"
+                                android:textSize="@dimen/text_size_small"
+                                app:cornerRadius="@dimen/button_corner_radius"/>
+
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSesioaItxi"
-                                style="@style/Widget.Material3.Button.TonalButton"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="@dimen/button_height"
                                 android:text="@string/sesioa_itxi"
