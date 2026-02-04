@@ -424,6 +424,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ArrayList<Object[]> erakusteko = new ArrayList<>();
                 for (Agenda a : bisitak) {
                     String dataStr = a.getBisitaData() != null ? a.getBisitaData() : "";
+                    String orduaStr = a.getOrdua() != null ? a.getOrdua().trim() : "";
                     String bazkideaIzena = "";
                     if (a.getBazkideaKodea() != null && !a.getBazkideaKodea().trim().isEmpty()) {
                         Bazkidea b = db.bazkideaDao().nanBilatu(a.getBazkideaKodea().trim());
@@ -438,7 +439,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena().trim() : "";
                     String egoeraStr = a.getEgoera() != null ? a.getEgoera().trim() : "";
                     String zenb = "BIS-" + a.getId();
-                    erakusteko.add(new Object[]{dataStr, zenb, bazkideaIzena.isEmpty() ? "—" : bazkideaIzena, deskribapena, egoeraStr, a.getId()});
+                    erakusteko.add(new Object[]{dataStr, orduaStr, zenb, bazkideaIzena.isEmpty() ? "—" : bazkideaIzena, deskribapena, egoeraStr, a.getId()});
                 }
 
                 runOnUiThread(() -> {
@@ -452,11 +453,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LayoutInflater inflater = getLayoutInflater();
                     for (Object[] row : erakusteko) {
                         String dataStr = (String) row[0];
-                        String zenb = (String) row[1];
-                        String bazkideaIzena = (String) row[2];
-                        String deskribapena = (String) row[3];
-                        String egoeraStr = (String) row[4];
-                        long agendaId = (Long) row[5];
+                        String orduaStr = (String) row[1];
+                        String zenb = (String) row[2];
+                        String bazkideaIzena = (String) row[3];
+                        String deskribapena = (String) row[4];
+                        String egoeraStr = (String) row[5];
+                        long agendaId = (Long) row[6];
                         View item = inflater.inflate(R.layout.item_zita, listContainer, false);
                         ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
                         ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
@@ -473,7 +475,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         MaterialButton btnIkusi = item.findViewById(R.id.btnZitaIkusi);
                         MaterialButton btnEditatu = item.findViewById(R.id.btnZitaEditatu);
                         MaterialButton btnEzabatu = item.findViewById(R.id.btnZitaEzabatu);
-                        btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, bazkideaIzena, deskribapena, egoeraStr));
+                        btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, orduaStr, zenb, bazkideaIzena, deskribapena, egoeraStr));
                         btnEditatu.setOnClickListener(v -> editatuZita(agendaId));
                         btnEzabatu.setOnClickListener(v -> ezabatuZita(agendaId));
                         listContainer.addView(item);
@@ -507,6 +509,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ArrayList<Object[]> erakusteko = new ArrayList<>();
             for (Agenda a : bisitak) {
                 String dataStr = a.getBisitaData() != null ? a.getBisitaData() : "";
+                String orduaStr = a.getOrdua() != null ? a.getOrdua().trim() : "";
                 String bazkideaIzena = "";
                 if (a.getBazkideaKodea() != null && !a.getBazkideaKodea().trim().isEmpty()) {
                     Bazkidea b = db.bazkideaDao().nanBilatu(a.getBazkideaKodea().trim());
@@ -521,7 +524,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena().trim() : "";
                 String egoeraStr = a.getEgoera() != null ? a.getEgoera().trim() : "";
                 String zenb = "BIS-" + a.getId();
-                erakusteko.add(new Object[]{dataStr, zenb, bazkideaIzena.isEmpty() ? "—" : bazkideaIzena, deskribapena, egoeraStr, a.getId()});
+                erakusteko.add(new Object[]{dataStr, orduaStr, zenb, bazkideaIzena.isEmpty() ? "—" : bazkideaIzena, deskribapena, egoeraStr, a.getId()});
             }
 
             runOnUiThread(() -> {
@@ -535,11 +538,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LayoutInflater inflater = getLayoutInflater();
                 for (Object[] row : erakusteko) {
                     String dataStr = (String) row[0];
-                    String zenb = (String) row[1];
-                    String bazkideaIzena = (String) row[2];
-                    String deskribapena = (String) row[3];
-                    String egoeraStr = (String) row[4];
-                    long agendaId = (Long) row[5];
+                    String orduaStr = (String) row[1];
+                    String zenb = (String) row[2];
+                    String bazkideaIzena = (String) row[3];
+                    String deskribapena = (String) row[4];
+                    String egoeraStr = (String) row[5];
+                    long agendaId = (Long) row[6];
                     View item = inflater.inflate(R.layout.item_zita, listContainer, false);
                     ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
                     ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
@@ -556,7 +560,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     MaterialButton btnIkusi = item.findViewById(R.id.btnZitaIkusi);
                     MaterialButton btnEditatu = item.findViewById(R.id.btnZitaEditatu);
                     MaterialButton btnEzabatu = item.findViewById(R.id.btnZitaEzabatu);
-                    btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, zenb, bazkideaIzena, deskribapena, egoeraStr));
+                    btnIkusi.setOnClickListener(v -> erakutsiZitaXehetasunak(dataStr, orduaStr, zenb, bazkideaIzena, deskribapena, egoeraStr));
                     btnEditatu.setOnClickListener(v -> editatuZita(agendaId));
                     btnEzabatu.setOnClickListener(v -> ezabatuZita(agendaId));
                     listContainer.addView(item);
@@ -567,10 +571,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): data, zenbakia, bazkidea, deskribapena, egoera. */
-    private void erakutsiZitaXehetasunak(String dataStr, String zenbakia, String bazkideaIzena, String deskribapena, String egoera) {
+    /** Zitaren xehetasunak dialogoan erakusten du (Ikusi botoia): data, ordua, zenbakia, bazkidea, deskribapena, egoera. */
+    private void erakutsiZitaXehetasunak(String dataStr, String orduaStr, String zenbakia, String bazkideaIzena, String deskribapena, String egoera) {
         StringBuilder msg = new StringBuilder();
         msg.append(getString(R.string.zita_data)).append(": ").append(dataStr).append("\n");
+        if (orduaStr != null && !orduaStr.isEmpty()) {
+            msg.append(getString(R.string.zita_ordua)).append(": ").append(orduaStr).append("\n");
+        }
         msg.append(getString(R.string.zita_zenbakia)).append(": ").append(zenbakia).append("\n");
         msg.append(getString(R.string.agenda_bisita_egoera)).append(": ").append(egoera != null && !egoera.isEmpty() ? egoera : "—").append("\n");
         if (deskribapena != null && !deskribapena.isEmpty()) {
