@@ -142,45 +142,83 @@ public class KomertzialaFormularioActivity extends AppCompatActivity {
      * MaterialDatePicker erakusten du — jaiotze data hautatzeko.
      * Material Design 3 date picker erabiltzen du.
      * Muga: gaurko data baino lehenagoko data bakarrik hautatu daiteke.
+     * 
+     * @see <a href="https://m3.material.io/components/date-pickers/overview">Material Design 3 Date Pickers</a>
      */
     private void erakutsiJaiotzeDataHautatzailea() {
+        // Gaurko data muga gisa erabili (etorkizuneko datak ezin dira hautatu)
         long gaurkoDataMillis = MaterialDatePicker.todayInUtcMilliseconds();
         long selection = gaurkoDataMillis;
         
         String dataStr = etJaiotzeData.getText() != null ? etJaiotzeData.getText().toString().trim() : "";
         if (!dataStr.isEmpty()) {
             try {
+                // yyyy/MM/dd formatutik parseatu
                 SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
                 sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                 Date d = sdf.parse(dataStr);
                 if (d != null) {
                     long dataMillis = d.getTime();
+                    // Gaurko data baino lehenagokoa bada bakarrik erabili
                     if (dataMillis < gaurkoDataMillis) {
                         selection = dataMillis;
                     }
                 }
             } catch (Exception ignored) {
+                // Parse errorea bada, gaurko data erabili (hautatzaileak erabiltzaileak aukeratuko du)
                 selection = gaurkoDataMillis;
             }
         }
+        // Datuak hutsik badago, gaurko data erabili (hautatzaileak erabiltzaileak aukeratuko du)
         
         MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker()
                 .setTitleText(getString(R.string.data_hautatu))
                 .setSelection(selection)
                 .setInputMode(com.google.android.material.datepicker.MaterialDatePicker.INPUT_MODE_CALENDAR);
         
+        // Muga: gaurko data baino lehenagoko data bakarrik hautatu daiteke
+        // MaterialDatePicker-ek ez du muga zuzenean onartzen, baina validazioa gero egingo dugu
         MaterialDatePicker<Long> picker = builder.build();
         picker.addOnPositiveButtonClickListener(selectionMillis -> {
-            if (selectionMillis >= gaurkoDataMillis) {
-                Toast.makeText(this, "Errorea: Sartutako data ezin da gaurko eguna edo gaurko eguna baino handiagoa izan.", Toast.LENGTH_LONG).show();
-                return;
+            try {
+                if (selectionMillis == null) {
+                    Log.w(ETIKETA, "Date picker selectionMillis null da");
+                    return;
+                }
+                
+                // Egiaztatu hautatutako data gaurko data baino lehenagokoa dela
+                if (selectionMillis >= gaurkoDataMillis) {
+                    Toast.makeText(this, "Errorea: Sartutako data ezin da gaurko eguna edo gaurko eguna baino handiagoa izan.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                // yyyy/MM/dd formatuan jarri
+                SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Date data = new Date(selectionMillis);
+                String dataFormateatua = sdf.format(data);
+                if (etJaiotzeData != null) {
+                    etJaiotzeData.setText(dataFormateatua);
+                }
+            } catch (Exception e) {
+                Log.e(ETIKETA, "Errorea data formateatzean", e);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Errorea data formateatzean: " + (e.getMessage() != null ? e.getMessage() : "ezezaguna"), Toast.LENGTH_LONG).show();
+                });
             }
-            
-            SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-            etJaiotzeData.setText(sdf.format(new Date(selectionMillis)));
         });
-        picker.show(getSupportFragmentManager(), "JAIOTZE_DATA_PICKER");
+        
+        try {
+            if (getSupportFragmentManager() != null && !isFinishing() && !isDestroyed()) {
+                picker.show(getSupportFragmentManager(), "JAIOTZE_DATA_PICKER");
+            } else {
+                Log.w(ETIKETA, "Ezin da date picker erakutsi: fragment manager null edo activity amaitzen ari da");
+                Toast.makeText(this, "Errorea: Ezin da egutegia erakutsi", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e(ETIKETA, "Errorea date picker erakustean", e);
+            Toast.makeText(this, "Errorea egutegia erakustean: " + (e.getMessage() != null ? e.getMessage() : "ezezaguna"), Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
