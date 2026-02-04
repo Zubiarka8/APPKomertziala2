@@ -14,6 +14,7 @@ import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.Komertziala;
+import com.example.appkomertziala.segurtasuna.DataBalidatzailea;
 import com.example.appkomertziala.xml.XMLKudeatzailea;
 import com.google.android.material.datepicker.MaterialDatePicker;
 
@@ -43,8 +44,8 @@ public class BisitaFormularioActivity extends AppCompatActivity {
     /** Editatzeko: bisitaren gako nagusia (Intent extra). < 0 bada bisita berria da. */
     public static final String EXTRA_BISITA_ID = "bisita_id";
 
-    /** Data formatua (YYYY-MM-DD). Integritasun-mugak: datu-baseak string gisa gordetzen du. */
-    private static final String DATA_FORMAT = "yyyy-MM-dd";
+    /** Data formatua (yyyy/MM/dd). Integritasun-mugak: datu-baseak string gisa gordetzen du. */
+    private static final String DATA_FORMAT = "yyyy/MM/dd";
     
     /** Deskribapenaren gehienezko luzera (karaktere). Balidazio-muga. */
     private static final int DESKRIBAPENA_GEHIENEZKO_LUZERA = 500;
@@ -96,7 +97,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         
         // Berria bada, gaurko data lehenetsi
         if (editatuId < 0) {
-            String gaur = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault()).format(new Date());
+            String gaur = DataBalidatzailea.gaurkoData();
             binding.etBisitaData.setText(gaur);
         }
     }
@@ -174,7 +175,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                 .setSelection(hautatua);
         MaterialDatePicker<Long> hautatzailea = eraikitzailea.build();
         
-        // Data hautatzean, eremuan jarri (YYYY-MM-DD formatuan)
+        // Data hautatzean, eremuan jarri (yyyy/MM/dd formatuan)
         hautatzailea.addOnPositiveButtonClickListener(milis -> {
             SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -336,7 +337,10 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                 }
                 
                 // Datuak atera eta formularioa bete
-                final String data = a.getBisitaData() != null ? a.getBisitaData() : "";
+                String dataRaw = a.getBisitaData() != null ? a.getBisitaData() : "";
+                // Data formatua bihurtu yyyy/MM/dd formatura baldin beharrezkoa bada
+                final String data = DataBalidatzailea.bihurtuFormatua(dataRaw) != null ? 
+                    DataBalidatzailea.bihurtuFormatua(dataRaw) : dataRaw;
                 final String ordua = a.getOrdua() != null ? a.getOrdua() : "";
                 final String deskribapena = a.getDeskribapena() != null ? a.getDeskribapena() : "";
                 final String bazkideaKodea = a.getBazkideaKodea() != null ? a.getBazkideaKodea() : "";
@@ -452,8 +456,10 @@ public class BisitaFormularioActivity extends AppCompatActivity {
             return false;
         }
 
-        if (!dataFormatuaZuzena(data)) {
-            binding.tilBisitaData.setError(getString(R.string.bisita_errorea_data_formatua));
+        // Data formatua balidatu (yyyy/MM/dd)
+        String erroreMezua = DataBalidatzailea.balidatuDataMezua(data);
+        if (erroreMezua != null) {
+            binding.tilBisitaData.setError(erroreMezua);
             binding.etBisitaData.requestFocus();
             return false;
         }
@@ -467,18 +473,6 @@ public class BisitaFormularioActivity extends AppCompatActivity {
         return true;
     }
 
-    /** Data formatua baliozkotu (YYYY-MM-DD). Formatuen egiaztapena. */
-    private boolean dataFormatuaZuzena(String data) {
-        if (data == null || data.isEmpty()) return false;
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
-            sdf.setLenient(false);
-            sdf.parse(data);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 
     /**
      * Formularioa gorde: txertatu (berria) edo eguneratu (editatzeko).

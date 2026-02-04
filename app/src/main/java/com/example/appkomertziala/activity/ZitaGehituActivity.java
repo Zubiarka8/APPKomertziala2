@@ -11,6 +11,7 @@ import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.segurtasuna.DataBalidatzailea;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
@@ -35,7 +36,8 @@ public class ZitaGehituActivity extends AppCompatActivity {
     /** Editatzeko: eskaera zenbakia. Present bada, zita kargatu eta eguneratu. */
     public static final String EXTRA_ESKAERA_ZENBAKIA = "eskaera_zenbakia";
 
-    private static final String DATA_FORMAT = "yyyy-MM-dd";
+    private static final String DATA_FORMAT = "yyyy/MM/dd";
+    private static final String DATA_FORMAT_INTERNA = "yyyy-MM-dd"; // DatePicker-ek erabiltzen du
     private static final String ORDUA_FORMAT = "HH:mm";
 
     private TextInputEditText etZenbakia;
@@ -70,8 +72,8 @@ public class ZitaGehituActivity extends AppCompatActivity {
         MaterialButton btnUtzi = findViewById(R.id.btnCitaUtzi);
         MaterialButton btnGorde = findViewById(R.id.btnCitaGorde);
 
-        // Data gaurkoa lehenetsi (uuuu-hh-ee)
-        String gaur = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault()).format(new Date());
+        // Data gaurkoa lehenetsi (yyyy/MM/dd)
+        String gaur = DataBalidatzailea.gaurkoData();
         etData.setText(gaur);
 
         etData.setOnClickListener(v -> erakutsiDataHautatzailea());
@@ -96,6 +98,9 @@ public class ZitaGehituActivity extends AppCompatActivity {
                 ordua = data.substring(i + 1).trim();
                 data = data.substring(0, i).trim();
             }
+            // Data formatua bihurtu yyyy/MM/dd formatura baldin beharrezkoa bada
+            data = DataBalidatzailea.bihurtuFormatua(data);
+            if (data == null) data = "";
             final String dataStr = data;
             final String orduaStr = ordua;
             final String zenb = goi.getZenbakia() != null ? goi.getZenbakia() : "";
@@ -117,6 +122,7 @@ public class ZitaGehituActivity extends AppCompatActivity {
         String dataStr = etData.getText() != null ? etData.getText().toString().trim() : "";
         if (!dataStr.isEmpty()) {
             try {
+                // yyyy/MM/dd formatutik parseatu
                 SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
                 sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                 Date d = sdf.parse(dataStr);
@@ -128,6 +134,7 @@ public class ZitaGehituActivity extends AppCompatActivity {
                 .setSelection(selection);
         MaterialDatePicker<Long> picker = builder.build();
         picker.addOnPositiveButtonClickListener(selectionMillis -> {
+            // yyyy/MM/dd formatuan jarri
             SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             etData.setText(sdf.format(new Date(selectionMillis)));
@@ -167,19 +174,32 @@ public class ZitaGehituActivity extends AppCompatActivity {
         String zenbakia = etZenbakia.getText() != null ? etZenbakia.getText().toString().trim() : "";
         String data = etData.getText() != null ? etData.getText().toString().trim() : "";
         String ordua = etCitaOrdua.getText() != null ? etCitaOrdua.getText().toString().trim() : "";
-        if (!ordua.isEmpty()) {
-            data = data + " " + ordua;
-        }
-        String ordezkaritza = etOrdezkaritza.getText() != null ? etOrdezkaritza.getText().toString().trim() : "";
-
+        
         if (zenbakia.isEmpty()) {
             Toast.makeText(this, R.string.zita_errorea_zenbakia, Toast.LENGTH_SHORT).show();
             return;
         }
+        
+        // Data balidatu (ordua baino lehen)
         if (data.isEmpty()) {
             Toast.makeText(this, R.string.zita_errorea_data, Toast.LENGTH_SHORT).show();
             return;
         }
+        
+        // Data formatua balidatu (yyyy/MM/dd)
+        String erroreMezua = DataBalidatzailea.balidatuDataMezua(data);
+        if (erroreMezua != null) {
+            Toast.makeText(this, erroreMezua, Toast.LENGTH_LONG).show();
+            etData.requestFocus();
+            return;
+        }
+        
+        // Ordua gehitu data-ri baldin badago
+        if (!ordua.isEmpty()) {
+            data = data + " " + ordua;
+        }
+        
+        String ordezkaritza = etOrdezkaritza.getText() != null ? etOrdezkaritza.getText().toString().trim() : "";
         String bazkideaKodea = "";
 
         final boolean editMode = editatuZenbakia != null && !editatuZenbakia.isEmpty();

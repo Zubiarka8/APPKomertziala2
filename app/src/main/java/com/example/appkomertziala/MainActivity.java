@@ -47,6 +47,7 @@ import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
+import com.example.appkomertziala.segurtasuna.DataBalidatzailea;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
 import com.example.appkomertziala.xml.XmlBilatzailea;
 import com.example.appkomertziala.xml.XMLKudeatzailea;
@@ -1199,7 +1200,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         }
                                         
                                         String zenbakia = "ESK-" + System.currentTimeMillis();
-                                        String data = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(new java.util.Date());
+                                        // Data formatua: yyyy/MM/dd HH:mm
+                                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault());
+                                        String data = sdf.format(new java.util.Date());
                                         EskaeraGoiburua goi = new EskaeraGoiburua();
                                         goi.setZenbakia(zenbakia);
                                         goi.setData(data);

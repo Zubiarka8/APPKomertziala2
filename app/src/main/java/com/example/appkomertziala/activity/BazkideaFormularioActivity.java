@@ -11,11 +11,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.appkomertziala.R;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Bazkidea;
+import com.example.appkomertziala.segurtasuna.DataBalidatzailea;
+import com.example.appkomertziala.segurtasuna.NanBalidatzailea;
+import com.example.appkomertziala.segurtasuna.PostaBalidatzailea;
+import com.example.appkomertziala.segurtasuna.TelefonoBalidatzailea;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
+
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -35,10 +46,18 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
 
     /** Editatzeko: bazkidearen id (Intent extra). Zero baino txikiagoa bada berria da. */
     public static final String EXTRA_BAZKIDEA_ID = "bazkidea_id";
+    
+    /** Data formatua (yyyy/MM/dd). */
+    private static final String DATA_FORMAT = "yyyy/MM/dd";
 
-    /** TextInputLayout-ak erroreak erakusteko (NAN eta izena). */
+    /** TextInputLayout-ak erroreak erakusteko (eremu guztiak). */
     private TextInputLayout tilNan;
     private TextInputLayout tilIzena;
+    private TextInputLayout tilAbizena;
+    private TextInputLayout tilTelefonoa;
+    private TextInputLayout tilPosta;
+    private TextInputLayout tilJaiotzeData;
+    private TextInputLayout tilArgazkia;
     
     /** TextInputEditText-ak formulario eremuak (NAN, izena, abizena, telefonoa, posta, jaiotze data, argazkia). */
     private TextInputEditText etNan, etIzena, etAbizena, etTelefonoa, etPosta, etJaiotzeData, etArgazkia;
@@ -68,6 +87,11 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         // UI elementuak kargatu - findViewById guztiak hemen
         tilNan = findViewById(R.id.tilBazkideaNan);
         tilIzena = findViewById(R.id.tilBazkideaIzena);
+        tilAbizena = findViewById(R.id.tilBazkideaAbizena);
+        tilTelefonoa = findViewById(R.id.tilBazkideaTelefonoa);
+        tilPosta = findViewById(R.id.tilBazkideaPosta);
+        tilJaiotzeData = findViewById(R.id.tilBazkideaJaiotzeData);
+        tilArgazkia = findViewById(R.id.tilBazkideaArgazkia);
         etNan = findViewById(R.id.etBazkideaNan);
         etIzena = findViewById(R.id.etBazkideaIzena);
         etAbizena = findViewById(R.id.etBazkideaAbizena);
@@ -81,7 +105,19 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         // Botoien listener-ak konfiguratu
         btnGorde.setOnClickListener(v -> erakutsiGordeBaieztapena());
         btnEzabatu.setOnClickListener(v -> erakutsiEzabatuBaieztapena());
+        
+        // Jaiotze data eremua: MaterialDatePicker erakutsi klik egitean
+        etJaiotzeData.setOnClickListener(v -> erakutsiJaiotzeDataHautatzailea());
+        etJaiotzeData.setFocusable(false); // Teklatua ez erakutsi, date picker bakarrik
+        etJaiotzeData.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                erakutsiJaiotzeDataHautatzailea();
+            }
+        });
 
+        // Bazkidea berria bada, gaurko data lehenetsi (ez, jaiotze data hutsik utzi)
+        // Jaiotze data erabiltzaileak hautatu behar du
+        
         // Editatzen badago, bazkidea kargatu eta formularioa bete
         if (editatuId >= 0) {
             // Ezabatu botoia erakutsi - editatzen badago bakarrik
@@ -113,6 +149,62 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
     }
 
     /**
+     * MaterialDatePicker erakusten du — jaiotze data hautatzeko.
+     * Material Design 3 date picker erabiltzen du.
+     * Muga: gaurko data baino lehenagoko data bakarrik hautatu daiteke.
+     * 
+     * @see <a href="https://m3.material.io/components/date-pickers/overview">Material Design 3 Date Pickers</a>
+     */
+    private void erakutsiJaiotzeDataHautatzailea() {
+        // Gaurko data muga gisa erabili (etorkizuneko datak ezin dira hautatu)
+        long gaurkoDataMillis = MaterialDatePicker.todayInUtcMilliseconds();
+        long selection = gaurkoDataMillis;
+        
+        String dataStr = etJaiotzeData.getText() != null ? etJaiotzeData.getText().toString().trim() : "";
+        if (!dataStr.isEmpty()) {
+            try {
+                // yyyy/MM/dd formatutik parseatu
+                SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                Date d = sdf.parse(dataStr);
+                if (d != null) {
+                    long dataMillis = d.getTime();
+                    // Gaurko data baino lehenagokoa bada bakarrik erabili
+                    if (dataMillis < gaurkoDataMillis) {
+                        selection = dataMillis;
+                    }
+                }
+            } catch (Exception ignored) {
+                // Parse errorea bada, gaurko data erabili (hautatzaileak erabiltzaileak aukeratuko du)
+                selection = gaurkoDataMillis;
+            }
+        }
+        // Datuak hutsik badago, gaurko data erabili (hautatzaileak erabiltzaileak aukeratuko du)
+        
+        MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker()
+                .setTitleText(getString(R.string.data_hautatu))
+                .setSelection(selection)
+                .setInputMode(com.google.android.material.datepicker.MaterialDatePicker.INPUT_MODE_CALENDAR);
+        
+        // Muga: gaurko data baino lehenagoko data bakarrik hautatu daiteke
+        // MaterialDatePicker-ek ez du muga zuzenean onartzen, baina validazioa gero egingo dugu
+        MaterialDatePicker<Long> picker = builder.build();
+        picker.addOnPositiveButtonClickListener(selectionMillis -> {
+            // Egiaztatu hautatutako data gaurko data baino lehenagokoa dela
+            if (selectionMillis >= gaurkoDataMillis) {
+                Toast.makeText(this, "Errorea: Sartutako data ezin da gaurko eguna edo gaurko eguna baino handiagoa izan.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            
+            // yyyy/MM/dd formatuan jarri
+            SimpleDateFormat sdf = new SimpleDateFormat(DATA_FORMAT, Locale.getDefault());
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            etJaiotzeData.setText(sdf.format(new Date(selectionMillis)));
+        });
+        picker.show(getSupportFragmentManager(), "JAIOTZE_DATA_PICKER");
+    }
+
+    /**
      * Gorde botoia sakatzean: datuak balidatu, erroreak erakutsi;
      * balidoak badira baieztapen dialogo erakutsi, gero gorde.
      * 
@@ -123,20 +215,133 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         // Erroreak garbitu - balidazio berri baino lehen
         if (tilNan != null) tilNan.setError(null);
         if (tilIzena != null) tilIzena.setError(null);
+        if (tilAbizena != null) tilAbizena.setError(null);
+        if (tilTelefonoa != null) tilTelefonoa.setError(null);
+        if (tilPosta != null) tilPosta.setError(null);
+        if (tilJaiotzeData != null) tilJaiotzeData.setError(null);
+        if (tilArgazkia != null) tilArgazkia.setError(null);
         
         // Datuak atera eta trim egin
         String nan = etNan.getText() != null ? etNan.getText().toString().trim() : "";
         String izena = etIzena.getText() != null ? etIzena.getText().toString().trim() : "";
+        String abizena = etAbizena.getText() != null ? etAbizena.getText().toString().trim() : "";
+        String telefonoa = etTelefonoa.getText() != null ? etTelefonoa.getText().toString().trim() : "";
+        String posta = etPosta.getText() != null ? etPosta.getText().toString().trim() : "";
+        String jaiotzeData = etJaiotzeData.getText() != null ? etJaiotzeData.getText().toString().trim() : "";
+        String argazkia = etArgazkia.getText() != null ? etArgazkia.getText().toString().trim() : "";
         
-        // Balidazioa: NAN eta izena beharrezkoak dira
+        // Balidazioa: Bazkidea berria bada, eremu GUZTIAK beharrezkoak dira
         boolean baliogabea = false;
-        if (nan.isEmpty()) {
-            if (tilNan != null) tilNan.setError(getString(R.string.bazkidea_errorea_nan_beharrezkoa));
-            baliogabea = true;
-        }
-        if (izena.isEmpty()) {
-            if (tilIzena != null) tilIzena.setError(getString(R.string.bazkidea_errorea_izena_beharrezkoa));
-            baliogabea = true;
+        
+        if (editatuId < 0) {
+            // Bazkidea berria: eremu guztiak beharrezkoak
+            if (nan.isEmpty()) {
+                if (tilNan != null) tilNan.setError(getString(R.string.bazkidea_errorea_nan_beharrezkoa));
+                baliogabea = true;
+            } else {
+                // NAN formatua balidatu
+                String nanErroreMezua = NanBalidatzailea.balidatuNanMezua(nan);
+                if (nanErroreMezua != null) {
+                    if (tilNan != null) tilNan.setError(nanErroreMezua);
+                    baliogabea = true;
+                }
+            }
+            
+            if (izena.isEmpty()) {
+                if (tilIzena != null) tilIzena.setError(getString(R.string.bazkidea_errorea_izena_beharrezkoa));
+                baliogabea = true;
+            }
+            
+            if (abizena.isEmpty()) {
+                if (tilAbizena != null) tilAbizena.setError("Abizena beharrezkoa da");
+                baliogabea = true;
+            }
+            
+            if (telefonoa.isEmpty()) {
+                if (tilTelefonoa != null) tilTelefonoa.setError("Telefonoa beharrezkoa da");
+                baliogabea = true;
+            } else {
+                // Telefono formatua balidatu
+                String telefonoErroreMezua = TelefonoBalidatzailea.balidatuTelefonoaMezua(telefonoa);
+                if (telefonoErroreMezua != null) {
+                    if (tilTelefonoa != null) tilTelefonoa.setError(telefonoErroreMezua);
+                    baliogabea = true;
+                }
+            }
+            
+            if (posta.isEmpty()) {
+                if (tilPosta != null) tilPosta.setError("Posta elektronikoa beharrezkoa da");
+                baliogabea = true;
+            } else {
+                // Posta formatua balidatu
+                String postaErroreMezua = PostaBalidatzailea.balidatuPostaMezua(posta);
+                if (postaErroreMezua != null) {
+                    if (tilPosta != null) tilPosta.setError(postaErroreMezua);
+                    baliogabea = true;
+                }
+            }
+            
+            if (jaiotzeData.isEmpty()) {
+                if (tilJaiotzeData != null) tilJaiotzeData.setError("Jaiotze data beharrezkoa da");
+                baliogabea = true;
+            } else {
+                // Jaiotze data formatua balidatu (formatu eta gaurko data baino lehenagokoa)
+                String dataErroreMezua = DataBalidatzailea.balidatuJaiotzeDataMezua(jaiotzeData);
+                if (dataErroreMezua != null) {
+                    if (tilJaiotzeData != null) tilJaiotzeData.setError(dataErroreMezua);
+                    baliogabea = true;
+                }
+            }
+            
+            if (argazkia.isEmpty()) {
+                if (tilArgazkia != null) tilArgazkia.setError("Argazkia beharrezkoa da");
+                baliogabea = true;
+            }
+        } else {
+            // Editatzen: NAN eta izena beharrezkoak (beste eremuak aukerakoak)
+            if (nan.isEmpty()) {
+                if (tilNan != null) tilNan.setError(getString(R.string.bazkidea_errorea_nan_beharrezkoa));
+                baliogabea = true;
+            } else {
+                // NAN formatua balidatu
+                String nanErroreMezua = NanBalidatzailea.balidatuNanMezua(nan);
+                if (nanErroreMezua != null) {
+                    if (tilNan != null) tilNan.setError(nanErroreMezua);
+                    baliogabea = true;
+                }
+            }
+            
+            if (izena.isEmpty()) {
+                if (tilIzena != null) tilIzena.setError(getString(R.string.bazkidea_errorea_izena_beharrezkoa));
+                baliogabea = true;
+            }
+            
+            // Telefono balidatu (aukerakoa baina formatua zuzena izan behar du)
+            if (!telefonoa.isEmpty()) {
+                String telefonoErroreMezua = TelefonoBalidatzailea.balidatuTelefonoaMezua(telefonoa);
+                if (telefonoErroreMezua != null) {
+                    if (tilTelefonoa != null) tilTelefonoa.setError(telefonoErroreMezua);
+                    baliogabea = true;
+                }
+            }
+            
+            // Posta balidatu (aukerakoa baina formatua zuzena izan behar du)
+            if (!posta.isEmpty()) {
+                String postaErroreMezua = PostaBalidatzailea.balidatuPostaMezua(posta);
+                if (postaErroreMezua != null) {
+                    if (tilPosta != null) tilPosta.setError(postaErroreMezua);
+                    baliogabea = true;
+                }
+            }
+            
+            // Jaiotze data balidatu (aukerakoa baina formatua zuzena izan behar du eta gaurko data baino lehenagokoa)
+            if (!jaiotzeData.isEmpty()) {
+                String dataErroreMezua = DataBalidatzailea.balidatuJaiotzeDataMezua(jaiotzeData);
+                if (dataErroreMezua != null) {
+                    if (tilJaiotzeData != null) tilJaiotzeData.setError(dataErroreMezua);
+                    baliogabea = true;
+                }
+            }
         }
         
         // Balidazioak huts egin badu, errorea erakutsi eta itzuli
@@ -253,6 +458,115 @@ public class BazkideaFormularioActivity extends AppCompatActivity {
         String posta = etPosta.getText() != null ? etPosta.getText().toString().trim() : "";
         String jaiotzeData = etJaiotzeData.getText() != null ? etJaiotzeData.getText().toString().trim() : "";
         String argazkia = etArgazkia.getText() != null ? etArgazkia.getText().toString().trim() : "";
+
+        // Egiaztatu eremu guztiak beteta dauden (bazkidea berria bada)
+        if (editatuId < 0) {
+            // Variable finalak sortu lambda erabiltzeko
+            final String nanFinal = nan;
+            final String izenaFinal = izena;
+            final String abizenaFinal = abizena;
+            final String telefonoaFinal = telefonoa;
+            final String postaFinal = posta;
+            final String jaiotzeDataFinal = jaiotzeData;
+            final String argazkiaFinal = argazkia;
+            
+            boolean eremuGuztiakBeteta = !nanFinal.isEmpty() && !izenaFinal.isEmpty() && !abizenaFinal.isEmpty() && 
+                                        !telefonoaFinal.isEmpty() && !postaFinal.isEmpty() && 
+                                        !jaiotzeDataFinal.isEmpty() && !argazkiaFinal.isEmpty();
+            
+            if (!eremuGuztiakBeteta) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Errorea: Eremu guztiak bete behar dira bazkidea berria sortzeko.", Toast.LENGTH_LONG).show();
+                    // Erroreak erakutsi eremu hutsietan
+                    if (nanFinal.isEmpty() && tilNan != null) tilNan.setError("NAN beharrezkoa da");
+                    if (izenaFinal.isEmpty() && tilIzena != null) tilIzena.setError("Izena beharrezkoa da");
+                    if (abizenaFinal.isEmpty() && tilAbizena != null) tilAbizena.setError("Abizena beharrezkoa da");
+                    if (telefonoaFinal.isEmpty() && tilTelefonoa != null) tilTelefonoa.setError("Telefonoa beharrezkoa da");
+                    if (postaFinal.isEmpty() && tilPosta != null) tilPosta.setError("Posta beharrezkoa da");
+                    if (jaiotzeDataFinal.isEmpty() && tilJaiotzeData != null) tilJaiotzeData.setError("Jaiotze data beharrezkoa da");
+                    if (argazkiaFinal.isEmpty() && tilArgazkia != null) tilArgazkia.setError("Argazkia beharrezkoa da");
+                });
+                return;
+            }
+            
+            // Datuak beteta daude - formatuak balidatu
+            // NAN formatua balidatu
+            String nanErroreMezua = NanBalidatzailea.balidatuNanMezua(nanFinal);
+            if (nanErroreMezua != null) {
+                final String nanErroreMezuaFinal = nanErroreMezua;
+                runOnUiThread(() -> {
+                    if (tilNan != null) tilNan.setError(nanErroreMezuaFinal);
+                });
+                return;
+            }
+            
+            // Posta formatua balidatu
+            String postaErroreMezua = PostaBalidatzailea.balidatuPostaMezua(postaFinal);
+            if (postaErroreMezua != null) {
+                final String postaErroreMezuaFinal = postaErroreMezua;
+                runOnUiThread(() -> {
+                    if (tilPosta != null) tilPosta.setError(postaErroreMezuaFinal);
+                });
+                return;
+            }
+            
+            // Telefono formatua balidatu
+            String telefonoErroreMezua = TelefonoBalidatzailea.balidatuTelefonoaMezua(telefonoaFinal);
+            if (telefonoErroreMezua != null) {
+                final String telefonoErroreMezuaFinal = telefonoErroreMezua;
+                runOnUiThread(() -> {
+                    if (tilTelefonoa != null) tilTelefonoa.setError(telefonoErroreMezuaFinal);
+                });
+                return;
+            }
+            
+            // Jaiotze data formatua balidatu (formatu eta gaurko data baino lehenagokoa)
+            String dataErroreMezua = DataBalidatzailea.balidatuJaiotzeDataMezua(jaiotzeDataFinal);
+            if (dataErroreMezua != null) {
+                final String dataErroreMezuaFinal = dataErroreMezua;
+                runOnUiThread(() -> {
+                    if (tilJaiotzeData != null) tilJaiotzeData.setError(dataErroreMezuaFinal);
+                });
+                return;
+            }
+            
+            // Datuak normalizatu
+            // NAN normalizatu (gidoiak kendu, letra maiuskulaz)
+            String nanNormalizatua = NanBalidatzailea.normalizatuNan(nanFinal);
+            if (nanNormalizatua != null) {
+                nan = nanNormalizatua;
+            }
+            
+            // Telefono normalizatu (separadoreak kendu, prefijoak kendu)
+            String telefonoNormalizatua = TelefonoBalidatzailea.normalizatuTelefonoa(telefonoaFinal);
+            if (telefonoNormalizatua != null) {
+                telefonoa = telefonoNormalizatua;
+            }
+        } else {
+            // Editatzen: NAN normalizatu (gidoiak kendu, letra maiuskulaz)
+            // Variable final sortu lambda erabiltzeko
+            final String nanOriginala = nan;
+            String nanNormalizatua = NanBalidatzailea.normalizatuNan(nan);
+            if (nanNormalizatua == null && !nan.isEmpty()) {
+                // NAN formatua okerra baina hutsik ez dago - errorea erakutsi
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Errorea: NAN formatua okerra da", Toast.LENGTH_LONG).show();
+                    if (tilNan != null) tilNan.setError(NanBalidatzailea.balidatuNanMezua(nanOriginala));
+                });
+                return;
+            }
+            if (nanNormalizatua != null) {
+                nan = nanNormalizatua;
+            }
+            
+            // Telefono normalizatu (separadoreak kendu, prefijoak kendu) - aukerakoa baina formatua zuzena izan behar du
+            if (!telefonoa.isEmpty()) {
+                String telefonoNormalizatua = TelefonoBalidatzailea.normalizatuTelefonoa(telefonoa);
+                if (telefonoNormalizatua != null) {
+                    telefonoa = telefonoNormalizatua;
+                }
+            }
+        }
 
         // Bazkidea objektua sortu eta datuak ezarri
         Bazkidea b = new Bazkidea();

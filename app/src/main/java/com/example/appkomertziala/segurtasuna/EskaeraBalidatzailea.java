@@ -95,8 +95,42 @@ public class EskaeraBalidatzailea {
             throw new IllegalArgumentException(mezu);
         }
 
+        // Data balidatu (formatu eta baliozkotasuna)
+        String data = eskaera.getData();
+        if (data != null && !data.trim().isEmpty()) {
+            // Ordua kendu baldin badago (data bakarrik balidatu)
+            String dataBakarra = data;
+            if (data.contains(" ")) {
+                int i = data.indexOf(" ");
+                dataBakarra = data.substring(0, i).trim();
+            }
+            // Data formatua bihurtu yyyy/MM/dd formatura baldin beharrezkoa bada
+            dataBakarra = DataBalidatzailea.bihurtuFormatua(dataBakarra);
+            if (dataBakarra != null) {
+                // Data balidatu
+                try {
+                    DataBalidatzailea.balidatuDataEtaJaurti(dataBakarra);
+                    // Data formatu zuzenarekin eguneratu
+                    if (data.contains(" ")) {
+                        String ordua = data.substring(data.indexOf(" ") + 1).trim();
+                        eskaera.setData(dataBakarra + " " + ordua);
+                    } else {
+                        eskaera.setData(dataBakarra);
+                    }
+                } catch (IllegalArgumentException e) {
+                    String mezu = "Errorea: Eskaeraren data baliozkoa ez da: " + e.getMessage();
+                    Log.e(ETIKETA, "balidatuEskaera: " + mezu);
+                    throw new IllegalArgumentException(mezu);
+                }
+            } else {
+                String mezu = "Errorea: Eskaeraren data formatua ezin da parseatu.";
+                Log.e(ETIKETA, "balidatuEskaera: " + mezu + " - Data: " + data);
+                throw new IllegalArgumentException(mezu);
+            }
+        }
+
         Log.d(ETIKETA, "balidatuEskaera: Eskaera baliozkoa da - zenbakia: " + eskaera.getZenbakia() + 
-              ", komertzial: " + komertzialKodea + ", bazkidea: " + bazkideaKodea);
+              ", komertzial: " + komertzialKodea + ", bazkidea: " + bazkideaKodea + ", data: " + eskaera.getData());
     }
 
     /**
