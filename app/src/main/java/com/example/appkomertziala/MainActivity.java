@@ -77,7 +77,7 @@ import java.util.Locale;
 /**
  * Techno Basque - Main screen with BottomNavigationView and Gipuzkoa contact section.
  * Hasiera tab: SupportMapFragment centered on Donostia + contact card (Map, Call, Email intents).
- * Other tabs: Agenda, Bazkideak, Inventarioa placeholders.
+ * Other tabs: Agenda, Bazkideak, Inbentarioa placeholders.
  */
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private View contentHasiera;
     private View contentAgenda;
     private View contentBazkideak;
-    private View contentInventarioa;
+    private View contentInbentarioa;
     private BottomNavigationView bottomNav;
     private ExtendedFloatingActionButton fabAgendaZitaGehitu;
     private ExtendedFloatingActionButton fabBazkideaGehitu;
@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                             // Katalogoa.xml inportatuta bada, inbentarioa eguneratu
                             else if (fitxategiIzena.equals("katalogoa.xml")) {
-                                if (contentInventarioa != null && contentInventarioa.getVisibility() == View.VISIBLE) {
+                                if (contentInbentarioa != null && contentInbentarioa.getVisibility() == View.VISIBLE) {
                                     erakutsiInbentarioaEdukia();
                                 }
                             }
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         contentHasiera = findViewById(R.id.content_hasiera);
         contentAgenda = findViewById(R.id.content_agenda);
         contentBazkideak = findViewById(R.id.content_bazkideak);
-        contentInventarioa = findViewById(R.id.content_inventarioa);
+        contentInbentarioa = findViewById(R.id.content_inbentarioa);
         bottomNav = findViewById(R.id.bottom_nav);
         fabAgendaZitaGehitu = findViewById(R.id.fabAgendaZitaGehitu);
         fabBazkideaGehitu = findViewById(R.id.fabBazkideaGehitu);
@@ -877,7 +877,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         contentHasiera.setVisibility(navId == R.id.hasiera ? View.VISIBLE : View.GONE);
         contentAgenda.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
         contentBazkideak.setVisibility(navId == R.id.bazkideak ? View.VISIBLE : View.GONE);
-        contentInventarioa.setVisibility(navId == R.id.inventarioa ? View.VISIBLE : View.GONE);
+        contentInbentarioa.setVisibility(navId == R.id.inbentarioa ? View.VISIBLE : View.GONE);
         if (fabAgendaZitaGehitu != null) {
             fabAgendaZitaGehitu.setVisibility(navId == R.id.agenda ? View.VISIBLE : View.GONE);
         }
@@ -891,15 +891,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (navId == R.id.bazkideak) {
             erakutsiBazkideakEdukia();
         }
-        if (navId == R.id.inventarioa) {
+        if (navId == R.id.inbentarioa) {
             erakutsiInbentarioaEdukia();
         }
     }
 
     /** Inbentarioa (Katalogoa) atala: bilatzailea, saskia, RecyclerView. */
     private void erakutsiInbentarioaEdukia() {
-        TextView tvXmlFalta = findViewById(R.id.tvInventarioaXmlFalta);
-        TextView tvHutsa = findViewById(R.id.tvInventarioaHutsa);
+        TextView tvXmlFalta = findViewById(R.id.tvInbentarioaXmlFalta);
+        TextView tvHutsa = findViewById(R.id.tvInbentarioaHutsa);
         RecyclerView recyclerKatalogoa = findViewById(R.id.recyclerKatalogoa);
         TextInputEditText etBilatu = findViewById(R.id.etInbentarioaBilatu);
         ImageButton btnSaskia = findViewById(R.id.btnInbentarioaSaskia);
@@ -1096,6 +1096,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             return;
                         }
                         
+                        // Erabiltzaile mota detektatu: komertzialek ezin dute erosi
+                        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                            new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                        String komertzialKodea = sessionManager.getKomertzialKodea();
+                        
+                        Intent intent = getIntent();
+                        String bazkideaNan = intent != null ? intent.getStringExtra(EXTRA_BAZKIDEA_NAN) : null;
+                        long bazkideaId = intent != null ? intent.getLongExtra(EXTRA_BAZKIDEA_ID, -1) : -1;
+                        
+                        boolean daKomertzial = komertzialKodea != null && !komertzialKodea.trim().isEmpty();
+                        boolean daBazkidea = (bazkideaNan != null && !bazkideaNan.trim().isEmpty()) || bazkideaId > 0;
+                        
+                        // Komertzialek ezin dute erosi
+                        if (daKomertzial && !daBazkidea) {
+                            Toast.makeText(this, getString(R.string.komertzial_ezin_erosi), Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        
+                        // Bazkideak bakarrik erosi dezakete
+                        if (!daBazkidea) {
+                            Toast.makeText(this, getString(R.string.komertzial_ezin_erosi), Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        
                         // Komertzial edo bazkidea hautatu
                         erakutsiKomertzialBazkideaHautaketaDialogoa(dialog, adapter);
                     });
@@ -1141,82 +1165,136 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     /**
-     * Komertzial edo bazkidea hautatzeko dialogo erakutsi erosketa egin aurretik.
-     * Erabiltzaile motaren arabera (komertzial edo bazkidea) zerrenda erakusten du.
+     * Komertziala eta bazkidea hautatzeko dialogo erakutsi erosketa egin aurretik.
+     * Lehenengo komertziala hautatu behar da, gero bazkidea.
      * 
      * @param dialog Saskia dialogoa (itxi behar denean)
      * @param adapter Saskia adapter (eguneratu behar denean)
      */
     private void erakutsiKomertzialBazkideaHautaketaDialogoa(AlertDialog dialog, SaskiaAdapter adapter) {
         // Erabiltzaile mota detektatu
-        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
-            new com.example.appkomertziala.segurtasuna.SessionManager(this);
-        String komertzialKodea = sessionManager.getKomertzialKodea();
-        
         Intent intent = getIntent();
         String bazkideaNan = intent != null ? intent.getStringExtra(EXTRA_BAZKIDEA_NAN) : null;
         long bazkideaId = intent != null ? intent.getLongExtra(EXTRA_BAZKIDEA_ID, -1) : -1;
         
-        boolean daKomertzial = komertzialKodea != null && !komertzialKodea.trim().isEmpty();
         boolean daBazkidea = (bazkideaNan != null && !bazkideaNan.trim().isEmpty()) || bazkideaId > 0;
         
-        if (!daKomertzial && !daBazkidea) {
-            Toast.makeText(this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
+        // Bazkidea bada eta datuak baditu, komertziala bakarrik hautatu behar da
+        if (daBazkidea && bazkideaId > 0) {
+            new Thread(() -> {
+                AppDatabase db = AppDatabase.getInstance(this);
+                Bazkidea bazkidea = db.bazkideaDao().idzBilatu(bazkideaId);
+                if (bazkidea != null) {
+                    // Komertziala hautatu
+                    erakutsiKomertzialHautaketaDialogoa(bazkidea, dialog, adapter);
+                } else {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                    });
+                }
+            }).start();
             return;
         }
         
-        // Zerrenda kargatu eta dialogo erakutsi
+        // Lehenengo komertziala hautatu
+        erakutsiKomertzialHautaketaDialogoa(null, dialog, adapter);
+    }
+    
+    /**
+     * Komertziala hautatzeko dialogo erakutsi.
+     * Komertziala hautatu ondoren, bazkidea hautatzeko dialogo erakusten du.
+     * 
+     * @param bazkideaAurretikHautatuta Bazkidea aurretik hautatuta badago (null bestela)
+     * @param dialog Saskia dialogoa (itxi behar denean)
+     * @param adapter Saskia adapter (eguneratu behar denean)
+     */
+    private void erakutsiKomertzialHautaketaDialogoa(Bazkidea bazkideaAurretikHautatuta, AlertDialog dialog, SaskiaAdapter adapter) {
         new Thread(() -> {
             AppDatabase db = AppDatabase.getInstance(this);
             List<String> aukerak = new ArrayList<>();
-            List<Object> objektuak = new ArrayList<>(); // Komertziala edo Bazkidea gordetzeko
+            List<Komertziala> komertzialak = new ArrayList<>();
             
-            if (daKomertzial) {
-                // Komertzial guztiak kargatu
-                List<Komertziala> komertzialak = db.komertzialaDao().guztiak();
-                if (komertzialak != null) {
-                    for (Komertziala k : komertzialak) {
-                        String izena = (k.getIzena() != null ? k.getIzena().trim() : "") + 
-                                       (k.getAbizena() != null && !k.getAbizena().trim().isEmpty() ? " " + k.getAbizena().trim() : "");
-                        String kodea = k.getKodea() != null ? k.getKodea() : "";
-                        aukerak.add(izena.isEmpty() ? kodea : izena + (kodea.isEmpty() ? "" : " (" + kodea + ")"));
-                        objektuak.add(k);
-                    }
-                }
-            } else if (daBazkidea) {
-                // Bazkide guztiak kargatu
-                List<Bazkidea> bazkideak = db.bazkideaDao().guztiak();
-                if (bazkideak != null) {
-                    for (Bazkidea b : bazkideak) {
-                        String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
-                                       (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
-                        String nan = b.getNan() != null ? b.getNan() : "";
-                        aukerak.add(izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")"));
-                        objektuak.add(b);
-                    }
+            // Komertzial guztiak kargatu
+            List<Komertziala> komertzialakDB = db.komertzialaDao().guztiak();
+            if (komertzialakDB != null) {
+                for (Komertziala k : komertzialakDB) {
+                    String izena = (k.getIzena() != null ? k.getIzena().trim() : "");
+                    String kodea = k.getKodea() != null ? k.getKodea() : "";
+                    aukerak.add(izena.isEmpty() ? kodea : izena + (kodea.isEmpty() ? "" : " (" + kodea + ")"));
+                    komertzialak.add(k);
                 }
             }
             
             final List<String> finalAukerak = aukerak;
-            final List<Object> finalObjektuak = objektuak;
+            final List<Komertziala> finalKomertzialak = komertzialak;
+            final Bazkidea finalBazkidea = bazkideaAurretikHautatuta;
             
             runOnUiThread(() -> {
                 if (finalAukerak.isEmpty()) {
-                    Toast.makeText(this, daKomertzial ? R.string.komertzial_zerrenda_hutsa : R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.komertzial_zerrenda_hutsa, Toast.LENGTH_LONG).show();
                     return;
                 }
                 
                 new AlertDialog.Builder(this)
-                        .setTitle(daKomertzial ? R.string.komertzial_hautatu_titulua : R.string.bazkide_hautatu_titulua)
+                        .setTitle(R.string.komertzial_hautatu_titulua)
                         .setItems(finalAukerak.toArray(new String[0]), (d, which) -> {
-                            Object hautatua = finalObjektuak.get(which);
-                            if (hautatua instanceof Komertziala) {
-                                Komertziala kom = (Komertziala) hautatua;
-                                gordeErosketa(kom, null, dialog, adapter);
-                            } else if (hautatua instanceof Bazkidea) {
-                                Bazkidea baz = (Bazkidea) hautatua;
-                                gordeErosketa(null, baz, dialog, adapter);
+                            Komertziala kom = finalKomertzialak.get(which);
+                            // Komertziala hautatu ondoren, bazkidea hautatu
+                            if (finalBazkidea != null) {
+                                // Bazkidea aurretik hautatuta dago, zuzenean erosi
+                                gordeErosketa(kom, finalBazkidea, dialog, adapter);
+                            } else {
+                                // Bazkidea hautatu behar da
+                                erakutsiBazkideaHautaketaDialogoa(kom, dialog, adapter);
                             }
+                        })
+                        .setNegativeButton(R.string.xml_utzi, null)
+                        .show();
+            });
+        }).start();
+    }
+    
+    /**
+     * Bazkidea hautatzeko dialogo erakutsi komertziala hautatu ondoren.
+     * 
+     * @param komertziala Hautatutako komertziala
+     * @param dialog Saskia dialogoa (itxi behar denean)
+     * @param adapter Saskia adapter (eguneratu behar denean)
+     */
+    private void erakutsiBazkideaHautaketaDialogoa(Komertziala komertziala, AlertDialog dialog, SaskiaAdapter adapter) {
+        new Thread(() -> {
+            AppDatabase db = AppDatabase.getInstance(this);
+            List<String> aukerak = new ArrayList<>();
+            List<Bazkidea> bazkideak = new ArrayList<>();
+            
+            // Bazkide guztiak kargatu
+            List<Bazkidea> bazkideakDB = db.bazkideaDao().guztiak();
+            if (bazkideakDB != null) {
+                for (Bazkidea b : bazkideakDB) {
+                    String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                   (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                    String nan = b.getNan() != null ? b.getNan() : "";
+                    aukerak.add(izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")"));
+                    bazkideak.add(b);
+                }
+            }
+            
+            final List<String> finalAukerak = aukerak;
+            final List<Bazkidea> finalBazkideak = bazkideak;
+            final Komertziala finalKomertziala = komertziala;
+            
+            runOnUiThread(() -> {
+                if (finalAukerak.isEmpty()) {
+                    Toast.makeText(this, R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.bazkide_hautatu_titulua)
+                        .setItems(finalAukerak.toArray(new String[0]), (d, which) -> {
+                            Bazkidea baz = finalBazkideak.get(which);
+                            // Komertziala eta bazkidea hautatuta, erosketa egin
+                            gordeErosketa(finalKomertziala, baz, dialog, adapter);
                         })
                         .setNegativeButton(R.string.xml_utzi, null)
                         .show();
@@ -1226,10 +1304,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /**
      * Erosketa gorde: EskaeraGoiburua, EskaeraXehetasuna eta HistorialCompra sortu.
-     * Datuak balidatu ondoren eta komertzial/bazkidea hautatu ondoren deitu behar da.
+     * Datuak balidatu ondoren eta komertzial ETA bazkidea hautatu ondoren deitu behar da.
+     * Biak beharrezkoak dira erosketa egiteko.
      * 
-     * @param komertziala Hautatutako komertziala (null bazkidea bada)
-     * @param bazkidea Hautatutako bazkidea (null komertziala bada)
+     * @param komertziala Hautatutako komertziala (beharrezkoa)
+     * @param bazkidea Hautatutako bazkidea (beharrezkoa)
      * @param dialog Saskia dialogoa (itxi behar denean)
      * @param adapter Saskia adapter (eguneratu behar denean)
      */
@@ -1244,6 +1323,68 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         if (saskia == null || saskia.isEmpty()) {
                             runOnUiThread(() -> {
                                 Toast.makeText(this, getString(R.string.saskia_hutsa), Toast.LENGTH_LONG).show();
+                            });
+                            return;
+                        }
+                        
+                        // VALIDACIÓN: Komertziala eta Bazkidea datu-basean existitzen direla egiaztatu
+                        Komertziala komertzialaValidatua = null;
+                        Bazkidea bazkideaValidatua = null;
+                        
+                        if (komertziala != null) {
+                            // Komertziala datu-basean bilatu eta balidatu
+                            if (komertziala.getKodea() != null && !komertziala.getKodea().trim().isEmpty()) {
+                                komertzialaValidatua = db.komertzialaDao().kodeaBilatu(komertziala.getKodea().trim());
+                                if (komertzialaValidatua == null) {
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(this, "Errorea: Komertzial kodea ez da existitzen datu-basean: " + komertziala.getKodea(), Toast.LENGTH_LONG).show();
+                                    });
+                                    return;
+                                }
+                            } else {
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, "Errorea: Komertzial kodea falta da.", Toast.LENGTH_LONG).show();
+                                });
+                                return;
+                            }
+                        }
+                        
+                        if (bazkidea != null) {
+                            // Bazkidea datu-basean bilatu eta balidatu (NAN edo kodea erabiliz)
+                            if (bazkidea.getNan() != null && !bazkidea.getNan().trim().isEmpty()) {
+                                bazkideaValidatua = db.bazkideaDao().nanBilatu(bazkidea.getNan().trim());
+                                if (bazkideaValidatua == null) {
+                                    // Bazkidea ez bada aurkitu NAN-arekin, kodea erabiliz saiatu
+                                    if (bazkidea.getKodea() != null && !bazkidea.getKodea().trim().isEmpty()) {
+                                        bazkideaValidatua = db.bazkideaDao().kodeaBilatu(bazkidea.getKodea().trim());
+                                    }
+                                    if (bazkideaValidatua == null) {
+                                        runOnUiThread(() -> {
+                                            Toast.makeText(this, "Errorea: Bazkidea kodea ez da existitzen datu-basean: " + bazkidea.getNan(), Toast.LENGTH_LONG).show();
+                                        });
+                                        return;
+                                    }
+                                }
+                            } else if (bazkidea.getKodea() != null && !bazkidea.getKodea().trim().isEmpty()) {
+                                bazkideaValidatua = db.bazkideaDao().kodeaBilatu(bazkidea.getKodea().trim());
+                                if (bazkideaValidatua == null) {
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(this, "Errorea: Bazkidea kodea ez da existitzen datu-basean: " + bazkidea.getKodea(), Toast.LENGTH_LONG).show();
+                                    });
+                                    return;
+                                }
+                            } else {
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, "Errorea: Bazkidea kodea falta da.", Toast.LENGTH_LONG).show();
+                                });
+                                return;
+                            }
+                        }
+                        
+                        // Komertziala ETA Bazkidea beharrezkoak dira
+                        if (komertzialaValidatua == null || bazkideaValidatua == null) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, "Errorea: Komertziala ETA Bazkidea beharrezkoak dira erosketa egiteko.", Toast.LENGTH_LONG).show();
                             });
                             return;
                         }
@@ -1265,7 +1406,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
                         
-                        // EskaeraGoiburua sortu
+                        // EskaeraGoiburua sortu (balidatutako datuekin)
                         String zenbakia = "ESK-" + System.currentTimeMillis();
                         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault());
                         String data = sdf.format(new java.util.Date());
@@ -1274,15 +1415,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         goi.setZenbakia(zenbakia);
                         goi.setData(data);
                         
-                        if (komertziala != null) {
-                            goi.setKomertzialKodea(komertziala.getKodea());
-                            goi.setKomertzialId(komertziala.getId());
-                        }
-                        if (bazkidea != null) {
-                            goi.setBazkideaKodea(bazkidea.getNan());
-                            goi.setBazkideaId(bazkidea.getId());
-                        }
-                        goi.setOrdezkaritza("");
+                        // Komertziala datuak (balidatutako komertziala erabili)
+                        goi.setKomertzialKodea(komertzialaValidatua.getKodea());
+                        goi.setKomertzialId(komertzialaValidatua.getId());
+                        
+                        // Bazkidea datuak (balidatutako bazkidea erabili)
+                        String bazkideaKodeaFinal = bazkideaValidatua.getNan() != null && !bazkideaValidatua.getNan().trim().isEmpty() 
+                                ? bazkideaValidatua.getNan().trim() 
+                                : (bazkideaValidatua.getKodea() != null ? bazkideaValidatua.getKodea().trim() : "");
+                        goi.setBazkideaKodea(bazkideaKodeaFinal);
+                        goi.setBazkideaId(bazkideaValidatua.getId());
+                        
+                        goi.setOrdezkaritza("Donostia");
+                        
+                        // LOG: Bazkidea eta Komertziala datuak erakusteko
+                        Log.d("MainActivity", "gordeErosketa: Komertziala datuak - ID: " + komertzialaValidatua.getId() + ", Kodea: " + komertzialaValidatua.getKodea());
+                        Log.d("MainActivity", "gordeErosketa: Bazkidea datuak - ID: " + bazkideaValidatua.getId() + ", Kodea: " + bazkideaKodeaFinal);
+                        Log.d("MainActivity", "gordeErosketa: EskaeraGoiburua datuak - KomertzialId: " + goi.getKomertzialId() + ", KomertzialKodea: " + goi.getKomertzialKodea() + ", BazkideaId: " + goi.getBazkideaId() + ", BazkideaKodea: " + goi.getBazkideaKodea());
                         
                         db.eskaeraGoiburuaDao().txertatu(goi);
                         
@@ -1304,17 +1453,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             HistorialCompra historial = new HistorialCompra();
                             historial.setBidalketaId(bidalketaId);
                             historial.setKodea(kodea);
-                            // Helmuga: bazkidea bada bere izena, komertziala bada bere izena
-                            String helmuga = "";
-                            if (bazkidea != null) {
-                                String izena = (bazkidea.getIzena() != null ? bazkidea.getIzena().trim() : "") + 
-                                               (bazkidea.getAbizena() != null && !bazkidea.getAbizena().trim().isEmpty() ? " " + bazkidea.getAbizena().trim() : "");
-                                helmuga = izena.isEmpty() ? (bazkidea.getNan() != null ? bazkidea.getNan() : "") : izena;
-                            } else if (komertziala != null) {
-                                String izena = (komertziala.getIzena() != null ? komertziala.getIzena().trim() : "") + 
-                                               (komertziala.getAbizena() != null && !komertziala.getAbizena().trim().isEmpty() ? " " + komertziala.getAbizena().trim() : "");
-                                helmuga = izena.isEmpty() ? (komertziala.getKodea() != null ? komertziala.getKodea() : "") : izena;
-                            }
+                            // Helmuga: bazkidea validatua erabili
+                            String izena = (bazkideaValidatua.getIzena() != null ? bazkideaValidatua.getIzena().trim() : "") + 
+                                           (bazkideaValidatua.getAbizena() != null && !bazkideaValidatua.getAbizena().trim().isEmpty() ? " " + bazkideaValidatua.getAbizena().trim() : "");
+                            String helmuga = izena.isEmpty() ? (bazkideaValidatua.getNan() != null ? bazkideaValidatua.getNan() : "") : izena;
                             historial.setHelmuga(helmuga);
                             historial.setData(dataBidalketa);
                             historial.setAmaituta(true);
@@ -1324,6 +1466,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             historial.setBidalita(e.kopurua); // Erosketa egindakoan, bidalita = eskatuta
                             historial.setPrezioUnit(e.salmentaPrezioa);
                             historial.setArgazkia(e.irudiaIzena);
+                            // Foreign Keys: eskaera, komertzial eta bazkidea
+                            historial.setEskaeraZenbakia(zenbakia);
+                            historial.setKomertzialId(komertzialaValidatua.getId());
+                            historial.setBazkideaId(bazkideaValidatua.getId());
                             db.historialCompraDao().txertatu(historial);
                             
                             // Stock eguneratu
@@ -1556,7 +1702,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .show();
     }
 
-    /** Agenda atalean: beharrezko XMLak falta badira, Bazkideak/Inventarioa moduan mezu bat erakutsi. */
+    /** Agenda atalean: beharrezko XMLak falta badira, Bazkideak/Inbentarioa moduan mezu bat erakutsi. */
     private void erakutsiAgendaXmlFalta() {
         TextView tvAgendaXmlFalta = findViewById(R.id.tvAgendaXmlFalta);
         if (tvAgendaXmlFalta == null) return;

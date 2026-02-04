@@ -102,7 +102,7 @@
     <string name="nav_hasiera">Hasiera</string>
     <string name="nav_agenda">Agenda</string>
     <string name="nav_bazkideak">Bazkideak</string>
-    <string name="nav_inventarioa">Inventarioa</string>
+    <string name="nav_inbentarioa">Inbentarioa</string>
 
     <!-- Harremana (Gipuzkoa egoitza) -->
     <string name="contact_title">Gipuzkoa egoitza</string>
@@ -210,7 +210,7 @@
     <!-- Nabigazio-fitxen edukia (leku-markak) -->
     <string name="tab_agenda_placeholder">Agenda</string>
     <string name="tab_bazkideak_placeholder">Bazkideak</string>
-    <string name="tab_inventarioa_placeholder">Inventarioa</string>
+    <string name="tab_inbentarioa_placeholder">Inbentarioa</string>
 
     <!-- Inbentarioa (Katalogoa) modulua -->
     <string name="inbentarioa_izenburua">Inbentarioa (Katalogoa)</string>
@@ -233,6 +233,7 @@
     <string name="saskia_errorea_kopurua">Errorea: Kopurua 0 baino handiagoa izan behar da.</string>
     <string name="saskia_errorea_artikulu_ez_da_aurkitu">Errorea: Artikulua ez da aurkitu: %1$s</string>
     <string name="saskia_errorea_stock_ez_nahikoa">Errorea: Stock nahikoa ez dago artikulua %1$s. Stock eskuragarria: %2$d</string>
+    <string name="komertzial_ezin_erosi">Komertzialek ezin dute erosketa egin. Bazkideek bakarrik egin dezakete erosketa.</string>
     <string name="saskia_erosketa_eginda">Erosketa eginda. Stock eguneratuta.</string>
     <string name="saskia_erosi_baieztatu">Seguru zaude erosi nahi duzula?</string>
     <string name="cd_saskia">Erosketa saskia ikusi</string>

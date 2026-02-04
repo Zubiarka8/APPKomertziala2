@@ -44,7 +44,7 @@ import com.example.appkomertziala.db.kontsultak.LoginaDao;
         Agenda.class,
         HistorialCompra.class
     },
-    version = 18,  // KRITIKOA: 17 -> 18: komertzialKodea zutabea ezabatu bazkideak taulatik
+    version = 19,  // 18 -> 19: historial_compras taulan Foreign Keys gehitu (eskaeraZenbakia, komertzialId, bazkideaId) eta eskaera_xehetasunak taulan Foreign Key
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -432,6 +432,133 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 18 -> 19: historial_compras taulan Foreign Keys gehitu (eskaeraZenbakia, komertzialId, bazkideaId)
+     * eta eskaera_xehetasunak taulan Foreign Key gehitu (eskaeraZenbakia → EskaeraGoiburua.zenbakia).
+     * SQLite-k ezin du Foreign Key bat gehitu ALTER TABLE-rekin, beraz "table swap" estrategia erabiltzen da.
+     */
+    private static final Migration MIGRAZIO_18_19 = new Migration(18, 19) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            // 1. historial_compras taula berriztatu Foreign Keys-ekin
+            if (taulaExistitzenDa(db, "historial_compras")) {
+                // Table swap estrategia
+                db.execSQL("CREATE TABLE historial_compras_new (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "bidalketaId INTEGER NOT NULL, " +
+                        "kodea TEXT, " +
+                        "helmuga TEXT, " +
+                        "data TEXT, " +
+                        "amaituta INTEGER NOT NULL, " +
+                        "productoId TEXT, " +
+                        "productoIzena TEXT, " +
+                        "eskatuta INTEGER NOT NULL, " +
+                        "bidalita INTEGER NOT NULL, " +
+                        "prezioUnit REAL NOT NULL, " +
+                        "argazkia TEXT, " +
+                        "eskaeraZenbakia TEXT, " +
+                        "komertzialId INTEGER, " +
+                        "bazkideaId INTEGER, " +
+                        "FOREIGN KEY(eskaeraZenbakia) REFERENCES eskaera_goiburuak(zenbakia) ON DELETE CASCADE, " +
+                        "FOREIGN KEY(komertzialId) REFERENCES komertzialak(id) ON DELETE SET NULL, " +
+                        "FOREIGN KEY(bazkideaId) REFERENCES bazkideak(id) ON DELETE SET NULL)");
+
+                // Datuak kopiatu - zutabe berriak NULL izango dira erregistro zaharretan
+                boolean eskaeraZenbakiaExistitzenDa = zutabeaExistitzenDa(db, "historial_compras", "eskaeraZenbakia");
+                boolean komertzialIdExistitzenDa = zutabeaExistitzenDa(db, "historial_compras", "komertzialId");
+                boolean bazkideaIdExistitzenDa = zutabeaExistitzenDa(db, "historial_compras", "bazkideaId");
+
+                String eskaeraZenbakiaSelect = eskaeraZenbakiaExistitzenDa ? "eskaeraZenbakia" : "NULL";
+                String komertzialIdSelect = komertzialIdExistitzenDa ? "komertzialId" : "NULL";
+                String bazkideaIdSelect = bazkideaIdExistitzenDa ? "bazkideaId" : "NULL";
+
+                db.execSQL("INSERT INTO historial_compras_new " +
+                        "(id, bidalketaId, kodea, helmuga, data, amaituta, productoId, productoIzena, eskatuta, bidalita, prezioUnit, argazkia, eskaeraZenbakia, komertzialId, bazkideaId) " +
+                        "SELECT id, bidalketaId, kodea, helmuga, data, amaituta, productoId, productoIzena, eskatuta, bidalita, prezioUnit, argazkia, " +
+                        eskaeraZenbakiaSelect + ", " + komertzialIdSelect + ", " + bazkideaIdSelect + " " +
+                        "FROM historial_compras");
+
+                // Indize zaharrak ezabatu
+                db.execSQL("DROP INDEX IF EXISTS index_historial_compras_kodea");
+                db.execSQL("DROP INDEX IF EXISTS index_historial_compras_data");
+                db.execSQL("DROP INDEX IF EXISTS index_historial_compras_productoId");
+                db.execSQL("DROP INDEX IF EXISTS index_historial_compras_bidalketaId");
+                db.execSQL("DROP TABLE historial_compras");
+
+                // Taula berria izendatu
+                db.execSQL("ALTER TABLE historial_compras_new RENAME TO historial_compras");
+
+                // Indize berriak sortu
+                db.execSQL("CREATE INDEX index_historial_compras_kodea ON historial_compras(kodea)");
+                db.execSQL("CREATE INDEX index_historial_compras_data ON historial_compras(data)");
+                db.execSQL("CREATE INDEX index_historial_compras_productoId ON historial_compras(productoId)");
+                db.execSQL("CREATE INDEX index_historial_compras_bidalketaId ON historial_compras(bidalketaId)");
+                db.execSQL("CREATE INDEX index_historial_compras_eskaeraZenbakia ON historial_compras(eskaeraZenbakia)");
+                db.execSQL("CREATE INDEX index_historial_compras_komertzialId ON historial_compras(komertzialId)");
+                db.execSQL("CREATE INDEX index_historial_compras_bazkideaId ON historial_compras(bazkideaId)");
+            } else {
+                // Taula ez badago, sortu egitura ZUZEKIN Foreign Keys-ekin
+                db.execSQL("CREATE TABLE historial_compras (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "bidalketaId INTEGER NOT NULL, " +
+                        "kodea TEXT, " +
+                        "helmuga TEXT, " +
+                        "data TEXT, " +
+                        "amaituta INTEGER NOT NULL, " +
+                        "productoId TEXT, " +
+                        "productoIzena TEXT, " +
+                        "eskatuta INTEGER NOT NULL, " +
+                        "bidalita INTEGER NOT NULL, " +
+                        "prezioUnit REAL NOT NULL, " +
+                        "argazkia TEXT, " +
+                        "eskaeraZenbakia TEXT, " +
+                        "komertzialId INTEGER, " +
+                        "bazkideaId INTEGER, " +
+                        "FOREIGN KEY(eskaeraZenbakia) REFERENCES eskaera_goiburuak(zenbakia) ON DELETE CASCADE, " +
+                        "FOREIGN KEY(komertzialId) REFERENCES komertzialak(id) ON DELETE SET NULL, " +
+                        "FOREIGN KEY(bazkideaId) REFERENCES bazkideak(id) ON DELETE SET NULL)");
+                db.execSQL("CREATE INDEX index_historial_compras_kodea ON historial_compras(kodea)");
+                db.execSQL("CREATE INDEX index_historial_compras_data ON historial_compras(data)");
+                db.execSQL("CREATE INDEX index_historial_compras_productoId ON historial_compras(productoId)");
+                db.execSQL("CREATE INDEX index_historial_compras_bidalketaId ON historial_compras(bidalketaId)");
+                db.execSQL("CREATE INDEX index_historial_compras_eskaeraZenbakia ON historial_compras(eskaeraZenbakia)");
+                db.execSQL("CREATE INDEX index_historial_compras_komertzialId ON historial_compras(komertzialId)");
+                db.execSQL("CREATE INDEX index_historial_compras_bazkideaId ON historial_compras(bazkideaId)");
+            }
+
+            // 2. eskaera_xehetasunak taula berriztatu Foreign Key-ekin
+            if (taulaExistitzenDa(db, "eskaera_xehetasunak")) {
+                // Table swap estrategia
+                db.execSQL("CREATE TABLE eskaera_xehetasunak_new (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "eskaeraZenbakia TEXT, " +
+                        "artikuluKodea TEXT, " +
+                        "kantitatea INTEGER NOT NULL, " +
+                        "prezioa REAL NOT NULL, " +
+                        "FOREIGN KEY(eskaeraZenbakia) REFERENCES eskaera_goiburuak(zenbakia) ON DELETE CASCADE)");
+
+                // Datuak kopiatu
+                db.execSQL("INSERT INTO eskaera_xehetasunak_new " +
+                        "(id, eskaeraZenbakia, artikuluKodea, kantitatea, prezioa) " +
+                        "SELECT id, eskaeraZenbakia, artikuluKodea, kantitatea, prezioa " +
+                        "FROM eskaera_xehetasunak");
+
+                // Indize zaharrak ezabatu
+                db.execSQL("DROP INDEX IF EXISTS index_eskaera_xehetasunak_eskaeraZenbakia");
+                db.execSQL("DROP INDEX IF EXISTS index_eskaera_xehetasunak_artikuluKodea");
+                db.execSQL("DROP TABLE eskaera_xehetasunak");
+
+                // Taula berria izendatu
+                db.execSQL("ALTER TABLE eskaera_xehetasunak_new RENAME TO eskaera_xehetasunak");
+
+                // Indize berriak sortu
+                db.execSQL("CREATE INDEX index_eskaera_xehetasunak_eskaeraZenbakia ON eskaera_xehetasunak(eskaeraZenbakia)");
+                db.execSQL("CREATE INDEX index_eskaera_xehetasunak_artikuluKodea ON eskaera_xehetasunak(artikuluKodea)");
+            }
+            // Taula ez badago, Room-ek sortuko du entitatearen arabera
+        }
+    };
+
     /** komertzialak taulan komertzialak.xml-eko eremu guztiak (abizena, posta, jaiotzeData, argazkia) badauden egiaztatu eta falta badira gehitu. */
     private static void komertzialakZutabeakGehitu(SupportSQLiteDatabase db) {
         if (!taulaExistitzenDa(db, "komertzialak")) return;
@@ -481,7 +608,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12, MIGRAZIO_12_13, MIGRAZIO_13_14, MIGRAZIO_14_15, MIGRAZIO_15_16, MIGRAZIO_16_17, MIGRAZIO_17_18)
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12, MIGRAZIO_12_13, MIGRAZIO_13_14, MIGRAZIO_14_15, MIGRAZIO_15_16, MIGRAZIO_16_17, MIGRAZIO_17_18, MIGRAZIO_18_19)
                             .fallbackToDestructiveMigration()  // KRITIKOA: Garapen fasean bagaude, eskema aldaketa handia: datu-base zaharra ezabatu eta berria sortu
                             .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
                             .build();

@@ -8,7 +8,7 @@
     android:background="@color/background_light_gray">
 
     <TextView
-        android:id="@+id/tvInventarioaIzenburua"
+        android:id="@+id/tvInbentarioaIzenburua"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/inbentarioa_izenburua"
@@ -18,7 +18,7 @@
         android:layout_marginBottom="@dimen/margin_medium"/>
 
     <TextView
-        android:id="@+id/tvInventarioaXmlFalta"
+        android:id="@+id/tvInbentarioaXmlFalta"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_medium"
@@ -27,7 +27,7 @@
         android:visibility="gone"/>
 
     <TextView
-        android:id="@+id/tvInventarioaHutsa"
+        android:id="@+id/tvInbentarioaHutsa"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_large"
@@ -121,3 +121,4 @@
         tools:listitem="@layout/item_katalogoa"
         tools:itemCount="5"/>
 </LinearLayout>
+

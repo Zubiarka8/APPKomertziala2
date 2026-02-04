@@ -42,9 +42,9 @@ public class NanBalidatzailea {
             Log.w(ETIKETA, "balidatuNan: Formatu okerra - " + nanTrimm + " (esperotakoa: 12345678A edo 12345678-A)");
             return false;
         }
-        
+
         Log.d(ETIKETA, "balidatuNan: NAN formatua zuzena da - " + nanTrimm);
-        return true;
+            return true;
     }
 
     /**

@@ -589,8 +589,8 @@
 
             <!-- Inbentarioa (Katalogoa): izenburua, XML falta, zerrenda hutsa, RecyclerView -->
             <include
-                layout="@layout/content_inventarioa"
-                android:id="@+id/content_inventarioa"
+                layout="@layout/content_inbentarioa"
+                android:id="@+id/content_inbentarioa"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="gone"/>

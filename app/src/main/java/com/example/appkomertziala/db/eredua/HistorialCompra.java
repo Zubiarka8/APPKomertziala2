@@ -1,6 +1,7 @@
 package com.example.appkomertziala.db.eredua;
 
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
@@ -22,7 +23,11 @@ import androidx.room.PrimaryKey;
  *   - Argazkia: Produktuaren irudiaren izena (String/Testua)
  * 
  * Taula: historial_compras
- * Indizeak: kodea, data, productoId
+ * Foreign Keys:
+ * - eskaeraZenbakia → EskaeraGoiburua.zenbakia (ON DELETE CASCADE)
+ * - komertzialId → Komertziala.id (ON DELETE SET NULL)
+ * - bazkideaId → Bazkidea.id (ON DELETE SET NULL)
+ * Indizeak: kodea, data, productoId, bidalketaId, eskaeraZenbakia, komertzialId, bazkideaId
  */
 @Entity(
     tableName = "historial_compras",
@@ -30,7 +35,30 @@ import androidx.room.PrimaryKey;
         @Index("kodea"),
         @Index("data"),
         @Index("productoId"),
-        @Index("bidalketaId")
+        @Index("bidalketaId"),
+        @Index("eskaeraZenbakia"),
+        @Index("komertzialId"),
+        @Index("bazkideaId")
+    },
+    foreignKeys = {
+        @ForeignKey(
+            entity = EskaeraGoiburua.class,
+            parentColumns = "zenbakia",
+            childColumns = "eskaeraZenbakia",
+            onDelete = ForeignKey.CASCADE
+        ),
+        @ForeignKey(
+            entity = Komertziala.class,
+            parentColumns = "id",
+            childColumns = "komertzialId",
+            onDelete = ForeignKey.SET_NULL
+        ),
+        @ForeignKey(
+            entity = Bazkidea.class,
+            parentColumns = "id",
+            childColumns = "bazkideaId",
+            onDelete = ForeignKey.SET_NULL
+        )
     }
 )
 public class HistorialCompra {
@@ -70,6 +98,15 @@ public class HistorialCompra {
 
     /** Produktuaren irudiaren izena (XML-eko Argazkia, String/Testua). */
     private String argazkia;
+
+    /** Lotutako eskaera goiburuaren zenbakia (Foreign Key → EskaeraGoiburua.zenbakia). */
+    private String eskaeraZenbakia;
+
+    /** Lotutako komertzialaren ID (Foreign Key → Komertziala.id). */
+    private Long komertzialId;
+
+    /** Lotutako bazkidearen ID (Foreign Key → Bazkidea.id). */
+    private Long bazkideaId;
 
     public HistorialCompra() {}
 
@@ -167,6 +204,30 @@ public class HistorialCompra {
 
     public void setArgazkia(String argazkia) {
         this.argazkia = argazkia;
+    }
+
+    public String getEskaeraZenbakia() {
+        return eskaeraZenbakia;
+    }
+
+    public void setEskaeraZenbakia(String eskaeraZenbakia) {
+        this.eskaeraZenbakia = eskaeraZenbakia;
+    }
+
+    public Long getKomertzialId() {
+        return komertzialId;
+    }
+
+    public void setKomertzialId(Long komertzialId) {
+        this.komertzialId = komertzialId;
+    }
+
+    public Long getBazkideaId() {
+        return bazkideaId;
+    }
+
+    public void setBazkideaId(Long bazkideaId) {
+        this.bazkideaId = bazkideaId;
     }
 }
 

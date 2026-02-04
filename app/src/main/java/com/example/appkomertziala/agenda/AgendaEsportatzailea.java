@@ -204,7 +204,7 @@ public class AgendaEsportatzailea {
             if (fitxategia.exists()) {
                 long tamaina = fitxategia.length();
                 Log.d(ETIKETA_LOG, "Agenda TXT fitxategia existitzen da: " + bidea + ", tamaina: " + tamaina + " byte");
-                return true;
+            return true;
             } else {
                 Log.e(ETIKETA_LOG, "Agenda TXT fitxategia ez da sortu: " + bidea);
                 return false;
