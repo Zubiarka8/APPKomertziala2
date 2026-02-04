@@ -234,7 +234,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
             if (!komertzialaIzena.isEmpty()) {
                 mezua.append(getString(R.string.komertziala)).append(": ").append(komertzialaIzena).append("\n");
             }
-            mezua.append(getString(R.string.agenda_bisita_partnerra)).append(": ").append(bazkideaIzena).append("\n");
+            mezua.append(getString(R.string.agenda_bisita_bazkidea)).append(": ").append(bazkideaIzena).append("\n");
             mezua.append(getString(R.string.agenda_bisita_deskribapena)).append(": ").append(bisita.getDeskribapena() != null ? bisita.getDeskribapena() : "").append("\n");
             mezua.append(getString(R.string.agenda_bisita_egoera)).append(": ").append(bisita.getEgoera() != null ? bisita.getEgoera() : "");
             

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Agenda (hileroko bisitak) bi formatutan esportatzeko kudeatzailea.
  * Ofiziala: XML hierarkikoa (agenda.xml) — ordezkaritzak datu-basea eguneratzeko erabiltzen du.
- * Irakurgarria: testu-fitxategia (agenda.txt) — bisita bakoitza lerro batean (Data - Partnerra - Deskribapena).
+ * Irakurgarria: testu-fitxategia (agenda.txt) — bisita bakoitza lerro batean (Data - Bazkidea - Deskribapena).
  * Esportazio eta segurtasun balidazioak: fitxategien egiaztapena (barne-memorian leku nahikoa), try-catch sendoak, log-ak euskaraz.
  */
 public class AgendaEsportatzailea {

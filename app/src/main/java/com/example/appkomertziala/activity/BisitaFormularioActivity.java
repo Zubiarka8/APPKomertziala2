@@ -200,7 +200,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
     private void beteBazkideaSpinner() {
         List<String> izenak = new ArrayList<>();
         // Lehenengo errenkada: hautaketa hutsa
-        izenak.add(getString(R.string.agenda_bisita_partnerra) + " —");
+        izenak.add(getString(R.string.agenda_bisita_bazkidea) + " —");
         
         // Bazkide GUZTIAK gehitu spinnerrera
         if (bazkideak != null && !bazkideak.isEmpty()) {
@@ -319,7 +319,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
                 if (!dataHutsa) binding.etBisitaDeskribapena.requestFocus();
             }
             if (bazkideaEzHautatua && !dataHutsa && !deskribapenaHutsa) {
-                Toast.makeText(this, R.string.bisita_errorea_partnerra, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.bisita_errorea_deskribapena_hutsa, Toast.LENGTH_SHORT).show();
                 binding.spinnerBisitaBazkidea.requestFocus();
             }
             return false;
@@ -408,7 +408,7 @@ public class BisitaFormularioActivity extends AppCompatActivity {
             try {
                 // Kanpo-gakoen egiaztapena: bazkidea_kodea Bazkidea taulan existitzen dela ziurtatu (bisita sortu aurretik)
                 if (datuBasea.bazkideaDao().nanBilatu(bazkideaKodeaFinal) == null) {
-                    runOnUiThread(() -> Toast.makeText(this, R.string.bisita_partnerra_ez_datu_basean, Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, R.string.bisita_errorea_deskribapena_hutsa, Toast.LENGTH_LONG).show());
                     return;
                 }
                 // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu

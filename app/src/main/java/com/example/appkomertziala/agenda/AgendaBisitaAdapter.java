@@ -29,14 +29,11 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
         public String bazkideaIzena;
         public String deskribapena;
         public String egoera;
-        @Deprecated
-        public String partnerIzena; // Compatibilidad temporal
 
         public AgendaElementua(long id, String bisitaData, String bazkideaIzena, String deskribapena, String egoera) {
             this.id = id;
             this.bisitaData = bisitaData != null ? bisitaData : "";
             this.bazkideaIzena = bazkideaIzena != null ? bazkideaIzena : "";
-            this.partnerIzena = bazkideaIzena; // Compatibilidad
             this.deskribapena = deskribapena != null ? deskribapena : "";
             this.egoera = egoera != null ? egoera : "";
         }
@@ -70,7 +67,6 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
     public void onBindViewHolder(@NonNull BisitaViewHolder holder, int posizioa) {
         AgendaElementua e = zerrenda.get(posizioa);
         holder.itemAgendaData.setText(e.bisitaData != null ? e.bisitaData : "");
-        holder.itemAgendaPartnerra.setText(e.bazkideaIzena != null ? e.bazkideaIzena : (e.partnerIzena != null ? e.partnerIzena : ""));
         holder.itemAgendaDeskribapena.setText(e.deskribapena != null ? e.deskribapena : "");
         holder.itemAgendaEgoera.setText(e.egoera != null ? e.egoera : "");
         holder.btnIkusi.setOnClickListener(v -> {
@@ -91,7 +87,6 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
 
     static class BisitaViewHolder extends RecyclerView.ViewHolder {
         TextView itemAgendaData;
-        TextView itemAgendaPartnerra;
         TextView itemAgendaDeskribapena;
         TextView itemAgendaEgoera;
         MaterialButton btnIkusi;
@@ -101,7 +96,6 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
         BisitaViewHolder(View erroa) {
             super(erroa);
             itemAgendaData = erroa.findViewById(R.id.itemAgendaData);
-            itemAgendaPartnerra = erroa.findViewById(R.id.itemAgendaPartnerra);
             itemAgendaDeskribapena = erroa.findViewById(R.id.itemAgendaDeskribapena);
             itemAgendaEgoera = erroa.findViewById(R.id.itemAgendaEgoera);
             btnIkusi = erroa.findViewById(R.id.btnAgendaItemIkusi);

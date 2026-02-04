@@ -2,8 +2,6 @@ package com.example.appkomertziala;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,7 +17,6 @@ import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +25,7 @@ import java.util.TimeZone;
 
 /**
  * Zita berria (EskaeraGoiburua) gehitzeko pantaila.
- * Komertzial kodearekin eta partner zerrendarekin.
+ * Komertzial kodearekin eta bazkide zerrendarekin.
  */
 public class ZitaGehituActivity extends AppCompatActivity {
 
@@ -45,14 +42,10 @@ public class ZitaGehituActivity extends AppCompatActivity {
     private TextInputEditText etData;
     private TextInputEditText etCitaOrdua;
     private TextInputEditText etOrdezkaritza;
-    private Spinner spinnerPartnerra;
     private AppDatabase datuBasea;
     private String komertzialKodea;
-    private List<Bazkidea> bazkideak;
     /** Editatzeko: eskaera zenbakia. Null bada zita berria da. */
     private String editatuZenbakia;
-    /** Editatzeko: hautatu behar den partner kodea (spinnerra betetzen denean erabilia). */
-    private String editModePartnerKodea;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +67,6 @@ public class ZitaGehituActivity extends AppCompatActivity {
         etData = findViewById(R.id.etCitaData);
         etCitaOrdua = findViewById(R.id.etCitaOrdua);
         etOrdezkaritza = findViewById(R.id.etCitaOrdezkaritza);
-        spinnerPartnerra = findViewById(R.id.spinnerCitaPartnerra);
         MaterialButton btnUtzi = findViewById(R.id.btnCitaUtzi);
         MaterialButton btnGorde = findViewById(R.id.btnCitaGorde);
 
@@ -85,7 +77,6 @@ public class ZitaGehituActivity extends AppCompatActivity {
         etData.setOnClickListener(v -> erakutsiDataHautatzailea());
         etCitaOrdua.setOnClickListener(v -> erakutsiOrduaHautatzailea());
 
-        kargatuBazkideak();
         if (editatuZenbakia != null && !editatuZenbakia.isEmpty()) {
             kargatuZitaEditatzeko();
         }
@@ -110,28 +101,14 @@ public class ZitaGehituActivity extends AppCompatActivity {
             final String zenb = goi.getZenbakia() != null ? goi.getZenbakia() : "";
             final String ordezk = goi.getOrdezkaritza() != null ? goi.getOrdezkaritza() : "";
             final String bazkideaKode = goi.getBazkideaKodea() != null ? goi.getBazkideaKodea() : "";
-            editModePartnerKodea = bazkideaKode;
             runOnUiThread(() -> {
                 etZenbakia.setText(zenb);
                 etZenbakia.setEnabled(false);
                 etData.setText(dataStr);
                 etCitaOrdua.setText(orduaStr);
                 etOrdezkaritza.setText(ordezk);
-                hautatuBazkideaSpinner(bazkideaKode);
             });
         }).start();
-    }
-
-    /** Spinnerrean bazkidea hautatu kodearen arabera (editatzeko). */
-    private void hautatuBazkideaSpinner(String bazkideaKodea) {
-        if (bazkideak == null || bazkideaKodea == null || bazkideaKodea.isEmpty()) return;
-        for (int i = 0; i < bazkideak.size(); i++) {
-            Bazkidea b = bazkideak.get(i);
-            if (b.getNan() != null && b.getNan().equals(bazkideaKodea)) {
-                spinnerPartnerra.setSelection(i + 1);
-                return;
-            }
-        }
     }
 
     /** MaterialDatePicker erakusten du — data hautatzeko. */
@@ -186,35 +163,6 @@ public class ZitaGehituActivity extends AppCompatActivity {
         picker.show(getSupportFragmentManager(), "ORDUA_PICKER");
     }
 
-    private void kargatuBazkideak() {
-        new Thread(() -> {
-            // ORAIN: Bazkide guztiak kargatzen dira (komertzialKodea eremua ez dagoenez, ezin da iragazi)
-            bazkideak = datuBasea.bazkideaDao().guztiak();
-            if (bazkideak == null) {
-                bazkideak = new ArrayList<>();
-            }
-            runOnUiThread(this::beteSpinnerBazkideak);
-        }).start();
-    }
-
-    private void beteSpinnerBazkideak() {
-        List<String> izenak = new ArrayList<>();
-        izenak.add(getString(R.string.zita_partnerra) + " — " + getString(R.string.zita_utzi)); // leihoan hautaketa
-        for (Bazkidea b : bazkideak) {
-            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
-                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
-            String nan = b.getNan() != null ? b.getNan() : "";
-            String s = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
-            izenak.add(s);
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, izenak);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerPartnerra.setAdapter(adapter);
-        if (editModePartnerKodea != null) {
-            hautatuBazkideaSpinner(editModePartnerKodea);
-        }
-    }
-
     private void gordeCita() {
         String zenbakia = etZenbakia.getText() != null ? etZenbakia.getText().toString().trim() : "";
         String data = etData.getText() != null ? etData.getText().toString().trim() : "";
@@ -233,15 +181,6 @@ public class ZitaGehituActivity extends AppCompatActivity {
             return;
         }
         String bazkideaKodea = "";
-        int pos = spinnerPartnerra.getSelectedItemPosition();
-        if (pos > 0 && bazkideak != null && pos <= bazkideak.size()) {
-            Bazkidea b = bazkideak.get(pos - 1);
-            bazkideaKodea = b.getNan() != null ? b.getNan() : "";
-        }
-        if (bazkideaKodea.isEmpty()) {
-            Toast.makeText(this, R.string.zita_errorea_partner, Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         final boolean editMode = editatuZenbakia != null && !editatuZenbakia.isEmpty();
         final String dataFinal = data;
