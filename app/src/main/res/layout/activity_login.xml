@@ -97,6 +97,16 @@
                     android:layout_height="@dimen/button_height"
                     android:text="@string/btn_select_commercial"
                     android:textSize="@dimen/text_size_medium"
+                    android:layout_marginBottom="@dimen/margin_medium"
+                    app:cornerRadius="@dimen/button_corner_radius"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSelectBazkidea"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_height"
+                    android:text="@string/btn_select_bazkidea"
+                    android:textSize="@dimen/text_size_medium"
                     app:cornerRadius="@dimen/button_corner_radius"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

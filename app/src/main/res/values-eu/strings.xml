@@ -23,6 +23,7 @@
     <string name="errorea_fitxategia_irakurtzean">Errorea fitxategia irakurtzean.</string>
     <string name="xml_errorea">Errorea XML kargatzean: %1$s</string>
     <string name="btn_select_commercial">Hautatu komertziala zerrendatik</string>
+    <string name="btn_select_bazkidea">Hautatu bazkidea zerrendatik</string>
     <string name="btn_sartu_komertzial_gisa">Sartu komertzial gisa (kredentzialik gabe)</string>
     <string name="komertzial_hautatu_titulua">Hautatu komertziala</string>
     <string name="komertzial_zerrenda_hutsa">Komertzialik ez. Kargatu «Kargatu XML fitxategiak» eta hautatu komertzialak.xml lehenik.</string>

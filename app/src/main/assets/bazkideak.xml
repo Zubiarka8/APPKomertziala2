@@ -11,14 +11,14 @@
         <eskaerak>
             <eskaera>
                 <eskaeraID>2</eskaeraID>
-                <prodIzena>GeForce RTX 2060</prodIzena>
+                <prodIzena>NVIDIA RTX 2060</prodIzena>
                 <data>2024/06/15</data>
                 <kopurua>3</kopurua>
                 <prodArgazkia>rtx_2060.jpg</prodArgazkia>
             </eskaera>
             <eskaera>
                 <eskaeraID>3</eskaeraID>
-                <prodIzena>GeForce RTX 3090</prodIzena>
+                <prodIzena>NVIDIA RTX 3090</prodIzena>
                 <data>2024/06/15</data>
                 <kopurua>3</kopurua>
                 <prodArgazkia>rtx_3090.jpg</prodArgazkia>
@@ -36,7 +36,7 @@
         <eskaerak>
             <eskaera>
                 <eskaeraID>3</eskaeraID>
-                <prodIzena>GeForce RTX 3090</prodIzena>
+                <prodIzena>NVIDIA RTX 3090</prodIzena>
                 <data>2024/06/15</data>
                 <kopurua>3</kopurua>
                 <prodArgazkia>rtx_3090.jpg</prodArgazkia>

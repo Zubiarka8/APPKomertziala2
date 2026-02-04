@@ -26,6 +26,7 @@
     <string name="xml_ezin_inportatu">Fitxategi mota hau ezin da inportatu</string>
     <string name="xml_falta_da">xml-a \'%1$s\' falta da</string>
     <string name="btn_select_commercial">Hautatu komertziala zerrendatik</string>
+    <string name="btn_select_bazkidea">Hautatu bazkidea zerrendatik</string>
     <string name="btn_sartu_komertzial_gisa">Sartu komertzial gisa (kredentzialik gabe)</string>
     <string name="komertzial_hautatu_titulua">Hautatu komertziala</string>
     <string name="komertzial_zerrenda_hutsa">Komertzialik ez. Kargatu «Kargatu XML fitxategiak» eta hautatu komertzialak.xml lehenik.</string>

@@ -7,17 +7,27 @@ import androidx.room.PrimaryKey;
 
 /**
  * Eskaera xehetasuna: ID, Eskaera_Zenbakia, Artikulu_Kodea, Kantitatea, Prezioa.
- * Loturak: eskaeraZenbakia → EskaeraGoiburua.zenbakia (Foreign Key), artikuluKodea → Katalogoa (aplikazioan erresolbatzen da).
+ * Loturak: 
+ * - eskaeraZenbakia → EskaeraGoiburua.zenbakia (Foreign Key, CASCADE)
+ * - artikuluKodea → Katalogoa.artikuluKodea (Foreign Key, RESTRICT - produktua ezabatu ezin da eskaerak badaude)
  */
 @Entity(
     tableName = "eskaera_xehetasunak",
     indices = {@Index("eskaeraZenbakia"), @Index("artikuluKodea")},
-    foreignKeys = @ForeignKey(
-        entity = EskaeraGoiburua.class,
-        parentColumns = "zenbakia",
-        childColumns = "eskaeraZenbakia",
-        onDelete = ForeignKey.CASCADE
-    )
+    foreignKeys = {
+        @ForeignKey(
+            entity = EskaeraGoiburua.class,
+            parentColumns = "zenbakia",
+            childColumns = "eskaeraZenbakia",
+            onDelete = ForeignKey.CASCADE
+        ),
+        @ForeignKey(
+            entity = Katalogoa.class,
+            parentColumns = "artikuluKodea",
+            childColumns = "artikuluKodea",
+            onDelete = ForeignKey.RESTRICT
+        )
+    }
 )
 public class EskaeraXehetasuna {
 

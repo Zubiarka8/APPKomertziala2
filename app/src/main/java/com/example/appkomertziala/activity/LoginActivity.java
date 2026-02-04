@@ -103,6 +103,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
 
         MaterialButton btnLoadXml = findViewById(R.id.btnLoadXml);
         MaterialButton btnSelectCommercial = findViewById(R.id.btnSelectCommercial);
+        MaterialButton btnSelectBazkidea = findViewById(R.id.btnSelectBazkidea);
         MaterialButton btnLogin = findViewById(R.id.btnLogin);
         MaterialButton btnSartuKomertzialGisa = findViewById(R.id.btnSartuKomertzialGisa);
         MaterialButton btnSartuBazkideGisa = findViewById(R.id.btnSartuBazkideGisa);
@@ -111,6 +112,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         MaterialButton btnInportatuGailutik = findViewById(R.id.btnInportatuGailutik);
         btnInportatuGailutik.setOnClickListener(v -> inportatuGailutikLauncher.launch(new String[]{"application/xml", "text/xml", "*/*"}));
         btnSelectCommercial.setOnClickListener(v -> erakutsiKomertzialHautaketaDialogoa());
+        btnSelectBazkidea.setOnClickListener(v -> erakutsiBazkideaHautaketaDialogoa());
         btnLogin.setOnClickListener(v -> attemptLogin());
         btnSartuKomertzialGisa.setOnClickListener(v -> sartuKomertzialGisa());
         btnSartuBazkideGisa.setOnClickListener(v -> sartuBazkideGisa());
@@ -371,6 +373,11 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
     /** Komertzialen zerrenda erakusten du (hautatu komertziala botoirako). */
     private void erakutsiKomertzialHautaketaDialogoa() {
         sartuKomertzialGisa();
+    }
+
+    /** Bazkideen zerrenda erakusten du (hautatu bazkidea botoirako). */
+    private void erakutsiBazkideaHautaketaDialogoa() {
+        sartuBazkideGisa();
     }
 
     /** Bazkideen zerrenda datu-basean bilatu eta hautaketa-dialogoa erakusten du. Hutsik badago, XML guztiak kargatzen ditu (datu-basea betetzeko) eta gero zerrenda osoa erakusten du. */

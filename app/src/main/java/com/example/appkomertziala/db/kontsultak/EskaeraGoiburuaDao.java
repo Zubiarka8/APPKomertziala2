@@ -59,4 +59,12 @@ public interface EskaeraGoiburuaDao {
      */
     @Query("SELECT * FROM eskaera_goiburuak WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now') ORDER BY data DESC")
     List<EskaeraGoiburua> hilabetekoEskaerak();
+
+    /** Bazkidea ID baten arabera eskaera goiburuak itzuli. */
+    @Query("SELECT * FROM eskaera_goiburuak WHERE bazkideaId = :bazkideaId ORDER BY data DESC")
+    List<EskaeraGoiburua> bazkidearenEskaerak(Long bazkideaId);
+
+    /** Bazkidea kodea (NAN) baten arabera eskaera goiburuak itzuli. */
+    @Query("SELECT * FROM eskaera_goiburuak WHERE bazkideaKodea = :bazkideaKodea ORDER BY data DESC")
+    List<EskaeraGoiburua> bazkidearenEskaerakKodeaz(String bazkideaKodea);
 }

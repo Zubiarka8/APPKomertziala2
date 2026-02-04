@@ -7,14 +7,14 @@
   <Lerroak>
     <Lerro>
       <ProductoId>2</ProductoId>
-      <Izena>GEFORCE RTX 2060</Izena>
+      <Izena>NVIDIA RTX 2060</Izena>
       <Eskatuta>24</Eskatuta>
       <Bidalita>24</Bidalita>
       <PrezioUnit>6.9</PrezioUnit>
     </Lerro>
     <Lerro>
       <ProductoId>3</ProductoId>
-      <Izena>GEFORCE RTX 5090</Izena>
+      <Izena>NVIDIA RTX 5090</Izena>
       <Eskatuta>10</Eskatuta>
       <Bidalita>5</Bidalita>
       <PrezioUnit>4.2</PrezioUnit>

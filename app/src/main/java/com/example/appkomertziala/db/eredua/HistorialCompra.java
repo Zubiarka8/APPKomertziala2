@@ -27,6 +27,7 @@ import androidx.room.PrimaryKey;
  * - eskaeraZenbakia → EskaeraGoiburua.zenbakia (ON DELETE CASCADE)
  * - komertzialId → Komertziala.id (ON DELETE SET NULL)
  * - bazkideaId → Bazkidea.id (ON DELETE SET NULL)
+ * - productoId → Katalogoa.artikuluKodea (ON DELETE RESTRICT - produktua ezabatu ezin da historiala badaude)
  * Indizeak: kodea, data, productoId, bidalketaId, eskaeraZenbakia, komertzialId, bazkideaId
  */
 @Entity(
@@ -58,6 +59,12 @@ import androidx.room.PrimaryKey;
             parentColumns = "id",
             childColumns = "bazkideaId",
             onDelete = ForeignKey.SET_NULL
+        ),
+        @ForeignKey(
+            entity = Katalogoa.class,
+            parentColumns = "artikuluKodea",
+            childColumns = "productoId",
+            onDelete = ForeignKey.RESTRICT
         )
     }
 )

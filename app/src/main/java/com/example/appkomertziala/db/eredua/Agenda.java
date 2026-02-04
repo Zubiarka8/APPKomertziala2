@@ -2,6 +2,7 @@ package com.example.appkomertziala.db.eredua;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
@@ -9,6 +10,10 @@ import androidx.room.PrimaryKey;
  * Agenda entitatea: bisita bakoitzaren erregistroa.
  * Eremuak: gako nagusia (id), bisita_data, bazkidea_kodea, bazkideaId (kanpo-gakoa Bazkidea.id),
  * komertzialaId (kanpo-gakoa Komertziala.id, bisita sortu duen komertziala), deskribapena, egoera.
+ * 
+ * Foreign Keys:
+ * - bazkideaId → Bazkidea.id (ON DELETE SET NULL - bazkidea ezabatzen bada, bisita mantendu baina bazkideaId null)
+ * - komertzialaId → Komertziala.id (ON DELETE SET NULL - komertziala ezabatzen bada, bisita mantendu baina komertzialaId null)
  */
 @Entity(
     tableName = "agenda_bisitak",
@@ -19,6 +24,20 @@ import androidx.room.PrimaryKey;
         @Index("komertzialaId"),
         @Index("komertzialKodea"),
         @Index(value = {"komertzialKodea", "bazkideaKodea", "bisitaData"}, unique = false)
+    },
+    foreignKeys = {
+        @ForeignKey(
+            entity = Bazkidea.class,
+            parentColumns = "id",
+            childColumns = "bazkideaId",
+            onDelete = ForeignKey.SET_NULL
+        ),
+        @ForeignKey(
+            entity = Komertziala.class,
+            parentColumns = "id",
+            childColumns = "komertzialaId",
+            onDelete = ForeignKey.SET_NULL
+        )
     }
 )
 public class Agenda {

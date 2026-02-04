@@ -44,7 +44,7 @@ import com.example.appkomertziala.db.kontsultak.LoginaDao;
         Agenda.class,
         HistorialCompra.class
     },
-    version = 19,  // 18 -> 19: historial_compras taulan Foreign Keys gehitu (eskaeraZenbakia, komertzialId, bazkideaId) eta eskaera_xehetasunak taulan Foreign Key
+    version = 21,  // 20 -> 21: agenda_bisitak taulan Foreign Keys gehitu (bazkideaId → bazkideak.id, komertzialaId → komertzialak.id)
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

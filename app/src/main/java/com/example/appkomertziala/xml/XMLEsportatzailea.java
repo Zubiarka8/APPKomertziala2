@@ -18,8 +18,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Room datu-baseko datuak XML fitxategietara esportatzeko kudeatzailea.
@@ -139,19 +142,93 @@ public class XMLEsportatzailea {
                 nodoaIdatzi(idazlea, "jaiotzeData", dataFormatuaBazkideak(hutsaEz(b.getJaiotzeData())));
                 nodoaIdatzi(idazlea, "argazkia", hutsaEz(b.getArgazkia()));
                 idazlea.startTag(null, "eskaerak");
-                // Bazkidearen eskaerak kargatu eta idatzi
-                List<Eskaera> eskaerak = datuBasea.eskaeraDao().bazkidearenEskaerak(b.getId());
-                if (eskaerak != null) {
-                    for (Eskaera e : eskaerak) {
+                // Katalogoa kargatu produktu izenak egiaztatzeko (behin bakarrik)
+                List<Katalogoa> katalogoa = datuBasea.katalogoaDao().guztiak();
+                
+                // 1. Eskaerak zaharrak (XML-etik inportatutakoak) - Eskaera taula
+                List<Eskaera> eskaerakZaharrak = datuBasea.eskaeraDao().bazkidearenEskaerak(b.getId());
+                if (eskaerakZaharrak != null) {
+                    for (Eskaera e : eskaerakZaharrak) {
+                        // Produktuaren izena katalogotik bilatu (irudia_izena erabiliz)
+                        String prodIzenaFinal = hutsaEz(e.getProdIzena()); // Fallback: Eskaera-ko izena
+                        String prodArgazkia = hutsaEz(e.getProdArgazkia());
+                        if (prodArgazkia != null && !prodArgazkia.isEmpty()) {
+                            // Katalogoan bilatu irudia_izena erabiliz
+                            for (Katalogoa k : katalogoa) {
+                                if (prodArgazkia.equals(hutsaEz(k.getIrudiaIzena()))) {
+                                    prodIzenaFinal = hutsaEz(k.getIzena()); // Katalogoko izena erabili
+                                    break;
+                                }
+                            }
+                        }
                         idazlea.startTag(null, "eskaera");
                         nodoaIdatzi(idazlea, "eskaeraID", hutsaEz(e.getEskaeraID()));
-                        nodoaIdatzi(idazlea, "prodIzena", hutsaEz(e.getProdIzena()));
-                        nodoaIdatzi(idazlea, "data", dataFormatuaBazkideak(hutsaEz(e.getData())));
+                        nodoaIdatzi(idazlea, "prodIzena", prodIzenaFinal);
+                        nodoaIdatzi(idazlea, "data", dataOrainaldiaLortu());
                         nodoaIdatzi(idazlea, "kopurua", String.valueOf(e.getKopurua()));
-                        nodoaIdatzi(idazlea, "prodArgazkia", hutsaEz(e.getProdArgazkia()));
+                        nodoaIdatzi(idazlea, "prodArgazkia", prodArgazkia);
                         idazlea.endTag(null, "eskaera");
                     }
                 }
+                
+                // 2. Eskaerak berriak (aplikaziotik sortutakoak) - EskaeraGoiburua + EskaeraXehetasuna
+                // Bazkidearen ID edo kodea erabiliz bilatu
+                List<EskaeraGoiburua> goiburuak = new ArrayList<>();
+                // Lehenengo ID erabiliz bilatu
+                List<EskaeraGoiburua> goiburuakIdz = datuBasea.eskaeraGoiburuaDao().bazkidearenEskaerak(b.getId());
+                if (goiburuakIdz != null) {
+                    goiburuak.addAll(goiburuakIdz);
+                }
+                // Gero kodea (NAN) erabiliz bilatu (ID ez badago)
+                String bazkideaKodea = hutsaEz(b.getNan());
+                if (bazkideaKodea != null && !bazkideaKodea.isEmpty()) {
+                    List<EskaeraGoiburua> goiburuakKodeaz = datuBasea.eskaeraGoiburuaDao().bazkidearenEskaerakKodeaz(bazkideaKodea);
+                    if (goiburuakKodeaz != null) {
+                        // Bikoiztuak saihesteko, dagoeneko listan ez badago gehitu
+                        for (EskaeraGoiburua goi : goiburuakKodeaz) {
+                            boolean dagoenekoBadago = false;
+                            for (EskaeraGoiburua existente : goiburuak) {
+                                if (goi.getZenbakia() != null && goi.getZenbakia().equals(existente.getZenbakia())) {
+                                    dagoenekoBadago = true;
+                                    break;
+                                }
+                            }
+                            if (!dagoenekoBadago) {
+                                goiburuak.add(goi);
+                            }
+                        }
+                    }
+                }
+                
+                // Eskaera bakoitzaren xehetasunak kargatu eta idatzi
+                for (EskaeraGoiburua goi : goiburuak) {
+                    List<EskaeraXehetasuna> xehetasunak = datuBasea.eskaeraXehetasunaDao().eskaerarenXehetasunak(goi.getZenbakia());
+                    if (xehetasunak != null) {
+                        for (EskaeraXehetasuna x : xehetasunak) {
+                            // Produktua katalogotik bilatu artikuluKodea erabiliz
+                            Katalogoa prod = null;
+                            for (Katalogoa k : katalogoa) {
+                                if (x.getArtikuluKodea() != null && 
+                                    x.getArtikuluKodea().equals(k.getArtikuluKodea())) {
+                                    prod = k;
+                                    break;
+                                }
+                            }
+                            
+                            String prodIzenaFinal = prod != null ? hutsaEz(prod.getIzena()) : hutsaEz(x.getArtikuluKodea());
+                            String prodArgazkia = prod != null ? hutsaEz(prod.getIrudiaIzena()) : "";
+                            
+                            idazlea.startTag(null, "eskaera");
+                            nodoaIdatzi(idazlea, "eskaeraID", hutsaEz(goi.getZenbakia()));
+                            nodoaIdatzi(idazlea, "prodIzena", prodIzenaFinal);
+                            nodoaIdatzi(idazlea, "data", dataOrainaldiaLortu());
+                            nodoaIdatzi(idazlea, "kopurua", String.valueOf(x.getKantitatea()));
+                            nodoaIdatzi(idazlea, "prodArgazkia", prodArgazkia);
+                            idazlea.endTag(null, "eskaera");
+                        }
+                    }
+                }
+                
                 idazlea.endTag(null, "eskaerak");
                 idazlea.endTag(null, "bazkidea");
             }
@@ -323,5 +400,11 @@ public class XMLEsportatzailea {
 
     private static String dataFormatuaBidalketa(String data) {
         return dataFormatuaBazkideak(data);
+    }
+
+    /** Uneko data/hora itzuli yyyy/MM/dd formatuan (eskaerak esportatzean erabiltzeko). */
+    private static String dataOrainaldiaLortu() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        return sdf.format(new Date());
     }
 }
