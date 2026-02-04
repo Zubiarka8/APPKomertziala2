@@ -19,16 +19,27 @@ import java.util.concurrent.Executors;
  * Agenda Repository: Room eta UI-aren arteko geruza abstraktua.
  * Repository pattern erabiliz, datu-basearen eragiketak modu seguruan eta asinkronoan exekutatzen dira.
  * Erabiltzaile-interfazea azkar mantentzen du, karga-denborarik gabe.
+ * SEGURTASUNA: Bisita guztietan komertzialKodea filtroa aplikatzen da (sarbide kontrola).
  */
 public class AgendaRepository {
 
+    /** Log-erako etiketa. */
     private static final String ETIKETA = "AgendaRepository";
+    /** Exekutatzailerako hari kopurua (thread pool). */
     private static final int EXEKUTATZAILE_KOPURUA = 4;
 
+    /** Agenda DAO: datu-base kontsultak. */
     private final AgendaDao agendaDao;
+    /** Exekutatzailea: eragiketak atzerapen-harian exekutatzeko. */
     private final ExecutorService executorService;
+    /** Aplikazioko testuingurua. */
     private final Context context;
 
+    /**
+     * Eraikitzailea: AgendaRepository instantzia sortu.
+     *
+     * @param context Aplikazioko kontekstua (getApplicationContext() erabiliko da)
+     */
     public AgendaRepository(@NonNull Context context) {
         this.context = context.getApplicationContext();
         AppDatabase db = AppDatabase.getInstance(this.context);
@@ -45,12 +56,14 @@ public class AgendaRepository {
         executorService.execute(() -> {
             try {
                 long id = agendaDao.txertatu(agenda);
+                // Callback deitu emaitza jakinarazteko (null ez bada)
                 if (callback != null) {
                     callback.onEmaitza(id > 0, id);
                 }
                 Log.d(ETIKETA, "Bisita txertatua: ID=" + id);
             } catch (Exception e) {
                 Log.e(ETIKETA, "Errorea bisita txertatzean", e);
+                // Errore kasuan callback-ean false jakinarazi
                 if (callback != null) {
                     callback.onEmaitza(false, -1);
                 }
@@ -134,17 +147,18 @@ public class AgendaRepository {
         executorService.execute(() -> {
             try {
                 // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
-                com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                com.example.appkomertziala.segurtasuna.SessionManager sessionManager =
                     new com.example.appkomertziala.segurtasuna.SessionManager(context);
                 String komertzialKodea = sessionManager.getKomertzialKodea();
-                
+
+                // Saioa hasi gabe bada, zerrenda hutsa itzuli
                 if (komertzialKodea == null || komertzialKodea.isEmpty()) {
                     Log.w(ETIKETA, "kargatuBisitak: Saioa ez dago hasita");
                     callback.onEmaitza(new java.util.ArrayList<>());
                     return;
                 }
-                
-                // SEGURTASUNA: getVisitsByKomertzial erabili, ez guztiak()
+
+                // SEGURTASUNA: getVisitsByKomertzial erabili (komertzial bakoitzak bere bisitak bakarrik)
                 List<Agenda> bisitak = agendaDao.getVisitsByKomertzial(komertzialKodea);
                 callback.onEmaitza(bisitak);
             } catch (Exception e) {
@@ -363,28 +377,34 @@ public class AgendaRepository {
         executorService.shutdown();
     }
 
-    // Callback interfazeak
+    // ========== Callback interfazeak ==========
 
+    /** Bisita txertatzearen emaitza jaso behar duen callback. */
     public interface TxertatuCallback {
         void onEmaitza(boolean ondo, long id);
     }
 
+    /** Hainbat bisita txertatzearen emaitza jaso behar duen callback. */
     public interface TxertatuGuztiakCallback {
         void onEmaitza(boolean ondo, int kopurua);
     }
 
+    /** Bisita eguneratzearen emaitza jaso behar duen callback. */
     public interface EguneratuCallback {
         void onEmaitza(boolean ondo, int errenkadak);
     }
 
+    /** Bisita ezabatzearen emaitza jaso behar duen callback. */
     public interface EzabatuCallback {
         void onEmaitza(boolean ondo);
     }
 
+    /** Bisitak kargatzearen emaitza jaso behar duen callback (zerrenda). */
     public interface KargatuCallback {
         void onEmaitza(@Nullable List<Agenda> bisitak);
     }
 
+    /** Bisita bakarra bilatzearen emaitza jaso behar duen callback. */
     public interface BilatuCallback {
         void onEmaitza(@Nullable Agenda agenda);
     }

@@ -14,10 +14,12 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "katalogoa")
 public class Katalogoa {
 
+    /** Artikuluaren kodea (gako nagusia). */
     @NonNull
     @PrimaryKey
     private String artikuluKodea;
 
+    /** Produktuaren izena. */
     private String izena;
 
     /** Salmenta-prezioa (ordezkaritzatik jasotakoa). */
@@ -30,8 +32,18 @@ public class Katalogoa {
     @ColumnInfo(name = "irudia_izena")
     private String irudiaIzena;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public Katalogoa() {}
 
+    /**
+     * Eraikitzaile osoa (XML inportazioetarako).
+     *
+     * @param artikuluKodea Artikuluaren kodea
+     * @param izena Produktuaren izena
+     * @param salmentaPrezioa Salmenta-prezioa
+     * @param stock Stock kopurua
+     * @param irudiaIzena Irudi baliabidearen izena
+     */
     @Ignore
     public Katalogoa(String artikuluKodea, String izena, double salmentaPrezioa, int stock, String irudiaIzena) {
         this.artikuluKodea = artikuluKodea;

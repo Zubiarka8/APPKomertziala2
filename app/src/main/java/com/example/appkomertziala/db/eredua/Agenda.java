@@ -42,6 +42,7 @@ import androidx.room.PrimaryKey;
 )
 public class Agenda {
 
+    /** Gako nagusia (auto-sortua). */
     @PrimaryKey(autoGenerate = true)
     private long id;
 
@@ -78,6 +79,7 @@ public class Agenda {
      */
     private String egoera;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public Agenda() {}
 
     public long getId() { return id; }

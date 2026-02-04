@@ -13,17 +13,26 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "loginak", indices = {@Index("komertzialKodea")})
 public class Logina {
 
+    /** Erabiltzaile identifikatzailea (posta helbidea, gako nagusia). */
     @NonNull
     @PrimaryKey
-    /** Erabiltzaile identifikatzailea (posta helbidea). */
     private String erabiltzailea;
 
+    /** Erabiltzailearen pasahitza. */
     private String pasahitza;
-    /** Lotutako komertzialaren kodea. */
+    /** Lotutako komertzialaren kodea (sarbidea balioztatu ondoren zein komertzial den jakiteko). */
     private String komertzialKodea;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public Logina() {}
 
+    /**
+     * Eraikitzaile osoa (loginak.xml inportazioetarako).
+     *
+     * @param erabiltzailea Posta helbidea
+     * @param pasahitza Pasahitza
+     * @param komertzialKodea Lotutako komertzialaren kodea
+     */
     @Ignore
     public Logina(String erabiltzailea, String pasahitza, String komertzialKodea) {
         this.erabiltzailea = erabiltzailea;

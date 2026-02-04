@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.appkomertziala.R;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,9 @@ public class EskaerakAdapter extends RecyclerView.Adapter<EskaerakAdapter.Eskaer
     
     /** LayoutInflater: XML layout-ak View objektu bihurtzeko. RecyclerView-ek erabiltzen du. */
     private final LayoutInflater inflater;
+    
+    /** Listener eskaera xehetasunak ikusteko botoia sakatzean. */
+    private OnXehetasunakClickListener xehetasunakClickListener;
 
     /**
      * Eraikitzailea: adapter-a sortzen du context batetik.
@@ -45,6 +49,13 @@ public class EskaerakAdapter extends RecyclerView.Adapter<EskaerakAdapter.Eskaer
         this.zerrenda = new ArrayList<>();
         // LayoutInflater sortu context-etik - hau hemen beharrezkoa da View-ak sortzeko
         this.inflater = LayoutInflater.from(context);
+    }
+
+    /**
+     * Listener ezarri xehetasunak botoia sakatzean.
+     */
+    public void setOnXehetasunakClickListener(OnXehetasunakClickListener listener) {
+        this.xehetasunakClickListener = listener;
     }
 
     /**
@@ -98,20 +109,19 @@ public class EskaerakAdapter extends RecyclerView.Adapter<EskaerakAdapter.Eskaer
      */
     @Override
     public void onBindViewHolder(@NonNull EskaeraViewHolder holder, int posizioa) {
-        // Zerrendatik elementua hartu - begiratu hemen ea posizioa baliozkoa den
         EskaeraElementua e = zerrenda.get(posizioa);
         
-        // Zenbakia jartu - null bada, kate hutsa
         holder.itemEskaeraZenbakia.setText(e.zenbakia != null ? e.zenbakia : "");
-        
-        // Data jartu - null bada, kate hutsa
         holder.itemEskaeraData.setText(e.data != null ? e.data : "");
-        
-        // Artikulu kopurua jartu - hau hemen zenbaki bat da, String bihurtu
+        holder.itemEskaeraBazkidea.setText(e.bazkideIzena != null ? e.bazkideIzena : "—");
         holder.itemEskaeraArtikuluak.setText(String.valueOf(e.artikuluKopurua));
-        
-        // Guztira prezioa jartu - formatu ederra: "123.45 €"
         holder.itemEskaeraGuztira.setText(String.format(Locale.getDefault(), "%.2f €", e.guztira));
+        
+        holder.btnXehetasunak.setOnClickListener(v -> {
+            if (xehetasunakClickListener != null) {
+                xehetasunakClickListener.onXehetasunakClick(e);
+            }
+        });
     }
 
     /**
@@ -134,31 +144,27 @@ public class EskaerakAdapter extends RecyclerView.Adapter<EskaerakAdapter.Eskaer
      * performance aldetik.
      */
     static class EskaeraViewHolder extends RecyclerView.ViewHolder {
-        /** Eskaeraren zenbakia erakusteko TextView. */
         final TextView itemEskaeraZenbakia;
-        
-        /** Eskaeraren data erakusteko TextView. */
         final TextView itemEskaeraData;
-        
-        /** Artikulu kopurua erakusteko TextView. */
+        final TextView itemEskaeraBazkidea;
         final TextView itemEskaeraArtikuluak;
-        
-        /** Guztira prezioa erakusteko TextView. */
         final TextView itemEskaeraGuztira;
+        final MaterialButton btnXehetasunak;
 
-        /**
-         * Eraikitzailea: View-ak kargatzen ditu findViewById-ekin.
-         * 
-         * @param itemView item_eskaera.xml layout-aren View-a
-         */
         EskaeraViewHolder(@NonNull View itemView) {
             super(itemView);
-            // TextView guztiak kargatu - hau hemen behin bakarrik egiten da, optimizazio ona!
             itemEskaeraZenbakia = itemView.findViewById(R.id.itemEskaeraZenbakia);
             itemEskaeraData = itemView.findViewById(R.id.itemEskaeraData);
+            itemEskaeraBazkidea = itemView.findViewById(R.id.itemEskaeraBazkidea);
             itemEskaeraArtikuluak = itemView.findViewById(R.id.itemEskaeraArtikuluak);
             itemEskaeraGuztira = itemView.findViewById(R.id.itemEskaeraGuztira);
+            btnXehetasunak = itemView.findViewById(R.id.btnEskaeraXehetasunak);
         }
+    }
+    
+    /** Listener eskaera xehetasunak ikusteko. */
+    public interface OnXehetasunakClickListener {
+        void onXehetasunakClick(EskaeraElementua e);
     }
 
     /**
@@ -174,31 +180,36 @@ public class EskaerakAdapter extends RecyclerView.Adapter<EskaerakAdapter.Eskaer
      * - guztira: Prezio totala (prezioa * kantitatea bakoitzarentzat batuta)
      */
     public static class EskaeraElementua {
-        /** Eskaeraren zenbakia. Null izan daiteke. */
-        final String zenbakia;
-        
-        /** Eskaeraren data. Null izan daiteke. */
-        final String data;
-        
-        /** Artikulu kopurua (guztira). */
-        final int artikuluKopurua;
-        
-        /** Prezio totala (eurotan). */
-        final double guztira;
+        public final String zenbakia;
+        public final String data;
+        public final String bazkideIzena;
+        public final int artikuluKopurua;
+        public final double guztira;
+        /** Produktu xehetasunak (izena, kantitatea, prezioa) xehetasunak dialogorako. */
+        public final List<ProduktuXehetasuna> produktuXehetasunak;
 
-        /**
-         * Eraikitzailea: eskaera elementu bat sortzen du.
-         * 
-         * @param zenbakia Eskaeraren zenbakia
-         * @param data Eskaeraren data
-         * @param artikuluKopurua Artikulu kopurua
-         * @param guztira Prezio totala
-         */
-        public EskaeraElementua(String zenbakia, String data, int artikuluKopurua, double guztira) {
+        public EskaeraElementua(String zenbakia, String data, String bazkideIzena, int artikuluKopurua, double guztira, List<ProduktuXehetasuna> produktuXehetasunak) {
             this.zenbakia = zenbakia;
             this.data = data;
+            this.bazkideIzena = bazkideIzena;
             this.artikuluKopurua = artikuluKopurua;
             this.guztira = guztira;
+            this.produktuXehetasunak = produktuXehetasunak != null ? produktuXehetasunak : new ArrayList<>();
+        }
+    }
+    
+    /** Produktu xehetasuna: izena, kantitatea, prezioa. */
+    public static class ProduktuXehetasuna {
+        public final String produktuIzena;
+        public final int kantitatea;
+        public final double prezioa;
+        public final double guztira;
+        
+        public ProduktuXehetasuna(String produktuIzena, int kantitatea, double prezioa) {
+            this.produktuIzena = produktuIzena != null ? produktuIzena : "";
+            this.kantitatea = kantitatea;
+            this.prezioa = prezioa;
+            this.guztira = kantitatea * prezioa;
         }
     }
 }

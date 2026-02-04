@@ -266,15 +266,22 @@
     <string name="saskia_errorea_stock_ez_nahikoa">Errorea: Stock nahikoa ez dago artikulua %1$s. Stock eskuragarria: %2$d</string>
     <string name="komertzial_ezin_erosi">Komertzialek ezin dute erosketa egin. Bazkideek bakarrik egin dezakete erosketa.</string>
     <string name="saskia_erosketa_eginda">Erosketa eginda. Stock eguneratuta.</string>
+    <string name="saskia_erosketa_historial_ikusi">Erosketa eginda! Erosketa historiala ikusi nahi duzu?</string>
     <string name="saskia_erosi_baieztatu">Seguru zaude erosi nahi duzula?</string>
     <string name="cd_saskia">Erosketa saskia ikusi</string>
     <string name="cd_eskaerak">Nire eskaerak ikusi</string>
+    <string name="cd_erosketa_historiala">Erosketa historiala ikusi</string>
+    <string name="inbentarioa_aukerak_titulua">Eskaerak eta historiala</string>
     <string name="eskaerak_izenburua">Nire eskaerak</string>
     <string name="eskaerak_zerrenda_hutsa">Eskaerarik ez. Erosi produktu bat saskitik.</string>
     <string name="eskaera_zenbakia">Eskaera zenbakia</string>
     <string name="eskaera_data">Data</string>
+    <string name="eskaera_bazkidea">Bazkidea</string>
     <string name="eskaera_guztira">Guztira</string>
     <string name="eskaera_artikuluak">Artikuluak</string>
+    <string name="eskaera_ikusi_xehetasunak">Ikusi xehetasunak</string>
+    <string name="eskaera_xehetasunak_izenburua">Eskaeraren xehetasunak</string>
+    <string name="eskaera_produktua_kantitatea">%1$s × %2$d — %3$s</string>
     
     <!-- Historial erosketa -->
     <string name="erosketa_historiala">Erosketa historiala</string>

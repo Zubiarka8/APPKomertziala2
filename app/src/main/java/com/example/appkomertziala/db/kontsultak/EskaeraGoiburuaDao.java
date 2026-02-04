@@ -13,7 +13,8 @@ import java.util.List;
 
 /**
  * Eskaera goiburuak taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
- * Eskaera bakoitza komertzial bakar bati lotuta dago.
+ * Taula: eskaera_goiburuak.
+ * Eskaera bakoitza komertzial bakar bati lotuta dago (komertzialKodea / komertzialId).
  */
 @Dao
 public interface EskaeraGoiburuaDao {

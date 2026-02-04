@@ -21,13 +21,24 @@ public class Komertziala {
     /** Komertzialaren kode bakarra (NAN, erreferentzia gisa). */
     private String kodea;
 
+    /** Komertzialaren abizena. */
     private String abizena;
+    /** Komertzialaren posta elektronikoa. */
     private String posta;
+    /** Komertzialaren jaiotze data. */
     private String jaiotzeData;
+    /** Komertzialaren argazki fitxategiaren izena. */
     private String argazkia;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public Komertziala() {}
 
+    /**
+     * Eraikitzaile laburra (XML inportazioetarako).
+     *
+     * @param izena Komertzialaren izena
+     * @param kodea Komertzialaren kodea (NAN)
+     */
     @Ignore
     public Komertziala(String izena, String kodea) {
         this.izena = izena;

@@ -14,7 +14,8 @@ import java.util.List;
 /**
  * Katalogoa taularen kontsultak: asteko inportazioan wipe-and-load (ezabatuGuztiak + txertatuGuztiak),
  * katalogoa ikusi, eta stock-a eskaera egitean eguneratu.
- * @Insert(onConflict = REPLACE) artikulu baten kodea lehendik badago zaharrak ordezkatzen ditu.
+ * Taula: katalogoa.
+ * OnConflictStrategy.REPLACE: artikulu kodea lehendik badago, zaharrak ordezkatzen ditu.
  */
 @Dao
 public interface KatalogoaDao {

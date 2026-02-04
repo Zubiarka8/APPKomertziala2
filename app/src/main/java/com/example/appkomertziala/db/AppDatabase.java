@@ -28,11 +28,7 @@ import com.example.appkomertziala.db.kontsultak.KatalogoaDao;
 import com.example.appkomertziala.db.kontsultak.KomertzialaDao;
 import com.example.appkomertziala.db.kontsultak.LoginaDao;
 
-/**
- * Aplikazioko Room datu-basea: eredu-entitateak eta kontsulta-DAOak.
- * Erlazio-diagrama: Komertziala, Bazkidea, Katalogoa, EskaeraGoiburua, EskaeraXehetasuna, Logina, Agenda.
- */
-    @Database(
+@Database(
     entities = {
         Komertziala.class,
         Bazkidea.class,
@@ -47,23 +43,50 @@ import com.example.appkomertziala.db.kontsultak.LoginaDao;
     version = 21,  // 20 -> 21: agenda_bisitak taulan Foreign Keys gehitu (bazkideaId → bazkideak.id, komertzialaId → komertzialak.id)
     exportSchema = false
 )
+/**
+ * Aplikazioko Room datu-base nagusia.
+ * Entitateak: Komertziala, Bazkidea, Eskaera, Katalogoa, EskaeraGoiburua, EskaeraXehetasuna, Logina, Agenda, HistorialCompra.
+ * Erlazio-diagrama: Komertziala, Bazkidea, Katalogoa, EskaeraGoiburua, EskaeraXehetasuna, Logina, Agenda.
+ * Singleton patroia: getInstance() bidez instantzia bakarra lortzen da.
+ */
 public abstract class AppDatabase extends RoomDatabase {
 
+    /** Datu-basearen instantzia bakarra (singleton). volatile: hainbat hariren arteko ikusgarritasuna bermatzeko. */
     private static volatile AppDatabase instantzia;
 
-    /** Taula existitzen den egiaztatzen du. (taulaIzena bakarrik taula izen seguruak direnean erabili.) */
+    /**
+     * Taula existitzen den egiaztatzen du.
+     * sqlite_master taulan kontsultatzen du taula izena badagoen.
+     * OHARRA: taulaIzena bakarrik taula izen seguruak direnean erabili (SQL injection saihesteko).
+     *
+     * @param db Datu-base konexioa
+     * @param taulaIzena Egiaztatu behar den taularen izena
+     * @return true taula existitzen bada, false bestela edo errorea gertatzen bada
+     */
     private static boolean taulaExistitzenDa(SupportSQLiteDatabase db, String taulaIzena) {
         try {
+            // Apostrofeak ihesbide karaktere bihurtu (SQL injection saihesteko)
             String escaped = taulaIzena.replace("'", "''");
             try (Cursor c = db.query("SELECT name FROM sqlite_master WHERE type='table' AND name='" + escaped + "'")) {
+                // Cursor baliozkoa bada eta lehen erregistrora mugitu bada, taula existitzen da
                 return c != null && c.moveToFirst();
             }
         } catch (Exception ignored) {
+            // Errore bat gertatzen bada, taula ez dagoela suposatu
             return false;
         }
     }
 
-    /** Taula baten zutabe bat existitzen den egiaztatzen du (ADD COLUMN bikoiztuak saihesteko). */
+    /**
+     * Taula baten zutabe bat existitzen den egiaztatzen du.
+     * ADD COLUMN bikoiztuak saihesteko erabiltzen da migrazioetan.
+     * PRAGMA table_info erabiliz taularen zutabe zerrenda lortzen du.
+     *
+     * @param db Datu-base konexioa
+     * @param taulaIzena Taularen izena
+     * @param zutabeIzena Egiaztatu behar den zutabearen izena
+     * @return true zutabea existitzen bada, false bestela
+     */
     private static boolean zutabeaExistitzenDa(SupportSQLiteDatabase db, String taulaIzena, String zutabeIzena) {
         try {
             String escaped = taulaIzena.replace("'", "''");
@@ -71,6 +94,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (c == null) return false;
                 int nameIdx = c.getColumnIndex("name");
                 if (nameIdx == -1) return false;
+                // Zutabe guztiak zeharkatu eta izena bat datorren bilatu
                 while (c.moveToNext()) {
                     if (zutabeIzena.equals(c.getString(nameIdx))) return true;
                 }
@@ -559,9 +583,17 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
-    /** komertzialak taulan komertzialak.xml-eko eremu guztiak (abizena, posta, jaiotzeData, argazkia) badauden egiaztatu eta falta badira gehitu. */
+    /**
+     * komertzialak taulan komertzialak.xml-eko eremu guztiak badauden egiaztatu eta falta badira gehitu.
+     * Migrazio 9, 10, 11 eta 12 bertsioetan erabiltzen da.
+     * Zutabeak: abizena, posta, jaiotzeData, argazkia.
+     *
+     * @param db Datu-base konexioa
+     */
     private static void komertzialakZutabeakGehitu(SupportSQLiteDatabase db) {
+        // Taula existitzen ez bada, ezer ez egin
         if (!taulaExistitzenDa(db, "komertzialak")) return;
+        // Zutabe bakoitza falta bada, ALTER TABLE ADD COLUMN exekutatu
         if (!zutabeaExistitzenDa(db, "komertzialak", "abizena"))
             db.execSQL("ALTER TABLE komertzialak ADD COLUMN abizena TEXT");
         if (!zutabeaExistitzenDa(db, "komertzialak", "posta"))
@@ -592,31 +624,32 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract HistorialCompraDao historialCompraDao();
 
     /**
-     * Datu-basearen instantzia bakarra itzuli (singleton).
-     * Kontekstua aplikazioko kontekstua izan behar da.
-     * Hau hemen badago, dena ondo doa - datu-basea prest dago kontsultak egiteko.
+     * Datu-basearen instantzia bakarra itzuli (singleton patroia).
+     * Kontekstua aplikazioko kontekstua izan behar da (context.getApplicationContext()).
+     * Thread-safe: synchronized blokea eta double-check locking erabiltzen dira.
+     *
+     * @param context Aplikazioko kontekstua
+     * @return AppDatabase instantzia bakarra
      */
     public static AppDatabase getInstance(Context context) {
-        // Begiratu hemen ea instantzia badago, hori itzultzen dugu (singleton patroia)
+        // Lehen begiratua: instantzia null bada, synchronized blokera sartu
         if (instantzia == null) {
-            // Synchronized blokea - hainbat hari aldi berean instantzia sortzea saihesteko
+            // Synchronized blokea: hainbat hari aldi berean instantzia sortzea saihesteko
             synchronized (AppDatabase.class) {
-                // Double-check locking - beste hari batek sortu badu bitartean, berriro egiaztatu
+                // Double-check locking: beste hari batek sortu badu bitartean, berriro egiaztatu
                 if (instantzia == null) {
-                    // Hau hemen datu-basea eraikitzen dugu - migrazio guztiak gehitzen ditugu
+                    // Datu-basea eraiki: migrazio guztiak, fallbackToDestructiveMigration, allowMainThreadQueries
                     instantzia = Room.databaseBuilder(
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
                     ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12, MIGRAZIO_12_13, MIGRAZIO_13_14, MIGRAZIO_14_15, MIGRAZIO_15_16, MIGRAZIO_16_17, MIGRAZIO_17_18, MIGRAZIO_18_19)
-                            .fallbackToDestructiveMigration()  // KRITIKOA: Garapen fasean bagaude, eskema aldaketa handia: datu-base zaharra ezabatu eta berria sortu
-                            .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
+                            .fallbackToDestructiveMigration()  // Garapen fasean: eskema aldaketa handia bada, datu-base zaharra ezabatu eta berria sortu
+                            .allowMainThreadQueries()  // Hari nagusian kontsultak egitea baimendu (itxiera saihesteko)
                             .build();
-                    // Hau hemen badago, datu-basea prest dago kontsultak egiteko
                 }
             }
         }
-        // Begiratu hemen ea instantzia badago, hori itzultzen dugu
         return instantzia;
     }
 }

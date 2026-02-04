@@ -70,6 +70,7 @@ import androidx.room.PrimaryKey;
 )
 public class HistorialCompra {
 
+    /** Gako nagusia (auto-sortua). */
     @PrimaryKey(autoGenerate = true)
     private long id;
 
@@ -115,6 +116,7 @@ public class HistorialCompra {
     /** Lotutako bazkidearen ID (Foreign Key → Bazkidea.id). */
     private Long bazkideaId;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public HistorialCompra() {}
 
     public long getId() {

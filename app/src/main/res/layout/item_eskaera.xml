@@ -72,6 +72,29 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="@string/eskaera_bazkidea"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_secondary"/>
+
+            <TextView
+                android:id="@+id/itemEskaeraBazkidea"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_normal"
+                android:textColor="@color/text_primary"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="@string/eskaera_artikuluak"
                 android:textSize="@dimen/text_size_normal"
                 android:textColor="@color/text_secondary"/>
@@ -107,6 +130,15 @@
                 android:textStyle="bold"
                 android:textColor="@color/primary_purple"/>
         </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEskaeraXehetasunak"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:text="@string/eskaera_ikusi_xehetasunak"
+            android:textSize="@dimen/text_size_small"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
 

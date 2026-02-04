@@ -49,6 +49,7 @@ public class AgendaHileroEsportatzailea {
      * @return true esportazioa ondo bukatu bada, false bestela
      */
     public boolean esportatuUnekoHilabetea() {
+        // Uneko data lortu: urtea (yyyy) eta hilabetea (01-12)
         Calendar calendar = Calendar.getInstance();
         String urtea = String.valueOf(calendar.get(Calendar.YEAR));
         String hilabetea = String.format(Locale.US, "%02d", calendar.get(Calendar.MONTH) + 1);
@@ -63,6 +64,7 @@ public class AgendaHileroEsportatzailea {
      * @return true esportazioa ondo bukatu bada, false bestela
      */
     public boolean esportatuHilabetea(String urtea, String hilabetea) {
+        // If: leku nahikoa ez badago, ez hasi
         if (!barneMemorianLekuNahikoa()) {
             Log.e(ETIKETA, "Esportazioa ez egin: barne-memorian ez dago nahikoa lekurik.");
             return false;
@@ -74,6 +76,7 @@ public class AgendaHileroEsportatzailea {
                 new com.example.appkomertziala.segurtasuna.SessionManager(testuingurua);
             String komertzialKodea = sessionManager.getKomertzialKodea();
             
+            // If: saioa hasi gabe badago, kodea null/hutsa
             if (komertzialKodea == null || komertzialKodea.isEmpty()) {
                 Log.e(ETIKETA, "Esportazioa ez egin: saioa ez dago hasita.");
                 return false;
@@ -82,11 +85,12 @@ public class AgendaHileroEsportatzailea {
             // SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatu
             List<Agenda> bisitak = datuBasea.agendaDao().hilabetearenBisitak(komertzialKodea, urtea, hilabetea);
             
-            // XML exportazioa ezabatu - bakarrik TXT eta CSV esportatzen dira
+            // TXT eta CSV fitxategiak sortu (biak ondo bukatu behar dira)
             boolean txtOndo = agendaTXTSortu(bisitak);
             boolean csvOndo = agendaCSVSortu(bisitak);
             
             boolean guztiakOndo = txtOndo && csvOndo;
+            // If: biak ondo bukatu badira, log bat idatzi
             if (guztiakOndo) {
                 Log.d(ETIKETA, "Hilabetearen bisitak esportatu dira: " + bisitak.size() + " bisita (TXT eta CSV)");
             }
@@ -108,7 +112,7 @@ public class AgendaHileroEsportatzailea {
                 idazlea.startDocument(KODEKETA, true);
                 idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
                 idazlea.startTag(null, "agenda");
-                
+                // For: bisita bakoitza XML nodo bihurtu
                 for (Agenda a : bisitak) {
                     idazlea.startTag(null, "bisita");
                     nodoaIdatzi(idazlea, "bisita_data", hutsaEz(a.getBisitaData()));
@@ -138,7 +142,7 @@ public class AgendaHileroEsportatzailea {
         try {
             try (OutputStreamWriter idazlea = new OutputStreamWriter(
                     testuingurua.openFileOutput(FITXATEGI_TXT, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
-                
+                // For: bisita bakoitzarentzat lerro bat (Data Ordua - Komertziala - Bazkidea - Deskribapena [Egoera])
                 for (Agenda a : bisitak) {
                     String data = hutsaEz(a.getBisitaData());
                     String ordua = hutsaEz(a.getOrdua());
@@ -171,7 +175,7 @@ public class AgendaHileroEsportatzailea {
                 // CSV goiburua (BOM UTF-8 Excel-en ondo irakurtzeko)
                 idazlea.write('\ufeff');
                 idazlea.write("Data,Ordua,Komertziala,Bazkidea,Deskribapena,Egoera\n");
-                
+                // For: bisita bakoitzarentzat CSV lerro bat (komak banatuta)
                 for (Agenda a : bisitak) {
                     String data = hutsaEz(a.getBisitaData());
                     String ordua = hutsaEz(a.getOrdua());
@@ -197,8 +201,9 @@ public class AgendaHileroEsportatzailea {
      * CSV eremu bat eskapatu (komak eta komillak).
      */
     private String csvEremuaEskapatu(String testua) {
+        // If: null bada, hutsa itzuli
         if (testua == null) return "";
-        // Komillak eskapatu eta komak komillatan sartu
+        // CSV-n komilla bikoitzak ("") eskapatu behar dira (Excel formatua)
         return testua.replace("\"", "\"\"");
     }
 
@@ -207,6 +212,7 @@ public class AgendaHileroEsportatzailea {
      */
     private void nodoaIdatzi(XmlSerializer idazlea, String izena, String edukia) throws IOException {
         idazlea.startTag(null, izena);
+        // If: edukia hutsik ez bada bakarrik idatzi
         if (edukia != null && !edukia.isEmpty()) {
             idazlea.text(edukia);
         }
@@ -217,10 +223,12 @@ public class AgendaHileroEsportatzailea {
      * Komertzialaren izena itzuli kodea erabiliz.
      */
     private String komertzialarenIzena(String komertzialKodea) {
+        // If: kodea hutsik badago, ezer ez itzuli
         if (komertzialKodea == null || komertzialKodea.trim().isEmpty()) {
             return "";
         }
         Komertziala k = datuBasea.komertzialaDao().kodeaBilatu(komertzialKodea.trim());
+        // If: komertziala aurkitu bada, izena + abizena itzuli
         if (k != null) {
             String izena = k.getIzena() != null ? k.getIzena().trim() : "";
             String abizena = k.getAbizena() != null && !k.getAbizena().trim().isEmpty() 
@@ -234,10 +242,12 @@ public class AgendaHileroEsportatzailea {
      * Bazkidearen izena itzuli kodea erabiliz.
      */
     private String bazkidearenIzena(String bazkideaKodea) {
+        // If: kodea hutsik badago, ezer ez itzuli
         if (bazkideaKodea == null || bazkideaKodea.trim().isEmpty()) {
             return "";
         }
         Bazkidea b = datuBasea.bazkideaDao().nanBilatu(bazkideaKodea.trim());
+        // If: bazkidea aurkitu bada, izena + abizena (edo NAN) itzuli
         if (b != null) {
             String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
                            (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
@@ -251,11 +261,13 @@ public class AgendaHileroEsportatzailea {
      */
     private boolean barneMemorianLekuNahikoa() {
         File karpeta = testuingurua.getFilesDir();
+        // If: karpeta null bada, ezin dugu fitxategirik idatzi
         if (karpeta == null) {
             Log.w(ETIKETA, "Barne-memoria: fitxategi-karpeta ezin da lortu.");
             return false;
         }
         long libre = karpeta.getFreeSpace();
+        // If: 512 KB baino gutxiago libre badago, ez idatzi
         if (libre < GUTXIENEKO_LEKU_LIBREA_BYTE) {
             Log.w(ETIKETA, "Barne-memorian ez dago nahikoa lekurik. Libre: " + libre + " byte");
             return false;

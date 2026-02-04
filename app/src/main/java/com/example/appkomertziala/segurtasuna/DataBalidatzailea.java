@@ -10,9 +10,9 @@ import java.util.Locale;
 
 /**
  * Data balidatzailea: datuen formatua eta baliozkotasuna egiaztatzen du.
- * 
+ *
  * Formatu eskatua: yyyy/MM/dd (urtea/mes/eguna, barra garez bananduta)
- * 
+ *
  * Balidazioak:
  * - Formatu zuzena: yyyy/MM/dd
  * - Data baliozkoa: urtea, hilabetea eta eguna baliozkoak dira
@@ -27,7 +27,7 @@ public class DataBalidatzailea {
 
     /**
      * Data balidatu: formatua eta baliozkotasuna egiaztatu.
-     * 
+     *
      * @param data Balidatu behar den data
      * @return true baliozkoa bada, false bestela
      */
@@ -70,7 +70,7 @@ public class DataBalidatzailea {
 
     /**
      * Data balidatu eta salbuespena jaurti baliozkoa ez bada.
-     * 
+     *
      * @param data Balidatu behar den data
      * @throws IllegalArgumentException Data baliozkoa ez bada
      */
@@ -84,7 +84,7 @@ public class DataBalidatzailea {
 
     /**
      * Data formatua bihurtu yyyy-MM-dd formatutik yyyy/MM/dd formatura.
-     * 
+     *
      * @param data Data yyyy-MM-dd formatuan
      * @return Data yyyy/MM/dd formatuan, null baliozkoa ez bada
      */
@@ -121,7 +121,7 @@ public class DataBalidatzailea {
 
     /**
      * Gaurko data itzuli yyyy/MM/dd formatuan.
-     * 
+     *
      * @return Gaurko data formatu zuzenarekin
      */
     public static String gaurkoData() {
@@ -131,7 +131,7 @@ public class DataBalidatzailea {
 
     /**
      * Data formatua egiaztatu (yyyy/MM/dd) eta errore-mezua itzuli.
-     * 
+     *
      * @param data Balidatu behar den data
      * @return null baliozkoa bada, errore-mezua bestela
      */
@@ -149,7 +149,7 @@ public class DataBalidatzailea {
 
     /**
      * Data balidatu eta egiaztatu gaurko data baino lehenagokoa dela (jaiotze data bezala).
-     * 
+     *
      * @param data Balidatu behar den data (jaiotze data)
      * @return true baliozkoa bada eta gaurko data baino lehenagokoa bada, false bestela
      */
@@ -197,7 +197,7 @@ public class DataBalidatzailea {
 
     /**
      * Jaiotze data balidatu eta salbuespena jaurti baliozkoa ez bada.
-     * 
+     *
      * @param data Balidatu behar den jaiotze data
      * @throws IllegalArgumentException Data baliozkoa ez bada edo etorkizunekoa bada
      */
@@ -217,7 +217,7 @@ public class DataBalidatzailea {
 
     /**
      * Jaiotze data formatua egiaztatu eta errore-mezua itzuli.
-     * 
+     *
      * @param data Balidatu behar den jaiotze data
      * @return null baliozkoa bada, errore-mezua bestela
      */
@@ -242,7 +242,7 @@ public class DataBalidatzailea {
 
     /**
      * Data eta ordua balidatu eta egiaztatu gaurko data/ordua baino lehenagokoa ez dela.
-     * 
+     *
      * @param data Data yyyy/MM/dd formatuan
      * @param ordua Ordua HH:mm formatuan (aukerakoa)
      * @return null baliozkoa bada, errore-mezua bestela

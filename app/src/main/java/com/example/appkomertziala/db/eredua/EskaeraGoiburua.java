@@ -15,21 +15,25 @@ import androidx.room.PrimaryKey;
 )
 public class EskaeraGoiburua {
 
+    /** Eskaeraren zenbaki bakarra (gako nagusia). */
     @NonNull
     @PrimaryKey
     private String zenbakia;
 
+    /** Eskaeraren data (yyyy/MM/dd edo yyyy/MM/dd HH:mm). */
     private String data;
-    /** Lotutako komertzialaren kodea (XML / pantaila). */
+    /** Lotutako komertzialaren kodea (XML / pantaila erakusteko). */
     private String komertzialKodea;
     /** Lotutako komertzialaren ID (kanpo-gakoa: nor kudeatu duen). */
     private Long komertzialId;
+    /** Ordezkaritzaren izena (bidalketa helmuga). */
     private String ordezkaritza;
-    /** Lotutako bazkidearen kodea (XML / pantaila). */
+    /** Lotutako bazkidearen kodea (XML / pantaila erakusteko). */
     private String bazkideaKodea;
     /** Lotutako bazkidearen ID (kanpo-gakoa: nor erosi duen). */
     private Long bazkideaId;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public EskaeraGoiburua() {}
 
     public String getZenbakia() { return zenbakia; }

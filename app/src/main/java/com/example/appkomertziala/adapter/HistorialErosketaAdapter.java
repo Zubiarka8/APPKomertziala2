@@ -159,7 +159,7 @@ public class HistorialErosketaAdapter extends RecyclerView.Adapter<HistorialEros
                     ikusiHistorialListener.onIkusiHistorial(e.historialId);
                 }
             });
-            Log.d("HistorialAdapter", "Botón ikusi configurado para historialId: " + e.historialId);
+            Log.d("HistorialAdapter", "Ikusi historial button configured for historialId: " + e.historialId);
         } else {
             Log.e("HistorialAdapter", "ERROR: btnHistorialIkusi es null!");
         }

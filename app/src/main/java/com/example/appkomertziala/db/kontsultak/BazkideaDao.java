@@ -13,25 +13,32 @@ import java.util.List;
 
 /**
  * Bazkideak taularen kontsultak: gehitu, aldatu, ezabatu, bilatu.
+ * Taula: bazkideak.
  */
 @Dao
 public interface BazkideaDao {
 
+    /** Bazkidea bat txertatu; gatazka bada ordezkatu (upsert). */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long txertatu(Bazkidea bazkidea);
 
+    /** Hainbat bazkidea txertatu (upsert). */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     List<Long> txertatuGuztiak(List<Bazkidea> zerrenda);
 
+    /** Bazkidea bat eguneratu. */
     @Update
     int eguneratu(Bazkidea bazkidea);
 
+    /** Bazkidea bat ezabatu. */
     @Delete
     int ezabatu(Bazkidea bazkidea);
 
+    /** Bazkide guztiak itzuli (izena eta abizena arabera ordenatuta). */
     @Query("SELECT * FROM bazkideak ORDER BY izena, abizena")
     List<Bazkidea> guztiak();
 
+    /** ID baten arabera bazkidea bilatu. */
     @Query("SELECT * FROM bazkideak WHERE id = :id LIMIT 1")
     Bazkidea idzBilatu(long id);
 

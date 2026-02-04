@@ -59,6 +59,10 @@
             android:name=".activity.EskaerakActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".activity.HistorialErosketaActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

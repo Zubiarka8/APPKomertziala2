@@ -14,6 +14,8 @@ import java.util.List;
 
 /**
  * Eskaerak taularen kontsultak: gehitu, aldatu, ezabatu, bilatu.
+ * Taula: eskaerak (bazkideak.xml-eko eskaerak blokea).
+ * Kanpo-gakoa: bazkideaId → bazkideak.id.
  */
 @Dao
 public interface EskaeraDao {

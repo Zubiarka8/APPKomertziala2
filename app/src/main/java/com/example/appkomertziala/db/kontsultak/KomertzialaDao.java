@@ -13,7 +13,8 @@ import java.util.List;
 
 /**
  * Komertzialak taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
- * @Insert(onConflict = REPLACE): ID edo kodea bera duen erregistro bat badago, informazio zaharra ezabatu eta XMLko datu berriekin ordezkatzen da.
+ * Taula: komertzialak.
+ * OnConflictStrategy.REPLACE: kodea bera duen erregistro bat badago, XMLko datu berriek ordezkatzen dute.
  */
 @Dao
 public interface KomertzialaDao {

@@ -13,6 +13,8 @@ import java.util.List;
 
 /**
  * Eskaera xehetasunak taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
+ * Taula: eskaera_xehetasunak.
+ * Kanpo-gakoak: eskaeraZenbakia → eskaera_goiburuak.zenbakia, artikuluKodea → katalogoa.artikuluKodea.
  */
 @Dao
 public interface EskaeraXehetasunaDao {

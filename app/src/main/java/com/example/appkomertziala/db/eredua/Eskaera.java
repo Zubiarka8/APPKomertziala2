@@ -31,6 +31,7 @@ import androidx.room.PrimaryKey;
 )
 public class Eskaera {
 
+    /** Gako nagusia (auto-sortua). */
     @PrimaryKey(autoGenerate = true)
     private long id;
 
@@ -52,6 +53,7 @@ public class Eskaera {
     /** Produktu argazkiaren izena. */
     private String prodArgazkia;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public Eskaera() {}
 
     public long getId() { return id; }

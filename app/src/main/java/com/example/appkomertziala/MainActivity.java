@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat;
 import com.example.appkomertziala.activity.BazkideaFormularioActivity;
 import com.example.appkomertziala.activity.BisitaFormularioActivity;
 import com.example.appkomertziala.activity.EskaerakActivity;
+import com.example.appkomertziala.activity.HistorialErosketaActivity;
 import com.example.appkomertziala.activity.KomertzialaFormularioActivity;
 import com.example.appkomertziala.activity.LoginActivity;
 import com.example.appkomertziala.activity.ProduktuDetalaActivity;
@@ -1032,8 +1033,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ImageButton btnEskaerak = findViewById(R.id.btnInbentarioaEskaerak);
         if (btnEskaerak != null) {
             btnEskaerak.setOnClickListener(v -> {
-                Intent intent = new Intent(this, EskaerakActivity.class);
-                startActivity(intent);
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.inbentarioa_aukerak_titulua)
+                        .setItems(new CharSequence[]{
+                                getString(R.string.eskaerak_izenburua),
+                                getString(R.string.erosketa_historiala)
+                        }, (dialog, which) -> {
+                            if (which == 0) {
+                                startActivity(new Intent(this, EskaerakActivity.class));
+                            } else {
+                                startActivity(new Intent(this, HistorialErosketaActivity.class));
+                            }
+                        })
+                        .setNegativeButton(R.string.xml_utzi, null)
+                        .show();
             });
         }
         saskiaBadgeEguneratu(tvSaskiaKopurua);
@@ -1525,52 +1538,56 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Log.d("MainActivity", "gordeErosketa: Bazkidea datuak - ID: " + bazkideaValidatua.getId() + ", Kodea: " + bazkideaKodeaFinal);
                         Log.d("MainActivity", "gordeErosketa: EskaeraGoiburua datuak - KomertzialId: " + goi.getKomertzialId() + ", KomertzialKodea: " + goi.getKomertzialKodea() + ", BazkideaId: " + goi.getBazkideaId() + ", BazkideaKodea: " + goi.getBazkideaKodea());
                         
-                        db.eskaeraGoiburuaDao().txertatu(goi);
-                        
-                        // EskaeraXehetasuna eta HistorialCompra sortu
-                        int bidalketaId = (int) System.currentTimeMillis() / 1000; // Bidalketa ID sortu
-                        String kodea = "BDK-" + String.format(Locale.getDefault(), "%03d", bidalketaId % 1000);
-                        String dataBidalketa = data.split(" ")[0]; // Data bakarrik (yyyy/MM/dd)
-                        
-                        for (SaskiaElementua e : saskia) {
-                            // EskaeraXehetasuna
-                            EskaeraXehetasuna x = new EskaeraXehetasuna();
-                            x.setEskaeraZenbakia(zenbakia);
-                            x.setArtikuluKodea(e.artikuluKodea);
-                            x.setKantitatea(e.kopurua);
-                            x.setPrezioa(e.salmentaPrezioa);
-                            db.eskaeraXehetasunaDao().txertatu(x);
+                        final Komertziala komertzialFinal = komertzialaValidatua;
+                        final Bazkidea bazkideaFinal = bazkideaValidatua;
+                        db.runInTransaction(() -> {
+                            db.eskaeraGoiburuaDao().txertatu(goi);
                             
-                            // HistorialCompra sortu (bidalketa formatua)
-                            HistorialCompra historial = new HistorialCompra();
-                            historial.setBidalketaId(bidalketaId);
-                            historial.setKodea(kodea);
-                            // Helmuga: bazkidea validatua erabili
-                            String izena = (bazkideaValidatua.getIzena() != null ? bazkideaValidatua.getIzena().trim() : "") + 
-                                           (bazkideaValidatua.getAbizena() != null && !bazkideaValidatua.getAbizena().trim().isEmpty() ? " " + bazkideaValidatua.getAbizena().trim() : "");
-                            String helmuga = izena.isEmpty() ? (bazkideaValidatua.getNan() != null ? bazkideaValidatua.getNan() : "") : izena;
-                            historial.setHelmuga(helmuga);
-                            historial.setData(dataBidalketa);
-                            historial.setAmaituta(true);
-                            historial.setProductoId(e.artikuluKodea);
-                            historial.setProductoIzena(e.izena);
-                            historial.setEskatuta(e.kopurua);
-                            historial.setBidalita(e.kopurua); // Erosketa egindakoan, bidalita = eskatuta
-                            historial.setPrezioUnit(e.salmentaPrezioa);
-                            historial.setArgazkia(e.irudiaIzena);
-                            // Foreign Keys: eskaera, komertzial eta bazkidea
-                            historial.setEskaeraZenbakia(zenbakia);
-                            historial.setKomertzialId(komertzialaValidatua.getId());
-                            historial.setBazkideaId(bazkideaValidatua.getId());
-                            db.historialCompraDao().txertatu(historial);
+                            // EskaeraXehetasuna eta HistorialCompra sortu
+                            int bidalketaId = (int) System.currentTimeMillis() / 1000; // Bidalketa ID sortu
+                            String kodea = "BDK-" + String.format(Locale.getDefault(), "%03d", bidalketaId % 1000);
+                            String dataBidalketa = data.split(" ")[0]; // Data bakarrik (yyyy/MM/dd)
                             
-                            // Stock eguneratu
-                            Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
-                            if (k != null) {
-                                int stockBerria = Math.max(0, k.getStock() - e.kopurua);
-                                db.katalogoaDao().stockaEguneratu(e.artikuluKodea, stockBerria);
+                            for (SaskiaElementua e : saskia) {
+                                // EskaeraXehetasuna
+                                EskaeraXehetasuna x = new EskaeraXehetasuna();
+                                x.setEskaeraZenbakia(zenbakia);
+                                x.setArtikuluKodea(e.artikuluKodea);
+                                x.setKantitatea(e.kopurua);
+                                x.setPrezioa(e.salmentaPrezioa);
+                                db.eskaeraXehetasunaDao().txertatu(x);
+                                
+                                // HistorialCompra sortu (bidalketa formatua)
+                                HistorialCompra historial = new HistorialCompra();
+                                historial.setBidalketaId(bidalketaId);
+                                historial.setKodea(kodea);
+                                // Helmuga: bazkidea validatua erabili
+                                String izena = (bazkideaFinal.getIzena() != null ? bazkideaFinal.getIzena().trim() : "") + 
+                                               (bazkideaFinal.getAbizena() != null && !bazkideaFinal.getAbizena().trim().isEmpty() ? " " + bazkideaFinal.getAbizena().trim() : "");
+                                String helmuga = izena.isEmpty() ? (bazkideaFinal.getNan() != null ? bazkideaFinal.getNan() : "") : izena;
+                                historial.setHelmuga(helmuga);
+                                historial.setData(dataBidalketa);
+                                historial.setAmaituta(true);
+                                historial.setProductoId(e.artikuluKodea);
+                                historial.setProductoIzena(e.izena);
+                                historial.setEskatuta(e.kopurua);
+                                historial.setBidalita(e.kopurua); // Erosketa egindakoan, bidalita = eskatuta
+                                historial.setPrezioUnit(e.salmentaPrezioa);
+                                historial.setArgazkia(e.irudiaIzena);
+                                // Foreign Keys: eskaera, komertzial eta bazkidea
+                                historial.setEskaeraZenbakia(zenbakia);
+                                historial.setKomertzialId(komertzialFinal.getId());
+                                historial.setBazkideaId(bazkideaFinal.getId());
+                                db.historialCompraDao().txertatu(historial);
+                                
+                                // Stock eguneratu
+                                Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
+                                if (k != null) {
+                                    int stockBerria = Math.max(0, k.getStock() - e.kopurua);
+                                    db.katalogoaDao().stockaEguneratu(e.artikuluKodea, stockBerria);
+                                }
                             }
-                        }
+                        });
                         
                         runOnUiThread(() -> {
                             saskia.clear();
@@ -1578,7 +1595,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
                             dialog.dismiss();
                             erakutsiInbentarioaEdukia();
-                            Toast.makeText(this, R.string.saskia_erosketa_eginda, Toast.LENGTH_SHORT).show();
+                            new AlertDialog.Builder(this)
+                                    .setMessage(R.string.saskia_erosketa_historial_ikusi)
+                                    .setPositiveButton(R.string.bai, (dlg, which) -> {
+                                        Intent histIntent = new Intent(this, HistorialErosketaActivity.class);
+                                        startActivity(histIntent);
+                                    })
+                                    .setNegativeButton(R.string.ez, null)
+                                    .show();
                         });
                     }).start();
                 })

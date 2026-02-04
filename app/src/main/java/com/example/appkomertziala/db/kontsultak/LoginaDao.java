@@ -13,6 +13,8 @@ import java.util.List;
 
 /**
  * Loginak taularen kontsultak: sarbide kredentzialen altak, bajak, aldaketak eta irakurketak.
+ * Taula: loginak.
+ * Erabiltzailea (posta) gako nagusia da; komertzialKodea lotura du Komertziala entitatearekin.
  */
 @Dao
 public interface LoginaDao {

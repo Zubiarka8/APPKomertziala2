@@ -86,6 +86,16 @@ public class HistorialErosketaActivity extends AppCompatActivity {
     }
 
     /**
+     * Activity berriro erakustean: historiala berriro kargatu (erosketa berri bat egitean
+     * beste pantailatik itzultzean datuak eguneratzeko).
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        kargatuHistoriala();
+    }
+
+    /**
      * Atzera botoia sakatzean: Activity itxi.
      * 
      * @return true (ekintza kudeatua)

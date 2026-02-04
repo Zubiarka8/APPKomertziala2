@@ -12,7 +12,9 @@ import com.example.appkomertziala.db.eredua.HistorialCompra;
 import java.util.List;
 
 /**
- * Historial de compras taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
+ * Historial de compras (erosketa historiala) taularen kontsultak: altak, bajak, aldaketak eta irakurketak.
+ * Taula: historial_compras.
+ * Bidalketa XML egitura gordetzen du (bidalketa_2_20260130140648.xml).
  */
 @Dao
 public interface HistorialCompraDao {

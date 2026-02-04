@@ -34,13 +34,16 @@ public class EskaeraXehetasuna {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    /** Lotutako eskaera goiburuaren zenbakia. */
+    /** Lotutako eskaera goiburuaren zenbakia (kanpo-gakoa). */
     private String eskaeraZenbakia;
-    /** Katalogoko artikuluaren kodea. */
+    /** Katalogoko artikuluaren kodea (kanpo-gakoa). */
     private String artikuluKodea;
+    /** Eskatutako kantitatea. */
     private int kantitatea;
+    /** Unitateko prezioa. */
     private double prezioa;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public EskaeraXehetasuna() {}
 
     public long getId() { return id; }

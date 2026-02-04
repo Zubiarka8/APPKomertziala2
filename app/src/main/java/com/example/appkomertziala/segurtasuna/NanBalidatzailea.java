@@ -5,29 +5,29 @@ import android.util.Log;
 import java.util.regex.Pattern;
 
 /**
- * NAN (DNI) balidatzailea: DNI/NAN identifikatzailearen formatua egiaztatzen du.
- * 
- * Formatu eskatua: 8 zifra + letra (letra kontrolik egiaztatzen ez da)
- * - Formatu 1: 12345678A (zifrak + letra, espazio gabe)
- * - Formatu 2: 12345678-A (zifrak + gidoia + letra)
- * 
- * Balidazioak:
- * - Formatu zuzena: 8 zifra + letra (edozein letra)
- * - Zifrak bakarrik ez dira onartzen (letra beharrezkoa da)
+ * NAN (DNI) validator: validates DNI/NAN identifier format.
+ *
+ * Required format: 8 digits + letter (control letter not validated)
+ * - Format 1: 12345678A (digits + letter, no spaces)
+ * - Format 2: 12345678-A (digits + hyphen + letter)
+ *
+ * Validations:
+ * - Correct format: 8 digits + letter (any letter)
+ * - Digits only are not accepted (letter is required)
  */
 public class NanBalidatzailea {
 
     private static final String ETIKETA = "NanBalidatzailea";
     
-    /** DNI formatuaren patroia: 8 zifra + letra (gidoiarekin edo gabe) */
+    /** DNI format pattern: 8 digits + letter (with or without hyphen) */
     private static final Pattern DNI_PATTERN = Pattern.compile("^\\d{8}[-]?[A-Za-z]$");
 
     /**
-     * NAN/DNI balidatu: formatua egiaztatu (8 zifra + letra).
-     * Letra kontrolik egiaztatzen ez da, formatua bakarrik.
-     * 
-     * @param nan Balidatu behar den NAN/DNI
-     * @return true baliozkoa bada, false bestela
+     * Validates NAN/DNI: checks format (8 digits + letter).
+     * Control letter is not validated, only format.
+     *
+     * @param nan NAN/DNI to validate
+     * @return true if valid, false otherwise
      */
     public static boolean balidatuNan(String nan) {
         if (nan == null || nan.trim().isEmpty()) {
@@ -37,7 +37,7 @@ public class NanBalidatzailea {
 
         String nanTrimm = nan.trim().toUpperCase();
         
-        // Formatu egiaztatu: 8 zifra + letra (gidoiarekin edo gabe)
+        // Check format: 8 digits + letter (with or without hyphen)
         if (!DNI_PATTERN.matcher(nanTrimm).matches()) {
             Log.w(ETIKETA, "balidatuNan: Formatu okerra - " + nanTrimm + " (esperotakoa: 12345678A edo 12345678-A)");
             return false;
@@ -48,10 +48,10 @@ public class NanBalidatzailea {
     }
 
     /**
-     * NAN balidatu eta salbuespena jaurti baliozkoa ez bada.
-     * 
-     * @param nan Balidatu behar den NAN
-     * @throws IllegalArgumentException NAN baliozkoa ez bada
+     * Validates NAN and throws exception if invalid.
+     *
+     * @param nan NAN to validate
+     * @throws IllegalArgumentException If NAN is invalid
      */
     public static void balidatuNanEtaJaurti(String nan) throws IllegalArgumentException {
         if (!balidatuNan(nan)) {

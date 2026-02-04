@@ -30,18 +30,25 @@ public class Bazkidea {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
-    /** Bazkidearen NAN identifikatzailea. */
+    /** Bazkidearen NAN identifikatzailea (bazkideak.xml-eko NAN eremua). */
     private String nan;
 
+    /** Bazkidearen izena. */
     private String izena;
+    /** Bazkidearen abizena. */
     private String abizena;
+    /** Bazkidearen telefono zenbakia. */
     private String telefonoZenbakia;
+    /** Bazkidearen posta elektronikoa. */
     private String posta;
+    /** Bazkidearen jaiotze data (yyyy/MM/dd formatua). */
     private String jaiotzeData;
+    /** Bazkidearen argazki fitxategiaren izena. */
     private String argazkia;
-    /** Bazkidearen kodea (identifikatzailea kodea eremuan). */
+    /** Bazkidearen kodea (identifikatzailea; NAN balioa kopiatzen da). */
     private String kodea;
 
+    /** Eraikitzaile hutsa (Room-entzat). */
     public Bazkidea() {}
 
     public long getId() { return id; }

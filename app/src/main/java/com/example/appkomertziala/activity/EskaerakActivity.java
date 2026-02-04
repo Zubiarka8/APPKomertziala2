@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,11 +14,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.appkomertziala.adapter.EskaerakAdapter;
 import com.example.appkomertziala.R;
 import com.example.appkomertziala.db.AppDatabase;
+import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
+import com.example.appkomertziala.db.eredua.Katalogoa;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Eskaerak pantaila: uneko komertzialaren eskaera guztiak erakusten ditu.
@@ -69,10 +73,17 @@ public class EskaerakActivity extends AppCompatActivity {
 
         // Adapter sortu eta konfiguratu - RecyclerView-ri lotu
         adapter = new EskaerakAdapter(this);
+        adapter.setOnXehetasunakClickListener(this::erakutsiEskaeraXehetasunak);
         recyclerEskaerak.setLayoutManager(new LinearLayoutManager(this));
         recyclerEskaerak.setAdapter(adapter);
 
         // Eskaerak kargatu - hilo nagusitik kanpo
+        kargatuEskaerak();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         kargatuEskaerak();
     }
 
@@ -119,27 +130,48 @@ public class EskaerakActivity extends AppCompatActivity {
                 List<EskaeraGoiburua> goiburuak = datuBasea.eskaeraGoiburuaDao().komertzialarenEskaerak(komertzialKodea.trim());
                 if (goiburuak == null) goiburuak = new ArrayList<>();
 
-                // Eskaera bakoitzarentzat xehetasunak kargatu eta guztira kalkulatu
                 List<EskaerakAdapter.EskaeraElementua> erakusteko = new ArrayList<>();
                 for (EskaeraGoiburua goi : goiburuak) {
-                    // Xehetasunak kargatu - eskaera zenbakiaren arabera
                     List<EskaeraXehetasuna> xehetasunak = datuBasea.eskaeraXehetasunaDao().eskaerarenXehetasunak(goi.getZenbakia());
                     if (xehetasunak == null) xehetasunak = new ArrayList<>();
                     
-                    // Guztira kalkulatu - prezioa * kantitatea bakoitzarentzat
                     double guztira = 0.0;
                     int artikuluKopurua = 0;
+                    List<EskaerakAdapter.ProduktuXehetasuna> produktuXehetasunak = new ArrayList<>();
+                    
                     for (EskaeraXehetasuna x : xehetasunak) {
                         guztira += x.getPrezioa() * x.getKantitatea();
                         artikuluKopurua += x.getKantitatea();
+                        String produktuIzena = null;
+                        Katalogoa k = datuBasea.katalogoaDao().artikuluaBilatu(x.getArtikuluKodea());
+                        if (k != null && k.getIzena() != null) {
+                            produktuIzena = k.getIzena().trim();
+                        }
+                        if (produktuIzena == null || produktuIzena.isEmpty()) {
+                            produktuIzena = x.getArtikuluKodea() != null ? x.getArtikuluKodea() : "";
+                        }
+                        produktuXehetasunak.add(new EskaerakAdapter.ProduktuXehetasuna(produktuIzena, x.getKantitatea(), x.getPrezioa()));
                     }
                     
-                    // Elementua sortu eta zerrendara gehitu
+                    String bazkideIzena = "—";
+                    if (goi.getBazkideaId() != null) {
+                        Bazkidea b = datuBasea.bazkideaDao().idzBilatu(goi.getBazkideaId());
+                        if (b != null) {
+                            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                            bazkideIzena = izena.isEmpty() ? (b.getNan() != null ? b.getNan() : "—") : izena;
+                        }
+                    } else if (goi.getBazkideaKodea() != null && !goi.getBazkideaKodea().trim().isEmpty()) {
+                        bazkideIzena = goi.getBazkideaKodea().trim();
+                    }
+                    
                     erakusteko.add(new EskaerakAdapter.EskaeraElementua(
                         goi.getZenbakia(),
                         goi.getData(),
+                        bazkideIzena,
                         artikuluKopurua,
-                        guztira
+                        guztira,
+                        produktuXehetasunak
                     ));
                 }
 
@@ -173,6 +205,32 @@ public class EskaerakActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    /**
+     * Eskaeraren xehetasunak erakutsi dialog batean: produktu zerrenda, kantitatea eta prezioa.
+     */
+    private void erakutsiEskaeraXehetasunak(EskaerakAdapter.EskaeraElementua e) {
+        StringBuilder msg = new StringBuilder();
+        msg.append(getString(R.string.eskaera_zenbakia)).append(": ").append(e.zenbakia != null ? e.zenbakia : "—").append("\n");
+        msg.append(getString(R.string.eskaera_data)).append(": ").append(e.data != null ? e.data : "—").append("\n");
+        msg.append(getString(R.string.eskaera_bazkidea)).append(": ").append(e.bazkideIzena != null ? e.bazkideIzena : "—").append("\n\n");
+        msg.append(getString(R.string.eskaera_artikuluak)).append(":\n");
+        
+        for (EskaerakAdapter.ProduktuXehetasuna p : e.produktuXehetasunak) {
+            String lerroa = getString(R.string.eskaera_produktua_kantitatea, 
+                p.produktuIzena, p.kantitatea, String.format(Locale.getDefault(), "%.2f €", p.guztira));
+            msg.append("  • ").append(lerroa).append("\n");
+        }
+        
+        msg.append("\n").append(getString(R.string.eskaera_guztira)).append(": ")
+           .append(String.format(Locale.getDefault(), "%.2f €", e.guztira));
+        
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.eskaera_xehetasunak_izenburua)
+                .setMessage(msg.toString())
+                .setPositiveButton(R.string.ados, null)
+                .show();
     }
 }
 

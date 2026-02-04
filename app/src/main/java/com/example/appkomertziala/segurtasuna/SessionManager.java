@@ -8,7 +8,7 @@ import android.util.Log;
  * SessionManager: Saioa hasi duen komertzialaren kodea modu seguruan gordetzen du.
  * SharedPreferences erabiliz, uneko erabiltzailearen identifikazioa mantentzen du.
  * Sarbide kontrol zorrotza aplikatzeko oinarria.
- * 
+ *
  * SEGURTASUNA: Kodea bakarrik SharedPreferences-en gordetzen da, ez da inoiz Intent-etan
  * edo beste lekuetan erabiltzen behar kodea zuzenean. SessionManager bidez bakarrik.
  */
@@ -30,7 +30,7 @@ public class SessionManager {
     /**
      * Saioa hasi: komertzialaren kodea eta izena gorde.
      * Login arrakastatsu baten ondoren deitu behar da.
-     * 
+     *
      * @param komertzialKodea Komertzialaren kodea (NAN edo identifikatzailea)
      * @param komertzialIzena Komertzialaren izena (erakusteko)
      */
@@ -68,7 +68,7 @@ public class SessionManager {
     /**
      * Uneko komertzialaren kodea itzuli.
      * SEGURTASUNA: Kodea bakarrik irakurtzeko erabili, ez inoiz aldatzeko edo beste erabiltzaile baten kodea jartzeko.
-     * 
+     *
      * @return Komertzialaren kodea, null saioa hasi gabe badago
      */
     public String getKomertzialKodea() {
@@ -81,7 +81,7 @@ public class SessionManager {
 
     /**
      * Uneko komertzialaren izena itzuli (erakusteko).
-     * 
+     *
      * @return Komertzialaren izena, null saioa hasi gabe badago
      */
     public String getKomertzialIzena() {
@@ -94,7 +94,7 @@ public class SessionManager {
 
     /**
      * Saioa hasita dagoen egiaztatu.
-     * 
+     *
      * @return true saioa hasita badago (komertzial kodea existitzen bada), false bestela
      */
     public boolean saioaHasitaDago() {
@@ -109,7 +109,7 @@ public class SessionManager {
     /**
      * Komertzial kodea balidatu: uneko saioaren kodea dela egiaztatu.
      * SEGURTASUNA: Datuak atzitzean, kodea uneko saioaren kodea dela egiaztatu behar da.
-     * 
+     *
      * @param kodea Egiaztatu behar den kodea
      * @return true kodea uneko saioaren kodea bada, false bestela
      */

@@ -50,11 +50,13 @@ public class AgendaEsportatzailea {
      */
     private boolean barneMemorianLekuNahikoa() {
         File karpeta = testuingurua.getFilesDir();
+        // If: karpeta null bada, fitxategiak non gorde ezin ditugun
         if (karpeta == null) {
             Log.w(ETIKETA_LOG, "Barne-memoria: fitxategi-karpeta ezin da lortu.");
             return false;
         }
         long libre = karpeta.getFreeSpace();
+        // If: 512 KB baino gutxiago libre badago, ez idatzi (diskoa betea)
         if (libre < GUTXIENEKO_LEKU_LIBREA_BYTE) {
             Log.w(ETIKETA_LOG, "Barne-memorian ez dago nahikoa lekurik fitxategia idazteko. Libre: " + libre + " byte, beharrezko gutxienekoa: " + GUTXIENEKO_LEKU_LIBREA_BYTE + " byte.");
             return false;
@@ -70,6 +72,7 @@ public class AgendaEsportatzailea {
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada (log-ean euskaraz)
      */
     public boolean agendaXMLSortu() {
+        // If: leku nahikoa ez badago, ez hasi idazketan
         if (!barneMemorianLekuNahikoa()) {
             Log.e(ETIKETA_LOG, "Agenda XML ez sortu: barne-memorian ez dago nahikoa lekurik.");
             return false;
@@ -80,6 +83,7 @@ public class AgendaEsportatzailea {
                 new com.example.appkomertziala.segurtasuna.SessionManager(testuingurua);
             String komertzialKodea = sessionManager.getKomertzialKodea();
             
+            // If: saioa hasi gabe badago, kodea null/hutsa izango da
             if (komertzialKodea == null || komertzialKodea.isEmpty()) {
                 Log.e(ETIKETA_LOG, "Agenda XML ez sortu: saioa ez dago hasita.");
                 return false;
@@ -93,6 +97,7 @@ public class AgendaEsportatzailea {
                 idazlea.startDocument(KODEKETA, true);
                 idazlea.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
                 idazlea.startTag(null, "agenda");
+                // For: bisita bakoitza XML nodo bihurtu (<bisita>...</bisita>)
                 for (Agenda a : hilabetekoak) {
                     idazlea.startTag(null, "bisita");
                     nodoaIdatzi(idazlea, "bisita_data", hutsaEz(a.getBisitaData()));
@@ -123,6 +128,7 @@ public class AgendaEsportatzailea {
      * @return true esportazioa ondo bukatu bada, false akatsen bat gertatu bada
      */
     public boolean agendaTXTSortu() {
+        // If: leku nahikoa ez badago, ez idatzi
         if (!barneMemorianLekuNahikoa()) {
             Log.e(ETIKETA_LOG, "Agenda TXT ez sortu: barne-memorian ez dago nahikoa lekurik.");
             return false;
@@ -133,6 +139,7 @@ public class AgendaEsportatzailea {
                 new com.example.appkomertziala.segurtasuna.SessionManager(testuingurua);
             String komertzialKodea = sessionManager.getKomertzialKodea();
             
+            // If: saioa hasi gabe badago, ezin dugu bisitak esportatu
             if (komertzialKodea == null || komertzialKodea.isEmpty()) {
                 Log.e(ETIKETA_LOG, "Agenda TXT ez sortu: saioa ez dago hasita.");
                 return false;
@@ -150,6 +157,7 @@ public class AgendaEsportatzailea {
             try (OutputStreamWriter idazlea = new OutputStreamWriter(
                     testuingurua.openFileOutput(FITXATEGI_TXT, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
                 int lerroKopurua = 0;
+                // For: bisita bakoitzarentzat lerro bat idatzi (ID | Data | Ordua | ...)
                 for (Agenda a : hilabetekoak) {
                     // Datuak bildu
                     long id = a.getId();
@@ -163,10 +171,11 @@ public class AgendaEsportatzailea {
                     String deskribapena = hutsaEz(a.getDeskribapena());
                     String egoera = hutsaEz(a.getEgoera());
                     
-                    // Formato estructuratua: ID | Data | Ordua | KomertzialKodea | KomertzialaId | BazkideaKodea | BazkideaId | Bazkidea | Deskribapena | Egoera
+                    // Formatua: ID | Data | Ordua | KomertzialKodea | KomertzialaId | BazkideaKodea | BazkideaId | Bazkidea | Deskribapena | Egoera
                     StringBuilder lerroa = new StringBuilder();
                     lerroa.append("ID: ").append(id);
                     lerroa.append(" | Data: ").append(data);
+                    // If: eremu bakoitza hutsik ez bada bakarrik gehitzen da lerroari
                     if (!ordua.isEmpty()) {
                         lerroa.append(" | Ordua: ").append(ordua);
                     }
@@ -200,7 +209,7 @@ public class AgendaEsportatzailea {
                 Log.d(ETIKETA_LOG, "Agenda TXT ondo sortu da: " + lerroKopurua + " lerro idatzi dira");
             }
             
-            // Fitxategia sortu den egiaztatu
+            // If: fitxategia ondo sortu bada true, bestela false
             if (fitxategia.exists()) {
                 long tamaina = fitxategia.length();
                 Log.d(ETIKETA_LOG, "Agenda TXT fitxategia existitzen da: " + bidea + ", tamaina: " + tamaina + " byte");
@@ -221,6 +230,7 @@ public class AgendaEsportatzailea {
     /** XML nodo bat idatzi (izen + edukia). */
     private void nodoaIdatzi(XmlSerializer idazlea, String izena, String edukia) throws IOException {
         idazlea.startTag(null, izena);
+        // If: edukia hutsik ez bada bakarrik idatzi (XML hutsak saihesteko)
         if (edukia != null && !edukia.isEmpty()) {
             idazlea.text(edukia);
         }
@@ -229,15 +239,18 @@ public class AgendaEsportatzailea {
 
     /** Bazkidearen izena itzuli kodearen arabera (Bazkidea taula). */
     private String bazkidearenIzena(String bazkideaKodea) {
+        // If: kodea hutsik badago, ezer ez itzuli
         if (bazkideaKodea == null || bazkideaKodea.trim().isEmpty()) {
             return "";
         }
         Bazkidea b = datuBasea.bazkideaDao().nanBilatu(bazkideaKodea.trim());
+        // If: bazkidea aurkitu bada, izena + abizena (edo NAN) itzuli
         if (b != null) {
             String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
                            (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
             return izena.isEmpty() ? (b.getNan() != null ? b.getNan() : "") : izena;
         }
+        // Bazkidea ez bada aurkitu, kodea bera itzuli
         return bazkideaKodea;
     }
 

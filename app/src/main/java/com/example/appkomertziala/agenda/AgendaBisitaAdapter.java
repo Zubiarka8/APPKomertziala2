@@ -33,6 +33,7 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
 
         public AgendaElementua(long id, String bisitaData, String bazkideaIzena, String deskribapena, String egoera) {
             this.id = id;
+            // Null bakoitza kate hutsa bihurtu (eremuak beti String baliozkoak izateko)
             this.bisitaData = bisitaData != null ? bisitaData : "";
             this.bazkideaIzena = bazkideaIzena != null ? bazkideaIzena : "";
             this.deskribapena = deskribapena != null ? deskribapena : "";
@@ -53,6 +54,7 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
 
     /** Zerrenda eguneratu eta notifyDataSetChanged deitu. */
     public void eguneratuZerrenda(List<AgendaElementua> berria) {
+        // If: berria null bada, zerrenda hutsa erabili (NullPointerException saihesteko)
         this.zerrenda = berria != null ? berria : new ArrayList<>();
         notifyDataSetChanged();
     }
@@ -67,9 +69,11 @@ public class AgendaBisitaAdapter extends RecyclerView.Adapter<AgendaBisitaAdapte
     @Override
     public void onBindViewHolder(@NonNull BisitaViewHolder holder, int posizioa) {
         AgendaElementua e = zerrenda.get(posizioa);
+        // Datuak View-etara jartzen ditugu (null bada kate hutsa)
         holder.itemAgendaData.setText(e.bisitaData != null ? e.bisitaData : "");
         holder.itemAgendaDeskribapena.setText(e.deskribapena != null ? e.deskribapena : "");
         holder.itemAgendaEgoera.setText(e.egoera != null ? e.egoera : "");
+        // Botoi bakoitzak entzulea deitzen du; if: entzulea null ez bada bakarrik (crash saihesteko)
         holder.btnIkusi.setOnClickListener(v -> {
             if (entzulea != null) entzulea.onIkusi(e);
         });
