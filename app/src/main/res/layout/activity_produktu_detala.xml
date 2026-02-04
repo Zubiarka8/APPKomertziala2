@@ -94,7 +94,11 @@
                     app:icon="@drawable/ic_cart_24"
                     app:iconGravity="textStart"
                     app:iconSize="24dp"
+                    app:iconPadding="8dp"
+                    app:cornerRadius="12dp"
                     android:text="@string/btn_erosi"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:contentDescription="@string/btn_erosi"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

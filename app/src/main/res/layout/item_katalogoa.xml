@@ -87,13 +87,15 @@
                     android:layout_marginStart="@dimen/margin_small"
                     app:icon="@drawable/ic_cart_24"
                     app:iconGravity="textStart"
-                    app:iconSize="24dp"
-                    app:iconPadding="0dp"
+                    app:iconSize="20dp"
+                    app:iconPadding="4dp"
+                    app:cornerRadius="8dp"
                     android:contentDescription="@string/btn_erosi"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:paddingHorizontal="@dimen/margin_small"
-                    android:paddingVertical="@dimen/margin_small"/>
+                    android:minWidth="64dp"
+                    android:minHeight="40dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="8dp"
+                    android:textSize="14sp"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

@@ -32,7 +32,7 @@ import com.example.appkomertziala.db.kontsultak.LoginaDao;
  * Aplikazioko Room datu-basea: eredu-entitateak eta kontsulta-DAOak.
  * Erlazio-diagrama: Komertziala, Bazkidea, Katalogoa, EskaeraGoiburua, EskaeraXehetasuna, Logina, Agenda.
  */
-@Database(
+    @Database(
     entities = {
         Komertziala.class,
         Bazkidea.class,
@@ -44,7 +44,7 @@ import com.example.appkomertziala.db.kontsultak.LoginaDao;
         Agenda.class,
         HistorialCompra.class
     },
-    version = 17,
+    version = 18,  // KRITIKOA: 17 -> 18: komertzialKodea zutabea ezabatu bazkideak taulatik
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -237,23 +237,20 @@ public abstract class AppDatabase extends RoomDatabase {
 
     /**
      * 12 -> 13: Actualizar agenda_bisitak y eskaera_goiburuak: asegurar que existen las columnas bazkideaKodea/bazkideaId.
-     * Eremu falta direnak gehitu bazkideak taulan (kodea, helbidea, probintzia, komertzialKodea, sortutakoData).
+     * KRITIKOA: Bazkidea entitateak kodea bakarrik erabiltzen du - komertzialKodea EZ dago entitatean.
+     * Hau hemen kodea zutabea bakarrik gehitzen dugu, komertzialKodea EZ (17->18 migrazioan ezabatu egingo da).
      */
     private static final Migration MIGRAZIO_12_13 = new Migration(12, 13) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
             // Eremu falta direnak gehitu bazkideak taulan existitzen ez badira
+            // KRITIKOA: Bazkidea entitatearekin bateratuta - kodea bakarrik (komertzialKodea EZ)
             if (taulaExistitzenDa(db, "bazkideak")) {
                 if (!zutabeaExistitzenDa(db, "bazkideak", "kodea"))
                     db.execSQL("ALTER TABLE bazkideak ADD COLUMN kodea TEXT");
-                if (!zutabeaExistitzenDa(db, "bazkideak", "helbidea"))
-                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN helbidea TEXT");
-                if (!zutabeaExistitzenDa(db, "bazkideak", "probintzia"))
-                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN probintzia TEXT");
+                // komertzialKodea zutabea gehitzen dugu hemen (garapen fasean zegoen), baina 17->18 migrazioan ezabatu egingo da
                 if (!zutabeaExistitzenDa(db, "bazkideak", "komertzialKodea"))
                     db.execSQL("ALTER TABLE bazkideak ADD COLUMN komertzialKodea TEXT");
-                if (!zutabeaExistitzenDa(db, "bazkideak", "sortutakoData"))
-                    db.execSQL("ALTER TABLE bazkideak ADD COLUMN sortutakoData TEXT");
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_bazkideak_kodea ON bazkideak(kodea)");
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_bazkideak_komertzialKodea ON bazkideak(komertzialKodea)");
             }
@@ -282,17 +279,18 @@ public abstract class AppDatabase extends RoomDatabase {
 
     /**
      * 13 -> 14: Reconstruir bazkideak taula egitura ZUZEKIN (Foreign Key eta indize guztiak barne).
+     * KRITIKOA: Hau hemen komertzialKodea mantentzen dugu (garapen fasean zegoen), baina 17->18 migrazioan ezabatu egingo da.
      * SQLite-k ezin du Foreign Key bat gehitu ALTER TABLE-rekin, beraz "table swap" estrategia erabiltzen da:
      * 1. Sortu bazkideak_new taula egitura ZUZEKIN (FK eta indize guztiak barne)
-     * 2. Kopiatu datu guztiak taula zaharretik berrira (zutabeak existitzen badira)
+     * 2. Kopiatu datu guztiak taula zaharretik berrira (zutabeak existitzen badira bakarrik)
      * 3. Ezabatu taula zaharra eta aldatu berriaren izena bazkideak izatera
      */
     private static final Migration MIGRAZIO_13_14 = new Migration(13, 14) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
             if (!taulaExistitzenDa(db, "bazkideak")) {
-                // Taula ez badago, sortu egitura ZUZEKIN
-                db.execSQL("CREATE TABLE bazkideak (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT, helbidea TEXT, probintzia TEXT, komertzialKodea TEXT, sortutakoData TEXT, FOREIGN KEY(komertzialKodea) REFERENCES komertzialak(kodea) ON DELETE CASCADE)");
+                // Taula ez badago, sortu egitura ZUZEKIN - komertzialKodea hemen mantentzen dugu (17->18 migrazioan ezabatu egingo da)
+                db.execSQL("CREATE TABLE bazkideak (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT, komertzialKodea TEXT, FOREIGN KEY(komertzialKodea) REFERENCES komertzialak(kodea) ON DELETE CASCADE)");
                 db.execSQL("CREATE INDEX index_bazkideak_nan ON bazkideak(nan)");
                 db.execSQL("CREATE INDEX index_bazkideak_izena ON bazkideak(izena)");
                 db.execSQL("CREATE INDEX index_bazkideak_kodea ON bazkideak(kodea)");
@@ -301,13 +299,20 @@ public abstract class AppDatabase extends RoomDatabase {
             }
 
             // Table swap estrategia: sortu taula berria egitura ZUZEKIN
-            db.execSQL("CREATE TABLE bazkideak_new (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT, helbidea TEXT, probintzia TEXT, komertzialKodea TEXT, sortutakoData TEXT, FOREIGN KEY(komertzialKodea) REFERENCES komertzialak(kodea) ON DELETE CASCADE)");
+            // Hau hemen komertzialKodea mantentzen dugu (garapen fasean zegoen), baina 17->18 migrazioan ezabatu egingo da
+            db.execSQL("CREATE TABLE bazkideak_new (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT, komertzialKodea TEXT, FOREIGN KEY(komertzialKodea) REFERENCES komertzialak(kodea) ON DELETE CASCADE)");
 
             // Kopiatu datu guztiak: XML-eko zutabeak (nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia)
-            // eta zutabe gehigarriak (kodea, helbidea, probintzia, komertzialKodea, sortutakoData)
-            // Migrazio 12->13-ak zutabe guztiak gehitzen ditu, beraz SELECT zuzena erabili
-            db.execSQL("INSERT INTO bazkideak_new (id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, kodea, helbidea, probintzia, komertzialKodea, sortutakoData) " +
-                       "SELECT id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, kodea, helbidea, probintzia, komertzialKodea, sortutakoData FROM bazkideak");
+            // eta zutabe gehigarriak (kodea, komertzialKodea - hau hemen mantentzen dugu, baina 17->18 migrazioan ezabatu egingo da)
+            // Begiratu hemen ea kodea eta komertzialKodea zutabeak badaude, horiek kopiatzen ditugu
+            boolean kodeaExistitzenDa = zutabeaExistitzenDa(db, "bazkideak", "kodea");
+            boolean komertzialKodeaExistitzenDa = zutabeaExistitzenDa(db, "bazkideak", "komertzialKodea");
+            
+            String kodeaSelect = kodeaExistitzenDa ? "kodea" : "NULL";
+            String komertzialKodeaSelect = komertzialKodeaExistitzenDa ? "komertzialKodea" : "NULL";
+            
+            db.execSQL("INSERT INTO bazkideak_new (id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, kodea, komertzialKodea) " +
+                       "SELECT id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, " + kodeaSelect + ", " + komertzialKodeaSelect + " FROM bazkideak");
 
             // Ezabatu taula zaharra eta indize zaharrak
             db.execSQL("DROP INDEX IF EXISTS index_bazkideak_nan");
@@ -319,7 +324,7 @@ public abstract class AppDatabase extends RoomDatabase {
             // Aldatu berriaren izena bazkideak izatera
             db.execSQL("ALTER TABLE bazkideak_new RENAME TO bazkideak");
 
-            // Sortu indize berriak
+            // Sortu indize berriak - komertzialKodea indizea hemen mantentzen dugu (17->18 migrazioan ezabatu egingo da)
             db.execSQL("CREATE INDEX index_bazkideak_nan ON bazkideak(nan)");
             db.execSQL("CREATE INDEX index_bazkideak_izena ON bazkideak(izena)");
             db.execSQL("CREATE INDEX index_bazkideak_kodea ON bazkideak(kodea)");
@@ -379,6 +384,54 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * 17 -> 18: KRITIKOA - komertzialKodea zutabea ezabatu bazkideak taulatik.
+     * Bazkidea entitatean EZ dago komertzialKodea zutabea, baina DB zaharretan badago.
+     * Hau hemen taula berri bat sortzen dugu komertzialKodea GABE, eta datuak kopiatzen ditugu.
+     * Begiratu hemen ea kodea zutabea badago, hori mantentzen dugu.
+     */
+    private static final Migration MIGRAZIO_17_18 = new Migration(17, 18) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            if (!taulaExistitzenDa(db, "bazkideak")) {
+                // Taula ez badago, sortu egitura ZUZEKIN - Bazkidea entitatearekin bateratuta (komertzialKodea GABE)
+                db.execSQL("CREATE TABLE bazkideak (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT)");
+                db.execSQL("CREATE INDEX index_bazkideak_nan ON bazkideak(nan)");
+                db.execSQL("CREATE INDEX index_bazkideak_izena ON bazkideak(izena)");
+                db.execSQL("CREATE INDEX index_bazkideak_kodea ON bazkideak(kodea)");
+                return;
+            }
+
+            // Table swap estrategia: sortu taula berria komertzialKodea GABE
+            // Hau hemen badago, dena ondo doa - komertzialKodea zutabea ezabatzen dugu
+            db.execSQL("CREATE TABLE bazkideak_new (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nan TEXT, izena TEXT, abizena TEXT, telefonoZenbakia TEXT, posta TEXT, jaiotzeData TEXT, argazkia TEXT, kodea TEXT)");
+
+            // Kopiatu datu guztiak: XML-eko zutabeak (nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia)
+            // eta kodea zutabea bakarrik - komertzialKodea EZ kopiatzen dugu (entitatean ez dago)
+            // Begiratu hemen ea kodea zutabea badago, hori kopiatzen dugu
+            boolean kodeaExistitzenDa = zutabeaExistitzenDa(db, "bazkideak", "kodea");
+            String kodeaSelect = kodeaExistitzenDa ? "kodea" : "NULL";
+            
+            db.execSQL("INSERT INTO bazkideak_new (id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, kodea) " +
+                       "SELECT id, nan, izena, abizena, telefonoZenbakia, posta, jaiotzeData, argazkia, " + kodeaSelect + " FROM bazkideak");
+
+            // Ezabatu taula zaharra eta indize zaharrak
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_nan");
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_izena");
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_kodea");
+            db.execSQL("DROP INDEX IF EXISTS index_bazkideak_komertzialKodea");  // komertzialKodea indizea ezabatu
+            db.execSQL("DROP TABLE bazkideak");
+
+            // Aldatu berriaren izena bazkideak izatera
+            db.execSQL("ALTER TABLE bazkideak_new RENAME TO bazkideak");
+
+            // Sortu indize berriak - komertzialKodea indizea EZ sortzen dugu (zutabea ez dago)
+            db.execSQL("CREATE INDEX index_bazkideak_nan ON bazkideak(nan)");
+            db.execSQL("CREATE INDEX index_bazkideak_izena ON bazkideak(izena)");
+            db.execSQL("CREATE INDEX index_bazkideak_kodea ON bazkideak(kodea)");
+        }
+    };
+
     /** komertzialak taulan komertzialak.xml-eko eremu guztiak (abizena, posta, jaiotzeData, argazkia) badauden egiaztatu eta falta badira gehitu. */
     private static void komertzialakZutabeakGehitu(SupportSQLiteDatabase db) {
         if (!taulaExistitzenDa(db, "komertzialak")) return;
@@ -414,22 +467,29 @@ public abstract class AppDatabase extends RoomDatabase {
     /**
      * Datu-basearen instantzia bakarra itzuli (singleton).
      * Kontekstua aplikazioko kontekstua izan behar da.
+     * Hau hemen badago, dena ondo doa - datu-basea prest dago kontsultak egiteko.
      */
     public static AppDatabase getInstance(Context context) {
+        // Begiratu hemen ea instantzia badago, hori itzultzen dugu (singleton patroia)
         if (instantzia == null) {
+            // Synchronized blokea - hainbat hari aldi berean instantzia sortzea saihesteko
             synchronized (AppDatabase.class) {
+                // Double-check locking - beste hari batek sortu badu bitartean, berriro egiaztatu
                 if (instantzia == null) {
+                    // Hau hemen datu-basea eraikitzen dugu - migrazio guztiak gehitzen ditugu
                     instantzia = Room.databaseBuilder(
                             context.getApplicationContext(),
                             AppDatabase.class,
                             "techno_basque_db"
-                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12, MIGRAZIO_12_13, MIGRAZIO_13_14, MIGRAZIO_14_15, MIGRAZIO_15_16, MIGRAZIO_16_17)
-                            .fallbackToDestructiveMigration()  // Eskema aldaketa handia: datu-base zaharra ezabatu eta berria sortu
+                    ).addMigrations(MIGRAZIO_1_2, MIGRAZIO_2_3, MIGRAZIO_3_4, MIGRAZIO_4_5, MIGRAZIO_5_6, MIGRAZIO_6_7, MIGRAZIO_7_8, MIGRAZIO_8_9, MIGRAZIO_9_10, MIGRAZIO_10_11, MIGRAZIO_11_12, MIGRAZIO_12_13, MIGRAZIO_13_14, MIGRAZIO_14_15, MIGRAZIO_15_16, MIGRAZIO_16_17, MIGRAZIO_17_18)
+                            .fallbackToDestructiveMigration()  // KRITIKOA: Garapen fasean bagaude, eskema aldaketa handia: datu-base zaharra ezabatu eta berria sortu
                             .allowMainThreadQueries()  // Kontsulta bat hari nagusian egiten bada itxiera saihesteko
                             .build();
+                    // Hau hemen badago, datu-basea prest dago kontsultak egiteko
                 }
             }
         }
+        // Begiratu hemen ea instantzia badago, hori itzultzen dugu
         return instantzia;
     }
 }

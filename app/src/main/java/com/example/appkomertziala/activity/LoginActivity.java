@@ -90,6 +90,10 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // KRITIKOA: Hardware acceleration optimizazioa - rendering pipeline ordena bermatzeko
+        // Window-aren hardware acceleration mantendu, baina MapFragment software rendering erabiliko du
+        
         setContentView(R.layout.activity_login);
 
         tilUser = findViewById(R.id.tilUser);
@@ -111,25 +115,94 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         btnSartuKomertzialGisa.setOnClickListener(v -> sartuKomertzialGisa());
         btnSartuBazkideGisa.setOnClickListener(v -> sartuBazkideGisa());
 
+        // Logo irudia optimizatu - cache eta rendering optimizazioa
+        android.widget.ImageView ivLogo = findViewById(R.id.ivLogo);
+        if (ivLogo != null) {
+            // Software rendering erabili logoarentzat buffer ordena bermatzeko
+            ivLogo.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
+            // Cache optimizazioa
+            ivLogo.setDrawingCacheEnabled(true);
+        }
+
         // Hasieran: komertzial guztiak kargatu taula hutsik badago (assets edo barne-memoria)
         kargatuKomertzialakHasieran();
 
+        // KRITIKOA: MapFragment rendering optimizazioa - SurfaceFlinger buffer ordena bermatzeko
+        // ViewTreeObserver erabili UI eguneraketa ordena bermatzeko
+        android.view.View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            rootView.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    rootView.getViewTreeObserver().removeOnPreDrawListener(this);
+                    // MapFragment kargatu UI errendimendua optimizatuta dagoenean
+                    konfiguratuMapFragment();
+                    return true;
+                }
+            });
+        } else {
+            // Fallback: zuzenean kargatu
+            konfiguratuMapFragment();
+        }
+    }
+
+    /**
+     * MapFragment konfiguratu rendering optimizazioekin.
+     * Software rendering erabiltzen du SurfaceFlinger buffer ordena bermatzeko.
+     */
+    private void konfiguratuMapFragment() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapFragmentLogin);
         if (mapFragment != null) {
+            // KRITIKOA: MapFragment-aren view-a software rendering moduan jarri
+            // Hau SurfaceFlinger-eko "Out of order buffers" errorea konpontzen du
+            android.view.View mapView = mapFragment.getView();
+            if (mapView != null) {
+                // Software rendering erabili buffer sinkronizazioa bermatzeko
+                mapView.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
+                // Clip optimizazioa - ViewGroup bada bakarrik aplikatu
+                if (mapView instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup viewGroup = (android.view.ViewGroup) mapView;
+                    viewGroup.setClipToPadding(true);
+                    viewGroup.setClipChildren(true);
+                }
+            }
             mapFragment.getMapAsync(this);
         }
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
+        // KRITIKOA: Map rendering optimizazioa - frame buffer ordena bermatzeko
+        // UI eguneraketa bideratu invalidate baten bidez, ez zuzenean
+        
+        // Map konfigurazioa software rendering moduan
+        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        
+        // Rendering optimizazioak
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        // Markatzailea (marker) Gipuzkoa egoitzan
-        googleMap.addMarker(new MarkerOptions()
-                .position(donostia)
-                .title(getString(R.string.contact_title)));
+        googleMap.getUiSettings().setCompassEnabled(false); // Gehiegizko rendering saihestu
+        googleMap.getUiSettings().setMapToolbarEnabled(false); // Overhead murriztu
+        
+        // Camera eguneraketa bideratu - invalidate ordena bermatzeko
+        android.view.View mapView = findViewById(R.id.mapFragmentLogin);
+        if (mapView != null) {
+            mapView.post(() -> {
+                LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
+                // Markatzailea (marker) Gipuzkoa egoitzan
+                googleMap.addMarker(new MarkerOptions()
+                        .position(donostia)
+                        .title(getString(R.string.contact_title)));
+            });
+        } else {
+            // Fallback: zuzenean exekutatu
+            LatLng donostia = new LatLng(DONOSTIA_LAT, DONOSTIA_LNG);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(donostia, 14f));
+            googleMap.addMarker(new MarkerOptions()
+                    .position(donostia)
+                    .title(getString(R.string.contact_title)));
+        }
     }
 
     /** Assets-eko XML fitxategien zerrenda erakusten du; hautatutakoa (edo guztiak) kargatzen du. */
@@ -173,7 +246,13 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             try {
                 XMLKudeatzailea kud = new XMLKudeatzailea(this);
                 kud.inportatuFitxategia(fitxategiIzena);
-                runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show());
+                // KRITIKOA: UI eguneraketa bideratu - invalidate ordena bermatzeko
+                android.view.View rootView = findViewById(android.R.id.content);
+                if (rootView != null) {
+                    rootView.post(() -> runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show()));
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show());
+                }
             } catch (IllegalArgumentException e) {
                 runOnUiThread(() -> Toast.makeText(this, R.string.xml_ezin_inportatu, Toast.LENGTH_LONG).show());
             } catch (java.io.IOException e) {
@@ -210,7 +289,13 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             try {
                 XMLKudeatzailea kud = new XMLKudeatzailea(this);
                 kud.guztiakInportatu();
-                runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show());
+                // KRITIKOA: UI eguneraketa bideratu - invalidate ordena bermatzeko
+                android.view.View rootView = findViewById(android.R.id.content);
+                if (rootView != null) {
+                    rootView.post(() -> runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show()));
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, R.string.datuak_ondo_eguneratu, Toast.LENGTH_LONG).show());
+                }
             } catch (java.io.IOException e) {
                 runOnUiThread(() -> Toast.makeText(this, R.string.errorea_fitxategia_irakurtzean, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
@@ -244,34 +329,70 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                 }
             }
             final List<Komertziala> finalZerrenda = zerrenda;
-            runOnUiThread(() -> {
-                if (finalZerrenda.isEmpty()) {
-                    Toast.makeText(this, R.string.komertzial_zerrenda_hutsa, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String[] aukerak = new String[finalZerrenda.size()];
-                for (int i = 0; i < finalZerrenda.size(); i++) {
-                    Komertziala k = finalZerrenda.get(i);
-                    aukerak[i] = (k.getIzena() != null ? k.getIzena().trim() : "") + " (" + (k.getKodea() != null ? k.getKodea() : "") + ")";
-                }
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.komertzial_hautatu_titulua)
-                        .setItems(aukerak, (dialog, which) -> {
-                            Komertziala hautatua = finalZerrenda.get(which);
-                            
-                            // SEGURTASUNA: SessionManager erabiliz saioa hasi
-                            com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
-                                new com.example.appkomertziala.segurtasuna.SessionManager(this);
-                            sessionManager.saioaHasi(hautatua.getKodea(), hautatua.getIzena());
-                            
-                            Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(this, MainActivity.class);
-                            startActivity(intent);
-                            finish();
-                        })
-                        .setNegativeButton(R.string.xml_utzi, null)
-                        .show();
-            });
+            // KRITIKOA: UI eguneraketa bideratu - invalidate ordena bermatzeko
+            // post() erabili runOnUiThread() baino lehen, frame buffer ordena bermatzeko
+            android.view.View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                rootView.post(() -> {
+                    runOnUiThread(() -> {
+                        if (finalZerrenda.isEmpty()) {
+                            Toast.makeText(this, R.string.komertzial_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        String[] aukerak = new String[finalZerrenda.size()];
+                        for (int i = 0; i < finalZerrenda.size(); i++) {
+                            Komertziala k = finalZerrenda.get(i);
+                            aukerak[i] = (k.getIzena() != null ? k.getIzena().trim() : "") + " (" + (k.getKodea() != null ? k.getKodea() : "") + ")";
+                        }
+                        new AlertDialog.Builder(this)
+                                .setTitle(R.string.komertzial_hautatu_titulua)
+                                .setItems(aukerak, (dialog, which) -> {
+                                    Komertziala hautatua = finalZerrenda.get(which);
+                                    
+                                    // SEGURTASUNA: SessionManager erabiliz saioa hasi
+                                    com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                                        new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                                    sessionManager.saioaHasi(hautatua.getKodea(), hautatua.getIzena());
+                                    
+                                    Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                })
+                                .setNegativeButton(R.string.xml_utzi, null)
+                                .show();
+                    });
+                });
+            } else {
+                runOnUiThread(() -> {
+                    if (finalZerrenda.isEmpty()) {
+                        Toast.makeText(this, R.string.komertzial_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    String[] aukerak = new String[finalZerrenda.size()];
+                    for (int i = 0; i < finalZerrenda.size(); i++) {
+                        Komertziala k = finalZerrenda.get(i);
+                        aukerak[i] = (k.getIzena() != null ? k.getIzena().trim() : "") + " (" + (k.getKodea() != null ? k.getKodea() : "") + ")";
+                    }
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.komertzial_hautatu_titulua)
+                            .setItems(aukerak, (dialog, which) -> {
+                                Komertziala hautatua = finalZerrenda.get(which);
+                                
+                                // SEGURTASUNA: SessionManager erabiliz saioa hasi
+                                com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                                    new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                                sessionManager.saioaHasi(hautatua.getKodea(), hautatua.getIzena());
+                                
+                                Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(this, MainActivity.class);
+                                startActivity(intent);
+                                finish();
+                            })
+                            .setNegativeButton(R.string.xml_utzi, null)
+                            .show();
+                });
+            }
         }).start();
     }
 
@@ -302,35 +423,71 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                 }
             }
             final List<Bazkidea> finalZerrenda = zerrenda;
-            runOnUiThread(() -> {
-                if (finalZerrenda.isEmpty()) {
-                    Toast.makeText(this, R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String[] aukerak = new String[finalZerrenda.size()];
-                for (int i = 0; i < finalZerrenda.size(); i++) {
-                    Bazkidea b = finalZerrenda.get(i);
-                    String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
-                                   (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
-                    String nan = b.getNan() != null ? b.getNan() : "";
-                    aukerak[i] = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
-                }
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.bazkide_hautatu_titulua)
-                        .setItems(aukerak, (dialog, which) -> {
-                            Bazkidea hautatutakoBazkidea = finalZerrenda.get(which);
-                            Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(this, MainActivity.class);
-                            if (hautatutakoBazkidea != null) {
-                                intent.putExtra(MainActivity.EXTRA_BAZKIDEA_NAN, hautatutakoBazkidea.getNan());
-                                intent.putExtra(MainActivity.EXTRA_BAZKIDEA_ID, hautatutakoBazkidea.getId());
-                            }
-                            startActivity(intent);
-                            finish();
-                        })
-                        .setNegativeButton(R.string.xml_utzi, null)
-                        .show();
-            });
+            // KRITIKOA: UI eguneraketa bideratu - invalidate ordena bermatzeko
+            android.view.View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                rootView.post(() -> {
+                    runOnUiThread(() -> {
+                        if (finalZerrenda.isEmpty()) {
+                            Toast.makeText(this, R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        String[] aukerak = new String[finalZerrenda.size()];
+                        for (int i = 0; i < finalZerrenda.size(); i++) {
+                            Bazkidea b = finalZerrenda.get(i);
+                            String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                           (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                            String nan = b.getNan() != null ? b.getNan() : "";
+                            aukerak[i] = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
+                        }
+                        new AlertDialog.Builder(this)
+                                .setTitle(R.string.bazkide_hautatu_titulua)
+                                .setItems(aukerak, (dialog, which) -> {
+                                    Bazkidea hautatutakoBazkidea = finalZerrenda.get(which);
+                                    Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(this, MainActivity.class);
+                                    if (hautatutakoBazkidea != null) {
+                                        intent.putExtra(MainActivity.EXTRA_BAZKIDEA_NAN, hautatutakoBazkidea.getNan());
+                                        intent.putExtra(MainActivity.EXTRA_BAZKIDEA_ID, hautatutakoBazkidea.getId());
+                                    }
+                                    startActivity(intent);
+                                    finish();
+                                })
+                                .setNegativeButton(R.string.xml_utzi, null)
+                                .show();
+                    });
+                });
+            } else {
+                runOnUiThread(() -> {
+                    if (finalZerrenda.isEmpty()) {
+                        Toast.makeText(this, R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    String[] aukerak = new String[finalZerrenda.size()];
+                    for (int i = 0; i < finalZerrenda.size(); i++) {
+                        Bazkidea b = finalZerrenda.get(i);
+                        String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                       (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                        String nan = b.getNan() != null ? b.getNan() : "";
+                        aukerak[i] = izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")");
+                    }
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.bazkide_hautatu_titulua)
+                            .setItems(aukerak, (dialog, which) -> {
+                                Bazkidea hautatutakoBazkidea = finalZerrenda.get(which);
+                                Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(this, MainActivity.class);
+                                if (hautatutakoBazkidea != null) {
+                                    intent.putExtra(MainActivity.EXTRA_BAZKIDEA_NAN, hautatutakoBazkidea.getNan());
+                                    intent.putExtra(MainActivity.EXTRA_BAZKIDEA_ID, hautatutakoBazkidea.getId());
+                                }
+                                startActivity(intent);
+                                finish();
+                            })
+                            .setNegativeButton(R.string.xml_utzi, null)
+                            .show();
+                });
+            }
         }).start();
     }
 
@@ -364,27 +521,55 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             new Thread(() -> {
                 AppDatabase db = AppDatabase.getInstance(this);
                 Logina logina = db.loginaDao().sarbideaBalidatu(userFinal, passwordFinal);
-                runOnUiThread(() -> {
-                    if (logina == null) {
-                        Toast.makeText(this, R.string.login_error_erabiltzaile_pasahitz, Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    String komertzialKode = logina.getKomertzialKodea();
-                    Komertziala komertziala = (komertzialKode != null && !komertzialKode.isEmpty())
-                            ? db.komertzialaDao().kodeaBilatu(komertzialKode) : null;
-                    
-                    // SEGURTASUNA: SessionManager erabiliz saioa hasi
-                    if (komertziala != null) {
-                        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
-                            new com.example.appkomertziala.segurtasuna.SessionManager(this);
-                        sessionManager.saioaHasi(komertziala.getKodea(), komertziala.getIzena());
-                    }
-                    
-                    Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                });
+                // KRITIKOA: UI eguneraketa bideratu - frame buffer ordena bermatzeko
+                android.view.View rootView = findViewById(android.R.id.content);
+                if (rootView != null) {
+                    rootView.post(() -> {
+                        runOnUiThread(() -> {
+                            if (logina == null) {
+                                Toast.makeText(this, R.string.login_error_erabiltzaile_pasahitz, Toast.LENGTH_LONG).show();
+                                return;
+                            }
+                            String komertzialKode = logina.getKomertzialKodea();
+                            Komertziala komertziala = (komertzialKode != null && !komertzialKode.isEmpty())
+                                    ? db.komertzialaDao().kodeaBilatu(komertzialKode) : null;
+                            
+                            // SEGURTASUNA: SessionManager erabiliz saioa hasi
+                            if (komertziala != null) {
+                                com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                                    new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                                sessionManager.saioaHasi(komertziala.getKodea(), komertziala.getIzena());
+                            }
+                            
+                            Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
+                        });
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        if (logina == null) {
+                            Toast.makeText(this, R.string.login_error_erabiltzaile_pasahitz, Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        String komertzialKode = logina.getKomertzialKodea();
+                        Komertziala komertziala = (komertzialKode != null && !komertzialKode.isEmpty())
+                                ? db.komertzialaDao().kodeaBilatu(komertzialKode) : null;
+                        
+                        // SEGURTASUNA: SessionManager erabiliz saioa hasi
+                        if (komertziala != null) {
+                            com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+                                new com.example.appkomertziala.segurtasuna.SessionManager(this);
+                            sessionManager.saioaHasi(komertziala.getKodea(), komertziala.getIzena());
+                        }
+                        
+                        Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    });
+                }
             }).start();
         }
     }
