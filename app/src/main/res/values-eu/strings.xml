@@ -122,20 +122,17 @@
     <string name="data_hautatu">Data hautatu</string>
     <string name="ordua_hautatu">Ordua hautatu</string>
     <string name="zita_ordezkaritza">Ordezkaritza</string>
-    <string name="zita_partnerra">Partnerra</string>
     <string name="zita_gorde">Gorde</string>
     <string name="zita_utzi">Utzi</string>
     <string name="zita_ondo_gordeta">Zita gordeta.</string>
     <string name="zita_errorea_zenbakia">Zenbakia beharrezkoa da.</string>
     <string name="zita_errorea_data">Data beharrezkoa da (uuuu-hh-ee).</string>
-    <string name="zita_errorea_partner">Hautatu partner bat.</string>
 
     <string name="agenda_modulua_izenburua">Agenda (bisitak)</string>
     <string name="agenda_modulua_zerrenda_hutsa">Bisitarik ez. Gehitu bat «Bisita berria» botoiarekin.</string>
     <string name="agenda_modulua_bisita_berria">Bisita berria</string>
     <string name="bilatu_bisitak">Bilatu (bazkidea, data, deskribapena, egoera...)</string>
     <string name="agenda_bisita_data">Bisitaren data</string>
-    <string name="agenda_bisita_partnerra">Partnerra</string>
     <string name="agenda_bisita_bazkidea">Bazkidea</string>
     <string name="agenda_bisita_deskribapena">Deskribapena</string>
     <string name="agenda_bisita_egoera">Egoera</string>
@@ -151,11 +148,9 @@
     <string name="bisita_ondo_gordeta">Bisita gordeta.</string>
     <string name="bisita_errorea_data">Data beharrezkoa da.</string>
     <string name="bisita_errorea_data_formatua">Data formatua ez da zuzena (uuuu-hh-ee).</string>
-    <string name="bisita_errorea_partnerra">Hautatu partner bat.</string>
     <string name="bisita_errorea_deskribapena_hutsa">Deskribapena beharrezkoa da.</string>
     <string name="bisita_errorea_deskribapena_luzea">Deskribapena luzeegia da (gehienez %1$d karaktere).</string>
     <string name="eremu_guztiak_bete_behar_dira">Errorea: Eremu guztiak bete behar dira.</string>
-    <string name="bisita_partnerra_ez_datu_basean">Partnerra ez da datu-basean (Partnerra taula). Eremua baliozkoa izan behar du.</string>
     <string name="postaz_fitxategia_hutsik">Fitxategia hutsik dago; ezin da postaz bidali.</string>
     <string name="barne_memoria_lekurik_ez">Barne-memorian ez dago nahikoa lekurik fitxategia idazteko.</string>
     <string name="postaz_gaia_hilero">[Techno Basque] Hileroko Agenda - %1$s</string>
@@ -223,6 +218,14 @@
     <string name="eskaera_data">Data</string>
     <string name="eskaera_guztira">Guztira</string>
     <string name="eskaera_artikuluak">Artikuluak</string>
+    
+    <!-- Historial erosketa -->
+    <string name="erosketa_historiala">Erosketa historiala</string>
+    <string name="historial_zerrenda_hutsa">Historial zerrenda hutsa</string>
+    <string name="kantitatea">Kantitatea</string>
+    <string name="prezio_unitarioa">Prezio unitarioa</string>
+    <string name="prezio_totala">Prezio totala</string>
+    <string name="errorea_historiala_kargatzean">Errorea historiala kargatzean</string>
     <string name="katalogoa_artikulu_kodea_etiketa">Artikulu kodea: %1$s</string>
     <string name="katalogoa_stock_etiketa">Stock: %1$d</string>
     <string name="cd_katalogoa_irudia">Produktuaren irudia</string>

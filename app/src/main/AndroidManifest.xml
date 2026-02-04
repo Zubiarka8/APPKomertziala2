@@ -20,7 +20,7 @@
             android:value="${MAPS_API_KEY}" />
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".activity.LoginActivity"
             android:exported="true"
             android:theme="@style/Theme.APPKomertziala">
             <intent-filter>
@@ -32,27 +32,27 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".ZitaGehituActivity"
+            android:name=".activity.ZitaGehituActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".AgendaModuluaActivity"
+            android:name=".activity.AgendaModuluaActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".BisitaFormularioActivity"
+            android:name=".activity.BisitaFormularioActivity"
             android:exported="false"
-            android:parentActivityName=".AgendaModuluaActivity" />
+            android:parentActivityName=".activity.AgendaModuluaActivity" />
         <activity
-            android:name=".BazkideaFormularioActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-        <activity
-            android:name=".ProduktuDetalaActivity"
+            android:name=".activity.BazkideaFormularioActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
         <activity
-            android:name=".EskaerakActivity"
+            android:name=".activity.ProduktuDetalaActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".activity.EskaerakActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 

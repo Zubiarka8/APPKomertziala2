@@ -1,4 +1,4 @@
-package com.example.appkomertziala;
+package com.example.appkomertziala.agenda;
 
 import android.content.Context;
 import android.util.Log;
@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;

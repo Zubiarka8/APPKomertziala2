@@ -49,14 +49,6 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/itemZitaPartnerra"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:textSize="@dimen/text_size_normal"
-            android:textColor="@color/text_secondary"/>
-
-        <TextView
             android:id="@+id/itemZitaOrdezkaritza"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

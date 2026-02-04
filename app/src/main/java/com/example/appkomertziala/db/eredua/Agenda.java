@@ -73,15 +73,6 @@ public class Agenda {
     public void setBazkideaKodea(String bazkideaKodea) { this.bazkideaKodea = bazkideaKodea; }
     public Long getBazkideaId() { return bazkideaId; }
     public void setBazkideaId(Long bazkideaId) { this.bazkideaId = bazkideaId; }
-    // Métodos de compatibilidad temporal (deprecated)
-    @Deprecated
-    public String getPartnerKodea() { return bazkideaKodea; }
-    @Deprecated
-    public void setPartnerKodea(String partnerKodea) { this.bazkideaKodea = partnerKodea; }
-    @Deprecated
-    public Long getPartnerId() { return bazkideaId; }
-    @Deprecated
-    public void setPartnerId(Long partnerId) { this.bazkideaId = partnerId; }
     public Long getKomertzialaId() { return komertzialaId; }
     public void setKomertzialaId(Long komertzialaId) { this.komertzialaId = komertzialaId; }
     public String getDeskribapena() { return deskribapena; }

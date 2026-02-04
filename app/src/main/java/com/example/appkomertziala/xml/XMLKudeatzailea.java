@@ -390,7 +390,10 @@ public class XMLKudeatzailea {
         }
         
         Bazkidea b = new Bazkidea();
-        b.setNan(nan != null ? nan.trim() : "");
+        String nanTrimmed = nan != null ? nan.trim() : "";
+        b.setNan(nanTrimmed);
+        // kodea eremua NAN-etik kopiatu (bazkideak.xml-ek ez du kodea eremurik, NAN erabiltzen du)
+        b.setKodea(nanTrimmed);
         b.setIzena(izena != null ? izena.trim() : "");
         b.setAbizena(abizena != null ? abizena.trim() : "");
         b.setTelefonoZenbakia(telefonoZenbakia != null ? telefonoZenbakia.trim() : "");
@@ -854,11 +857,7 @@ public class XMLKudeatzailea {
         a.setOrdua(trimm(map.get("ordua")));
         a.setKomertzialKodea(trimm(map.get("komertzial_kodea")));
         
-        // Compatibilidad: aceptar tanto partner_kodea como bazkidea_kodea
         String bazkideaKodea = trimm(map.get("bazkidea_kodea"));
-        if (bazkideaKodea == null || bazkideaKodea.isEmpty()) {
-            bazkideaKodea = trimm(map.get("partner_kodea"));
-        }
         a.setBazkideaKodea(bazkideaKodea);
         a.setDeskribapena(trimm(map.get("deskribapena")));
         a.setEgoera(trimm(map.get("egoera")));
@@ -890,11 +889,7 @@ public class XMLKudeatzailea {
         goi.setData(trimm(map.get("data")));
         goi.setKomertzialKodea(trimm(map.get("komertzialKodea")));
         goi.setOrdezkaritza(trimm(map.get("ordezkaritza")));
-        // Compatibilidad: aceptar tanto partnerKodea como bazkideaKodea
         String bazkideaKodea = trimm(map.get("bazkideaKodea"));
-        if (bazkideaKodea == null || bazkideaKodea.isEmpty()) {
-            bazkideaKodea = trimm(map.get("partnerKodea"));
-        }
         goi.setBazkideaKodea(bazkideaKodea);
         return goi;
     }
@@ -917,7 +912,6 @@ public class XMLKudeatzailea {
                 case "komertzialKodea": komertzialKodea = value; break;
                 case "ordezkaritza": ordezkaritza = value; break;
                 case "bazkideaKodea": bazkideaKodea = value; break;
-                case "partnerKodea": bazkideaKodea = value; break; // Compatibilidad
                 default: atalBatJauzi(parser); break;
             }
         }
@@ -948,9 +942,6 @@ public class XMLKudeatzailea {
                 }
                 break;
             }
-            case "partnerrak.xml":
-                // partnerrak.xml ya no se usa, se usa bazkideak.xml
-                break;
             case "bazkideak.xml":
                 bazkideakInportatu(is);
                 break;
@@ -986,9 +977,6 @@ public class XMLKudeatzailea {
         switch (fitxategiIzena) {
             case "komertzialak.xml":
                 komertzialakInportatuAssetsetik();
-                break;
-            case "partnerrak.xml":
-                // partnerrak.xml ya no se usa, se usa bazkideak.xml
                 break;
             case "bazkideak.xml": {
                 int kopurua = bazkideakInportatu();

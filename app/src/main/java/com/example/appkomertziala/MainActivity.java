@@ -25,6 +25,13 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
+import com.example.appkomertziala.activity.BazkideaFormularioActivity;
+import com.example.appkomertziala.activity.BisitaFormularioActivity;
+import com.example.appkomertziala.activity.EskaerakActivity;
+import com.example.appkomertziala.activity.LoginActivity;
+import com.example.appkomertziala.activity.ProduktuDetalaActivity;
+import com.example.appkomertziala.adapter.KatalogoaAdapter;
+import com.example.appkomertziala.adapter.SaskiaAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -40,11 +47,10 @@ import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
-import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.xml.DatuKudeatzailea;
 import com.example.appkomertziala.xml.XmlBilatzailea;
 import com.example.appkomertziala.xml.XMLKudeatzailea;
-import com.example.appkomertziala.AgendaEsportatzailea;
+import com.example.appkomertziala.agenda.AgendaEsportatzailea;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,7 +58,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -454,7 +459,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         View item = inflater.inflate(R.layout.item_zita, listContainer, false);
                         ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
                         ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
-                        ((TextView) item.findViewById(R.id.itemZitaPartnerra)).setText(bazkideaIzena);
                         TextView tvOrdezk = item.findViewById(R.id.itemZitaOrdezkaritza);
                         if (!deskribapena.isEmpty()) {
                             tvOrdezk.setText(deskribapena);
@@ -538,7 +542,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     View item = inflater.inflate(R.layout.item_zita, listContainer, false);
                     ((TextView) item.findViewById(R.id.itemZitaData)).setText(dataStr);
                     ((TextView) item.findViewById(R.id.itemZitaZenbakia)).setText(zenb);
-                    ((TextView) item.findViewById(R.id.itemZitaPartnerra)).setText(bazkideaIzena);
                     TextView tvOrdezk = item.findViewById(R.id.itemZitaOrdezkaritza);
                     if (!deskribapena.isEmpty()) {
                         tvOrdezk.setText(deskribapena);
@@ -568,7 +571,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         StringBuilder msg = new StringBuilder();
         msg.append(getString(R.string.zita_data)).append(": ").append(dataStr).append("\n");
         msg.append(getString(R.string.zita_zenbakia)).append(": ").append(zenbakia).append("\n");
-        msg.append(getString(R.string.zita_partnerra)).append(": ").append(bazkideaIzena).append("\n");
         msg.append(getString(R.string.agenda_bisita_egoera)).append(": ").append(egoera != null && !egoera.isEmpty() ? egoera : "—").append("\n");
         if (deskribapena != null && !deskribapena.isEmpty()) {
             msg.append(getString(R.string.agenda_bisita_deskribapena)).append(": ").append(deskribapena).append("\n");
@@ -1253,16 +1255,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     /** Saskiaren elementu bat: kodea, izena, prezioa, kopurua, irudia, stock (gehienez). */
-    static class SaskiaElementua {
-        final String artikuluKodea;
-        final String izena;
-        final double salmentaPrezioa;
-        final String irudiaIzena;
-        int kopurua;
+    public static class SaskiaElementua {
+        public final String artikuluKodea;
+        public final String izena;
+        public final double salmentaPrezioa;
+        public final String irudiaIzena;
+        public int kopurua;
         /** Stock uneko (DB); kopurua ezin da honetatik handiagoa izan. */
-        int stock;
+        public int stock;
 
-        SaskiaElementua(String artikuluKodea, String izena, double salmentaPrezioa, String irudiaIzena, int kopurua, int stock) {
+        public SaskiaElementua(String artikuluKodea, String izena, double salmentaPrezioa, String irudiaIzena, int kopurua, int stock) {
             this.artikuluKodea = artikuluKodea != null ? artikuluKodea : "";
             this.izena = izena != null ? izena : "";
             this.salmentaPrezioa = salmentaPrezioa;
@@ -1272,7 +1274,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    /** Bazkideak atala: XML falta bada mezu hori; bestela datu-baseko partner zerrenda taulan erakutsi. */
+    /** Bazkideak atala: XML falta bada mezu hori; bestela datu-baseko bazkide zerrenda taulan erakutsi. */
     private void erakutsiBazkideakEdukia() {
         TextView tvXmlFalta = findViewById(R.id.tvBazkideakXmlFalta);
         TextView tvHutsa = findViewById(R.id.tvBazkideakHutsa);
@@ -1284,7 +1286,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (XmlBilatzailea.bazkideakFaltaDa(this)) {
             sb.append(getString(R.string.xml_falta_da, "bazkideak.xml"));
         }
-        // partnerrak.xml ez da beharrezkoa, bazkideak.xml erabiltzen da
         if (sb.length() > 0) {
             tvXmlFalta.setText(sb.toString());
             tvXmlFalta.setVisibility(View.VISIBLE);
@@ -1469,7 +1470,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (XmlBilatzailea.bazkideakFaltaDa(this)) {
             sb.append(getString(R.string.xml_falta_da, "bazkideak.xml"));
         }
-        // partnerrak.xml ez da beharrezkoa, bazkideak.xml erabiltzen da
         if (sb.length() > 0) {
             tvAgendaXmlFalta.setText(sb.toString());
             tvAgendaXmlFalta.setVisibility(View.VISIBLE);

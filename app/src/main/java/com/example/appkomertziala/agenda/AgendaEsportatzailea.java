@@ -1,4 +1,4 @@
-package com.example.appkomertziala;
+package com.example.appkomertziala.agenda;
 
 import android.content.Context;
 import android.util.Log;

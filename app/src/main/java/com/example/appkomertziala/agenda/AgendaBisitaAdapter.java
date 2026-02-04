@@ -1,4 +1,4 @@
-package com.example.appkomertziala;
+package com.example.appkomertziala.agenda;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.appkomertziala.R;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;

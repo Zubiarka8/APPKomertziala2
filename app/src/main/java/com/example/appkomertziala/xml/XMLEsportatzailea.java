@@ -184,7 +184,7 @@ public class XMLEsportatzailea {
     /**
      * Hileroko laburpena: agendan erregistratutako bisita (eskaera) guztiak agenda.xml fitxategi bakar batean gorde centralera bidaltzeko.
      * Hilero exekutatu behar da; uneko hilabeteko eskaera goiburuak data atributuaren arabera iragazten dira.
-     * Nodoa: agenda > bisita > zenbakia, data, komertzialKodea, ordezkaritza, partnerKodea.
+     * Nodoa: agenda > bisita > zenbakia, data, komertzialKodea, ordezkaritza, bazkideaKodea.
      */
     public void agendaEsportatu() throws IOException {
         List<EskaeraGoiburua> hilabetekoak = datuBasea.eskaeraGoiburuaDao().hilabetekoEskaerak();

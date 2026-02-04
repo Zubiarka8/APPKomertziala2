@@ -23,7 +23,7 @@ import androidx.room.PrimaryKey;
  */
 @Entity(
     tableName = "bazkideak",
-    indices = {@Index("nan"), @Index("izena")}
+    indices = {@Index("nan"), @Index("izena"), @Index("kodea")}
 )
 public class Bazkidea {
 
@@ -39,6 +39,8 @@ public class Bazkidea {
     private String posta;
     private String jaiotzeData;
     private String argazkia;
+    /** Bazkidearen kodea (identifikatzailea kodea eremuan). */
+    private String kodea;
 
     public Bazkidea() {}
 
@@ -58,4 +60,6 @@ public class Bazkidea {
     public void setJaiotzeData(String jaiotzeData) { this.jaiotzeData = jaiotzeData; }
     public String getArgazkia() { return argazkia; }
     public void setArgazkia(String argazkia) { this.argazkia = argazkia; }
+    public String getKodea() { return kodea; }
+    public void setKodea(String kodea) { this.kodea = kodea; }
 }

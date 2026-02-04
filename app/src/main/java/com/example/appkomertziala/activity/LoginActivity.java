@@ -1,4 +1,4 @@
-package com.example.appkomertziala;
+package com.example.appkomertziala.activity;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.appkomertziala.MainActivity;
+import com.example.appkomertziala.R;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.Komertziala;
@@ -46,6 +48,9 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
     private TextInputLayout tilPassword;
     private TextInputEditText etUser;
     private TextInputEditText etPassword;
+    
+    /** Importazioa exekutatzen ari den egiaztatzeko (toast gehiegi saihesteko). */
+    private volatile boolean importazioaExekutatzen = false;
 
     private final ActivityResultLauncher<String[]> inportatuGailutikLauncher = registerForActivityResult(
             new ActivityResultContracts.OpenDocument(),
@@ -159,6 +164,11 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
 
     /** Hautatutako XML fitxategi bakarra kargatzen du (barne-memoriatik edo assets-etik). Hila nagusitik kanpo. */
     private void kargatuXmlFitxategia(String fitxategiIzena) {
+        // Importazio bat exekutatzen ari bada, ez egin ezer (toast gehiegi saihesteko)
+        if (importazioaExekutatzen) {
+            return;
+        }
+        importazioaExekutatzen = true;
         new Thread(() -> {
             try {
                 XMLKudeatzailea kud = new XMLKudeatzailea(this);
@@ -171,6 +181,8 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             } catch (Exception e) {
                 String mezu = e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna);
                 runOnUiThread(() -> Toast.makeText(this, getString(R.string.xml_errorea, mezu), Toast.LENGTH_LONG).show());
+            } finally {
+                importazioaExekutatzen = false;
             }
         }).start();
     }
@@ -189,6 +201,11 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
 
     /** XML guztiak ordena egokian kargatzen du (komertzialak, bazkideak, loginak, katalogoa). Hila nagusitik kanpo. */
     private void kargatuXmlGuztiak() {
+        // Importazio bat exekutatzen ari bada, ez egin ezer (toast gehiegi saihesteko)
+        if (importazioaExekutatzen) {
+            return;
+        }
+        importazioaExekutatzen = true;
         new Thread(() -> {
             try {
                 XMLKudeatzailea kud = new XMLKudeatzailea(this);
@@ -199,6 +216,8 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
             } catch (Exception e) {
                 String mezu = e.getMessage() != null && !e.getMessage().isEmpty() ? e.getMessage() : getString(R.string.errore_ezezaguna);
                 runOnUiThread(() -> Toast.makeText(this, getString(R.string.xml_errorea, mezu), Toast.LENGTH_LONG).show());
+            } finally {
+                importazioaExekutatzen = false;
             }
         }).start();
     }
@@ -214,12 +233,13 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                     kud.guztiakInportatu();
                     zerrenda = db.komertzialaDao().guztiak();
                 } catch (Exception e) {
+                    // Lehenengo saiakera huts egin badu, komertzialak.xml bakarrik saiatu (toast-ik gabe)
                     try {
                         XMLKudeatzailea kud = new XMLKudeatzailea(this);
                         kud.inportatuFitxategia("komertzialak.xml");
                         zerrenda = db.komertzialaDao().guztiak();
                     } catch (Exception ignored) {
-                        // Utzi zerrenda hutsik
+                        // Utzi zerrenda hutsik - toast-ik ez erakutsi, dialogoa hutsik erakutsiko du
                     }
                 }
             }
@@ -271,12 +291,13 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                     kud.guztiakInportatu();
                     zerrenda = db.bazkideaDao().guztiak();
                 } catch (Exception e) {
+                    // Lehenengo saiakera huts egin badu, bazkideak.xml bakarrik saiatu (toast-ik gabe)
                     try {
                         XMLKudeatzailea kud = new XMLKudeatzailea(this);
                         kud.inportatuFitxategia("bazkideak.xml");
                         zerrenda = db.bazkideaDao().guztiak();
                     } catch (Exception ignored) {
-                        // Utzi zerrenda hutsik
+                        // Utzi zerrenda hutsik - toast-ik ez erakutsi, dialogoa hutsik erakutsiko du
                     }
                 }
             }

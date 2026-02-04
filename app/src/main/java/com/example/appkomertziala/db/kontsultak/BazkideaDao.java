@@ -13,7 +13,6 @@ import java.util.List;
 
 /**
  * Bazkideak taularen kontsultak: gehitu, aldatu, ezabatu, bilatu.
- * Partnerrak taularen funtzionalitatea bazkideak taulan integratuta.
  */
 @Dao
 public interface BazkideaDao {
@@ -39,6 +38,10 @@ public interface BazkideaDao {
     /** NAN baten arabera bazkidea bilatu. */
     @Query("SELECT * FROM bazkideak WHERE nan = :nan LIMIT 1")
     Bazkidea nanBilatu(String nan);
+
+    /** Kode baten arabera bazkidea bilatu. */
+    @Query("SELECT * FROM bazkideak WHERE kodea = :kodea LIMIT 1")
+    Bazkidea kodeaBilatu(String kodea);
 
     /** Bilatzailea: NAN, izena, abizena edo postan testua bilatu. */
     @Query("SELECT * FROM bazkideak WHERE " +

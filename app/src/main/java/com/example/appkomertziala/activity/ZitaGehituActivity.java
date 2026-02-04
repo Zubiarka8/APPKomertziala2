@@ -1,4 +1,4 @@
-package com.example.appkomertziala;
+package com.example.appkomertziala.activity;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.appkomertziala.R;
 import com.example.appkomertziala.db.AppDatabase;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.Komertziala;
@@ -19,7 +20,6 @@ import com.google.android.material.timepicker.TimeFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 

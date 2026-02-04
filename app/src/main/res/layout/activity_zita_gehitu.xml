@@ -125,22 +125,6 @@
                         android:maxLines="1"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/zita_partnerra"
-                    android:textSize="@dimen/text_size_normal"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginBottom="@dimen/margin_small"/>
-
-                <Spinner
-                    android:id="@+id/spinnerCitaPartnerra"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/button_height"
-                    android:layout_marginBottom="@dimen/margin_large"
-                    android:background="@drawable/bg_edit_text"
-                    android:padding="@dimen/margin_small"/>
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
