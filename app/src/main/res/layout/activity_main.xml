@@ -534,78 +534,78 @@
                     android:visibility="visible">
 
                     <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/margin_medium">
+
+                    <TextView
+                        android:id="@+id/tvBazkideakXmlFalta"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="@dimen/margin_medium">
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone"/>
 
-                        <TextView
-                            android:id="@+id/tvBazkideakXmlFalta"
+                    <TextView
+                        android:id="@+id/tvBazkideakHutsa"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/margin_large"
+                        android:text="@string/bazkideak_zerrenda_hutsa"
+                        android:textSize="@dimen/text_size_normal"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
+                        android:layout_marginBottom="@dimen/margin_medium"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="@dimen/margin_small">
+
+                        <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="@dimen/margin_medium"
-                            android:textSize="@dimen/text_size_normal"
-                            android:textColor="@color/text_secondary"
-                            android:visibility="gone"/>
+                            android:hint="@string/bazkideak_bilatu"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                        <TextView
-                            android:id="@+id/tvBazkideakHutsa"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="@dimen/margin_large"
-                            android:text="@string/bazkideak_zerrenda_hutsa"
-                            android:textSize="@dimen/text_size_normal"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginBottom="@dimen/margin_medium"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="@dimen/margin_small">
-
-                            <com.google.android.material.textfield.TextInputLayout
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etBazkideakBilatu"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:hint="@string/bazkideak_bilatu"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/etBazkideakBilatu"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:inputType="text"
-                                    android:maxLines="1"/>
-                            </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_medium"
-                            app:cardCornerRadius="@dimen/card_corner_radius"
-                            app:cardElevation="@dimen/card_elevation"
-                            app:cardBackgroundColor="@color/card_background">
-
-                            <HorizontalScrollView
-                                android:id="@+id/scroll_table_bazkideak"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:scrollbars="horizontal">
-
-                                <TableLayout
-                                    android:id="@+id/table_bazkideak"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:stretchColumns="*"
-                                    android:shrinkColumns="*"
-                                    android:background="@color/card_background"/>
-                            </HorizontalScrollView>
-                        </com.google.android.material.card.MaterialCardView>
+                                android:inputType="text"
+                                android:maxLines="1"/>
+                        </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
-                </ScrollView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        app:cardCornerRadius="@dimen/card_corner_radius"
+                        app:cardElevation="@dimen/card_elevation"
+                        app:cardBackgroundColor="@color/card_background">
+
+                        <HorizontalScrollView
+                            android:id="@+id/scroll_table_bazkideak"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:scrollbars="horizontal">
+
+                            <TableLayout
+                                android:id="@+id/table_bazkideak"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:stretchColumns="*"
+                                android:shrinkColumns="*"
+                                android:background="@color/card_background"/>
+                        </HorizontalScrollView>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </ScrollView>
 
                 <!-- Komertzialak sección -->
                 <ScrollView
@@ -649,9 +649,8 @@
                             android:layout_marginBottom="@dimen/margin_small">
 
                             <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="0dp"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:hint="@string/komertzialak_bilatu"
                                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
@@ -662,15 +661,6 @@
                                     android:inputType="text"
                                     android:maxLines="1"/>
                             </com.google.android.material.textfield.TextInputLayout>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnKomertzialakGuztiakEzabatu"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/margin_small"
-                                android:text="@string/komertzial_guztiak_ezabatu"
-                                android:icon="@android:drawable/ic_menu_delete"
-                                style="@style/Widget.Material3.Button.TonalButton"/>
                         </LinearLayout>
 
                         <com.google.android.material.card.MaterialCardView

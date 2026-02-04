@@ -1836,11 +1836,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
         }
-        
-        MaterialButton btnGuztiakEzabatu = findViewById(R.id.btnKomertzialakGuztiakEzabatu);
-        if (btnGuztiakEzabatu != null) {
-            btnGuztiakEzabatu.setOnClickListener(v -> erakutsiKomertzialakGuztiakEzabatuBaieztapena());
-        }
     }
 
     /** Taula komertzialak (DB) kargatu: bilatzailearen testua aplikatu, taula bete, Editatu/Ezabatu botoiak. */
@@ -1999,47 +1994,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 })
                 .setNegativeButton(R.string.ez, null)
                 .show();
-    }
-
-    /** Komertzial guztiak ezabatu baieztapenarekin. */
-    private void erakutsiKomertzialakGuztiakEzabatuBaieztapena() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.btn_ezabatu)
-                .setMessage(R.string.komertzial_guztiak_ezabatu_baieztatu)
-                .setPositiveButton(R.string.bai, (dialog, which) -> ezabatuKomertzialakGuztiak())
-                .setNegativeButton(R.string.ez, null)
-                .show();
-    }
-
-    /** Komertzial guztiak ezabatu: lehen XML eguneratu, gero datu-basea. */
-    private void ezabatuKomertzialakGuztiak() {
-        new Thread(() -> {
-            try {
-                AppDatabase db = AppDatabase.getInstance(this);
-                
-                // XML eguneratu (zerrenda hutsa)
-                DatuKudeatzailea dk = new DatuKudeatzailea(this);
-                List<Komertziala> zerrendaHutsa = new ArrayList<>();
-                if (!dk.komertzialakEsportatuZerrenda(zerrendaHutsa)) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, R.string.komertzial_guztiak_ezabatu_errorea, Toast.LENGTH_LONG).show();
-                    });
-                    return;
-                }
-                
-                // Datu-baseatik ezabatu guztiak
-                db.komertzialaDao().ezabatuGuztiak();
-                
-                runOnUiThread(() -> {
-                    Toast.makeText(this, R.string.komertzial_guztiak_ondo_ezabatuta, Toast.LENGTH_SHORT).show();
-                    kargatuKomertzialakZerrenda();
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(this, R.string.komertzial_guztiak_ezabatu_errorea, Toast.LENGTH_LONG).show();
-                });
-            }
-        }).start();
     }
 
     /** Agenda atalean: beharrezko XMLak falta badira, Bazkideak/Inbentarioa moduan mezu bat erakutsi. */
