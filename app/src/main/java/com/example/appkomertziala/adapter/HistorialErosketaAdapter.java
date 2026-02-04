@@ -3,12 +3,14 @@ package com.example.appkomertziala.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.appkomertziala.R;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,6 +114,22 @@ public class HistorialErosketaAdapter extends RecyclerView.Adapter<HistorialEros
         
         // Prezio totala jartu - formatu ederra: "125.00 €"
         holder.itemHistorialPrezioTotala.setText(String.format(Locale.getDefault(), "%.2f €", e.prezioTotala));
+        
+        // Amaituta switch konfiguratu
+        holder.itemHistorialAmaituta.setChecked(e.amaituta);
+        holder.itemHistorialAmaitutaText.setText(e.amaituta ? 
+            holder.itemView.getContext().getString(R.string.historial_amaituta_true) : 
+            holder.itemView.getContext().getString(R.string.historial_amaituta_false));
+        holder.itemHistorialAmaituta.setOnCheckedChangeListener(null); // Listener temporala kendu aldaketa automatikoa saihesteko
+        holder.itemHistorialAmaituta.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (amaitutaAldaketaListener != null) {
+                e.amaituta = isChecked;
+                holder.itemHistorialAmaitutaText.setText(isChecked ? 
+                    holder.itemView.getContext().getString(R.string.historial_amaituta_true) : 
+                    holder.itemView.getContext().getString(R.string.historial_amaituta_false));
+                amaitutaAldaketaListener.onAmaitutaAldaketa(e.historialId, isChecked);
+            }
+        });
     }
 
     /**
@@ -145,6 +163,12 @@ public class HistorialErosketaAdapter extends RecyclerView.Adapter<HistorialEros
         
         /** Prezio totala erakusteko TextView. */
         final TextView itemHistorialPrezioTotala;
+        
+        /** Amaituta egoera aldatzeko Switch. */
+        final SwitchMaterial itemHistorialAmaituta;
+        
+        /** Amaituta egoera erakusteko TextView. */
+        final TextView itemHistorialAmaitutaText;
 
         /**
          * Eraikitzailea: View-ak kargatzen ditu findViewById-ekin.
@@ -158,11 +182,13 @@ public class HistorialErosketaAdapter extends RecyclerView.Adapter<HistorialEros
             itemHistorialKantitatea = itemView.findViewById(R.id.itemHistorialKantitatea);
             itemHistorialPrezioUnit = itemView.findViewById(R.id.itemHistorialPrezioUnit);
             itemHistorialPrezioTotala = itemView.findViewById(R.id.itemHistorialPrezioTotala);
+            itemHistorialAmaituta = itemView.findViewById(R.id.itemHistorialAmaituta);
+            itemHistorialAmaitutaText = itemView.findViewById(R.id.itemHistorialAmaitutaText);
         }
     }
 
     /**
-     * Historial elementu bat: produktua, kantitatea, prezio unitarioa, prezio totala.
+     * Historial elementu bat: produktua, kantitatea, prezio unitarioa, prezio totala, amaituta.
      * 
      * Hau hemen datu kontainer bat da. HistorialCompraActivity-k HistorialCompra entitateak
      * irakurri eta gero, datu hauek biltzen ditu eta adapter-ari ematen dio.
@@ -172,6 +198,8 @@ public class HistorialErosketaAdapter extends RecyclerView.Adapter<HistorialEros
      * - kantitatea: Zenbat unitate eskatuta ziren (eskatuta eremua)
      * - prezioUnit: Prezio unitarioa (eurotan)
      * - prezioTotala: Prezio totala (kantitatea * prezioUnit)
+     * - historialId: HistorialCompra-ren ID (eguneratu ahal izateko)
+     * - amaituta: Bidalketa amaituta dagoen ala ez (true/false)
      */
     public static class HistorialElementua {
         /** Produktuaren izena. Null izan daiteke. */
@@ -185,6 +213,12 @@ public class HistorialErosketaAdapter extends RecyclerView.Adapter<HistorialEros
         
         /** Prezio totala (eurotan). */
         final double prezioTotala;
+        
+        /** HistorialCompra-ren ID (eguneratu ahal izateko). */
+        final long historialId;
+        
+        /** Bidalketa amaituta dagoen ala ez (true = iritsi da, false = ez da iritsi). */
+        boolean amaituta;
 
         /**
          * Eraikitzailea: historial elementu bat sortzen du.
@@ -193,13 +227,42 @@ public class HistorialErosketaAdapter extends RecyclerView.Adapter<HistorialEros
          * @param kantitatea Kantitatea
          * @param prezioUnit Prezio unitarioa
          * @param prezioTotala Prezio totala
+         * @param historialId HistorialCompra-ren ID
+         * @param amaituta Bidalketa amaituta dagoen ala ez
          */
-        public HistorialElementua(String produktua, int kantitatea, double prezioUnit, double prezioTotala) {
+        public HistorialElementua(String produktua, int kantitatea, double prezioUnit, double prezioTotala, long historialId, boolean amaituta) {
             this.produktua = produktua;
             this.kantitatea = kantitatea;
             this.prezioUnit = prezioUnit;
             this.prezioTotala = prezioTotala;
+            this.historialId = historialId;
+            this.amaituta = amaituta;
         }
+    }
+    
+    /** Listener amaituta egoera aldatzeko. */
+    private OnAmaitutaAldaketaListener amaitutaAldaketaListener;
+    
+    /**
+     * Listener amaituta egoera aldatzeko.
+     */
+    public interface OnAmaitutaAldaketaListener {
+        /**
+         * Amaituta egoera aldatu denean deitu behar da.
+         * 
+         * @param historialId HistorialCompra-ren ID
+         * @param amaituta Egoera berria (true = iritsi da, false = ez da iritsi)
+         */
+        void onAmaitutaAldaketa(long historialId, boolean amaituta);
+    }
+    
+    /**
+     * Listener ezarri amaituta egoera aldatzeko.
+     * 
+     * @param listener Listener-a
+     */
+    public void setOnAmaitutaAldaketaListener(OnAmaitutaAldaketaListener listener) {
+        this.amaitutaAldaketaListener = listener;
     }
 }
 

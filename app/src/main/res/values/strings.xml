@@ -228,6 +228,10 @@
     <string name="saskia_stock_0">Ez dago stock. Ezin da saskira gehitu.</string>
     <string name="saskia_stock_max">Stock maximoa. Ezin da gehiago gehitu.</string>
     <string name="saskia_stock_0_batzuk_kendu">Stock 0 duten produktuak saskitik kendu dira.</string>
+    <string name="saskia_errorea_artikulu_kodea">Errorea: Artikulu kodea hutsik dago.</string>
+    <string name="saskia_errorea_kopurua">Errorea: Kopurua 0 baino handiagoa izan behar da.</string>
+    <string name="saskia_errorea_artikulu_ez_da_aurkitu">Errorea: Artikulua ez da aurkitu: %1$s</string>
+    <string name="saskia_errorea_stock_ez_nahikoa">Errorea: Stock nahikoa ez dago artikulua %1$s. Stock eskuragarria: %2$d</string>
     <string name="saskia_erosketa_eginda">Erosketa eginda. Stock eguneratuta.</string>
     <string name="saskia_erosi_baieztatu">Seguru zaude erosi nahi duzula?</string>
     <string name="cd_saskia">Erosketa saskia ikusi</string>
@@ -246,6 +250,10 @@
     <string name="prezio_unitarioa">Prezio unitarioa</string>
     <string name="prezio_totala">Prezio totala</string>
     <string name="errorea_historiala_kargatzean">Errorea historiala kargatzean</string>
+    <string name="historial_amaituta">Amaituta:</string>
+    <string name="historial_amaituta_true">Iritsi da</string>
+    <string name="historial_amaituta_false">Ez da iritsi</string>
+    <string name="historial_amaituta_eguneratu">Amaituta egoera eguneratuta</string>
     
     <string name="katalogoa_artikulu_kodea_etiketa">Artikulu kodea: %1$s</string>
     <string name="katalogoa_stock_etiketa">Stock: %1$d</string>

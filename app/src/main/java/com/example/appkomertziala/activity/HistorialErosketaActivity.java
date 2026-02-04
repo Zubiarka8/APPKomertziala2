@@ -67,6 +67,10 @@ public class HistorialErosketaActivity extends AppCompatActivity {
 
         // Adapter sortu eta konfiguratu - RecyclerView-ri lotu
         adapter = new HistorialErosketaAdapter(this);
+        adapter.setOnAmaitutaAldaketaListener((historialId, amaituta) -> {
+            // Amaituta egoera eguneratu datu-basean
+            eguneratuAmaitutaEgoera(historialId, amaituta);
+        });
         recyclerHistorial.setLayoutManager(new LinearLayoutManager(this));
         recyclerHistorial.setAdapter(adapter);
 
@@ -122,12 +126,18 @@ public class HistorialErosketaActivity extends AppCompatActivity {
                     // Prezio totala: kantitatea * prezio unitarioa
                     double prezioTotala = kantitatea * prezioUnit;
                     
+                    // Historial ID eta amaituta egoera
+                    long historialId = historial.getId();
+                    boolean amaituta = historial.isAmaituta();
+                    
                     // Elementua sortu eta zerrendara gehitu
                     erakusteko.add(new HistorialErosketaAdapter.HistorialElementua(
                         produktua,
                         kantitatea,
                         prezioUnit,
-                        prezioTotala
+                        prezioTotala,
+                        historialId,
+                        amaituta
                     ));
                 }
 
@@ -158,6 +168,41 @@ public class HistorialErosketaActivity extends AppCompatActivity {
                         tvHistorialHutsa.setVisibility(View.VISIBLE);
                         recyclerHistorial.setVisibility(View.GONE);
                     }
+                });
+            }
+        }).start();
+    }
+
+    /**
+     * Amaituta egoera eguneratu datu-basean.
+     * 
+     * XML egituraren arabera, Amaituta bidalketa mailan dago (ez lerro mailan),
+     * beraz bidalketa ID berdina duten lerro guztiak eguneratu behar dira.
+     * 
+     * @param historialId HistorialCompra-ren ID
+     * @param amaituta Egoera berria (true = iritsi da, false = ez da iritsi)
+     */
+    private void eguneratuAmaitutaEgoera(long historialId, boolean amaituta) {
+        new Thread(() -> {
+            try {
+                HistorialCompra historial = datuBasea.historialCompraDao().idzBilatu(historialId);
+                if (historial != null) {
+                    int bidalketaId = historial.getBidalketaId();
+                    // Bidalketa ID berdina duten lerro guztiak eguneratu (XML egituraren arabera)
+                    int eguneratutakoKopurua = datuBasea.historialCompraDao().eguneratuAmaitutaBidalketaIdz(bidalketaId, amaituta);
+                    Log.d(ETIKETA, "eguneratuAmaitutaEgoera: " + eguneratutakoKopurua + " lerro eguneratuta bidalketaId=" + bidalketaId + ", amaituta=" + amaituta);
+                    
+                    // Historiala berriro kargatu UI eguneratzeko
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, R.string.historial_amaituta_eguneratu, Toast.LENGTH_SHORT).show();
+                        // Historiala berriro kargatu bidalketa guztiko lerro guztietan aldaketa erakusteko
+                        kargatuHistoriala();
+                    });
+                }
+            } catch (Exception e) {
+                Log.e(ETIKETA, "Errorea amaituta egoera eguneratzean", e);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, getString(R.string.errorea_historiala_kargatzean), Toast.LENGTH_LONG).show();
                 });
             }
         }).start();

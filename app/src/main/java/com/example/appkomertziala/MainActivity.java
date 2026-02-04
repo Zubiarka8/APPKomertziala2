@@ -45,6 +45,7 @@ import com.example.appkomertziala.db.eredua.Agenda;
 import com.example.appkomertziala.db.eredua.Bazkidea;
 import com.example.appkomertziala.db.eredua.EskaeraGoiburua;
 import com.example.appkomertziala.db.eredua.EskaeraXehetasuna;
+import com.example.appkomertziala.db.eredua.HistorialCompra;
 import com.example.appkomertziala.db.eredua.Katalogoa;
 import com.example.appkomertziala.db.eredua.Komertziala;
 import com.example.appkomertziala.segurtasuna.DataBalidatzailea;
@@ -1190,62 +1191,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     btnItxi.setOnClickListener(v -> dialog.dismiss());
 
                     btnErosi.setOnClickListener(v -> {
-                        new AlertDialog.Builder(this)
-                                .setMessage(R.string.saskia_erosi_baieztatu)
-                                .setPositiveButton(R.string.bai, (d, w) -> {
-                                    new Thread(() -> {
-                                        // SEGURTASUNA: SessionManager erabiliz uneko komertzialaren kodea lortu
-                                        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
-                                            new com.example.appkomertziala.segurtasuna.SessionManager(MainActivity.this);
-                                        String komertzialKode = sessionManager.getKomertzialKodea();
-                                        
-                                        if (komertzialKode == null || komertzialKode.isEmpty()) {
-                                            runOnUiThread(() -> {
-                                                Toast.makeText(MainActivity.this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
-                                            });
-                                            return;
-                                        }
-                                        
-                                        String zenbakia = "ESK-" + System.currentTimeMillis();
-                                        // Data formatua: yyyy/MM/dd HH:mm
-                                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault());
-                                        String data = sdf.format(new java.util.Date());
-                                        EskaeraGoiburua goi = new EskaeraGoiburua();
-                                        goi.setZenbakia(zenbakia);
-                                        goi.setData(data);
-                                        goi.setKomertzialKodea(komertzialKode.trim());
-                                        Komertziala kom = db.komertzialaDao().kodeaBilatu(komertzialKode.trim());
-                                        if (kom != null) goi.setKomertzialId(kom.getId());
-                                        goi.setOrdezkaritza("");
-                                        goi.setBazkideaKodea("");
-                                        db.eskaeraGoiburuaDao().txertatu(goi);
-                                        for (SaskiaElementua e : saskia) {
-                                            EskaeraXehetasuna x = new EskaeraXehetasuna();
-                                            x.setEskaeraZenbakia(zenbakia);
-                                            x.setArtikuluKodea(e.artikuluKodea);
-                                            x.setKantitatea(e.kopurua);
-                                            x.setPrezioa(e.salmentaPrezioa);
-                                            db.eskaeraXehetasunaDao().txertatu(x);
-                                        }
-                                        for (SaskiaElementua e : saskia) {
-                                            Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
-                                            if (k != null) {
-                                                int stockBerria = Math.max(0, k.getStock() - e.kopurua);
-                                                db.katalogoaDao().stockaEguneratu(e.artikuluKodea, stockBerria);
-                                            }
-                                        }
-                                        runOnUiThread(() -> {
-                                            saskia.clear();
-                                            adapter.notifyDataSetChanged();
-                                            saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
-                                            dialog.dismiss();
-                                            erakutsiInbentarioaEdukia();
-                                            Toast.makeText(this, R.string.saskia_erosketa_eginda, Toast.LENGTH_SHORT).show();
-                                        });
-                                    }).start();
-                                })
-                                .setNegativeButton(R.string.ez, null)
-                                .show();
+                        // Datuak balidatu lehenik
+                        String balidazioErrorea = balidatuSaskiaDatuak();
+                        if (balidazioErrorea != null) {
+                            Toast.makeText(this, balidazioErrorea, Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        
+                        // Komertzial edo bazkidea hautatu
+                        erakutsiKomertzialBazkideaHautaketaDialogoa(dialog, adapter);
                     });
 
                     dialog.show();
@@ -1262,6 +1216,238 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void erakutsiSaskiaDialogoaBis(java.util.function.Consumer<View> onReady) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_saskia, null);
         onReady.accept(dialogView);
+    }
+
+    /**
+     * Saskiaren datuak balidatu erosketa egin aurretik (hilo nagusian).
+     * Egiaztatzen du: saskia ez dagoela hutsik, datu guztiak beteta daudela.
+     * Stock egiaztapena gordeErosketa-n egiten da (hilo nagusitik kanpo).
+     * 
+     * @return null balidazioak gainditu baditu, errore-mezua bestela
+     */
+    private String balidatuSaskiaDatuak() {
+        if (saskia == null || saskia.isEmpty()) {
+            return getString(R.string.saskia_hutsa);
+        }
+        
+        for (SaskiaElementua e : saskia) {
+            if (e.artikuluKodea == null || e.artikuluKodea.trim().isEmpty()) {
+                return getString(R.string.saskia_errorea_artikulu_kodea);
+            }
+            if (e.kopurua <= 0) {
+                return getString(R.string.saskia_errorea_kopurua);
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Komertzial edo bazkidea hautatzeko dialogo erakutsi erosketa egin aurretik.
+     * Erabiltzaile motaren arabera (komertzial edo bazkidea) zerrenda erakusten du.
+     * 
+     * @param dialog Saskia dialogoa (itxi behar denean)
+     * @param adapter Saskia adapter (eguneratu behar denean)
+     */
+    private void erakutsiKomertzialBazkideaHautaketaDialogoa(AlertDialog dialog, SaskiaAdapter adapter) {
+        // Erabiltzaile mota detektatu
+        com.example.appkomertziala.segurtasuna.SessionManager sessionManager = 
+            new com.example.appkomertziala.segurtasuna.SessionManager(this);
+        String komertzialKodea = sessionManager.getKomertzialKodea();
+        
+        Intent intent = getIntent();
+        String bazkideaNan = intent != null ? intent.getStringExtra(EXTRA_BAZKIDEA_NAN) : null;
+        long bazkideaId = intent != null ? intent.getLongExtra(EXTRA_BAZKIDEA_ID, -1) : -1;
+        
+        boolean daKomertzial = komertzialKodea != null && !komertzialKodea.trim().isEmpty();
+        boolean daBazkidea = (bazkideaNan != null && !bazkideaNan.trim().isEmpty()) || bazkideaId > 0;
+        
+        if (!daKomertzial && !daBazkidea) {
+            Toast.makeText(this, R.string.saioa_ez_dago_hasita, Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        // Zerrenda kargatu eta dialogo erakutsi
+        new Thread(() -> {
+            AppDatabase db = AppDatabase.getInstance(this);
+            List<String> aukerak = new ArrayList<>();
+            List<Object> objektuak = new ArrayList<>(); // Komertziala edo Bazkidea gordetzeko
+            
+            if (daKomertzial) {
+                // Komertzial guztiak kargatu
+                List<Komertziala> komertzialak = db.komertzialaDao().guztiak();
+                if (komertzialak != null) {
+                    for (Komertziala k : komertzialak) {
+                        String izena = (k.getIzena() != null ? k.getIzena().trim() : "") + 
+                                       (k.getAbizena() != null && !k.getAbizena().trim().isEmpty() ? " " + k.getAbizena().trim() : "");
+                        String kodea = k.getKodea() != null ? k.getKodea() : "";
+                        aukerak.add(izena.isEmpty() ? kodea : izena + (kodea.isEmpty() ? "" : " (" + kodea + ")"));
+                        objektuak.add(k);
+                    }
+                }
+            } else if (daBazkidea) {
+                // Bazkide guztiak kargatu
+                List<Bazkidea> bazkideak = db.bazkideaDao().guztiak();
+                if (bazkideak != null) {
+                    for (Bazkidea b : bazkideak) {
+                        String izena = (b.getIzena() != null ? b.getIzena().trim() : "") + 
+                                       (b.getAbizena() != null && !b.getAbizena().trim().isEmpty() ? " " + b.getAbizena().trim() : "");
+                        String nan = b.getNan() != null ? b.getNan() : "";
+                        aukerak.add(izena.isEmpty() ? nan : izena + (nan.isEmpty() ? "" : " (" + nan + ")"));
+                        objektuak.add(b);
+                    }
+                }
+            }
+            
+            final List<String> finalAukerak = aukerak;
+            final List<Object> finalObjektuak = objektuak;
+            
+            runOnUiThread(() -> {
+                if (finalAukerak.isEmpty()) {
+                    Toast.makeText(this, daKomertzial ? R.string.komertzial_zerrenda_hutsa : R.string.bazkide_zerrenda_hutsa, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                new AlertDialog.Builder(this)
+                        .setTitle(daKomertzial ? R.string.komertzial_hautatu_titulua : R.string.bazkide_hautatu_titulua)
+                        .setItems(finalAukerak.toArray(new String[0]), (d, which) -> {
+                            Object hautatua = finalObjektuak.get(which);
+                            if (hautatua instanceof Komertziala) {
+                                Komertziala kom = (Komertziala) hautatua;
+                                gordeErosketa(kom, null, dialog, adapter);
+                            } else if (hautatua instanceof Bazkidea) {
+                                Bazkidea baz = (Bazkidea) hautatua;
+                                gordeErosketa(null, baz, dialog, adapter);
+                            }
+                        })
+                        .setNegativeButton(R.string.xml_utzi, null)
+                        .show();
+            });
+        }).start();
+    }
+
+    /**
+     * Erosketa gorde: EskaeraGoiburua, EskaeraXehetasuna eta HistorialCompra sortu.
+     * Datuak balidatu ondoren eta komertzial/bazkidea hautatu ondoren deitu behar da.
+     * 
+     * @param komertziala Hautatutako komertziala (null bazkidea bada)
+     * @param bazkidea Hautatutako bazkidea (null komertziala bada)
+     * @param dialog Saskia dialogoa (itxi behar denean)
+     * @param adapter Saskia adapter (eguneratu behar denean)
+     */
+    private void gordeErosketa(Komertziala komertziala, Bazkidea bazkidea, AlertDialog dialog, SaskiaAdapter adapter) {
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.saskia_erosi_baieztatu)
+                .setPositiveButton(R.string.bai, (d, w) -> {
+                    new Thread(() -> {
+                        AppDatabase db = AppDatabase.getInstance(this);
+                        
+                        // Datuak balidatu berriro (segurtasuna) - stock egiaztatu
+                        if (saskia == null || saskia.isEmpty()) {
+                            runOnUiThread(() -> {
+                                Toast.makeText(this, getString(R.string.saskia_hutsa), Toast.LENGTH_LONG).show();
+                            });
+                            return;
+                        }
+                        
+                        // Stock egiaztatu datu-basean
+                        for (SaskiaElementua e : saskia) {
+                            Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
+                            if (k == null) {
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, getString(R.string.saskia_errorea_artikulu_ez_da_aurkitu, e.artikuluKodea), Toast.LENGTH_LONG).show();
+                                });
+                                return;
+                            }
+                            if (k.getStock() < e.kopurua) {
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, getString(R.string.saskia_errorea_stock_ez_nahikoa, e.artikuluKodea, k.getStock()), Toast.LENGTH_LONG).show();
+                                });
+                                return;
+                            }
+                        }
+                        
+                        // EskaeraGoiburua sortu
+                        String zenbakia = "ESK-" + System.currentTimeMillis();
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault());
+                        String data = sdf.format(new java.util.Date());
+                        
+                        EskaeraGoiburua goi = new EskaeraGoiburua();
+                        goi.setZenbakia(zenbakia);
+                        goi.setData(data);
+                        
+                        if (komertziala != null) {
+                            goi.setKomertzialKodea(komertziala.getKodea());
+                            goi.setKomertzialId(komertziala.getId());
+                        }
+                        if (bazkidea != null) {
+                            goi.setBazkideaKodea(bazkidea.getNan());
+                            goi.setBazkideaId(bazkidea.getId());
+                        }
+                        goi.setOrdezkaritza("");
+                        
+                        db.eskaeraGoiburuaDao().txertatu(goi);
+                        
+                        // EskaeraXehetasuna eta HistorialCompra sortu
+                        int bidalketaId = (int) System.currentTimeMillis() / 1000; // Bidalketa ID sortu
+                        String kodea = "BDK-" + String.format(Locale.getDefault(), "%03d", bidalketaId % 1000);
+                        String dataBidalketa = data.split(" ")[0]; // Data bakarrik (yyyy/MM/dd)
+                        
+                        for (SaskiaElementua e : saskia) {
+                            // EskaeraXehetasuna
+                            EskaeraXehetasuna x = new EskaeraXehetasuna();
+                            x.setEskaeraZenbakia(zenbakia);
+                            x.setArtikuluKodea(e.artikuluKodea);
+                            x.setKantitatea(e.kopurua);
+                            x.setPrezioa(e.salmentaPrezioa);
+                            db.eskaeraXehetasunaDao().txertatu(x);
+                            
+                            // HistorialCompra sortu (bidalketa formatua)
+                            HistorialCompra historial = new HistorialCompra();
+                            historial.setBidalketaId(bidalketaId);
+                            historial.setKodea(kodea);
+                            // Helmuga: bazkidea bada bere izena, komertziala bada bere izena
+                            String helmuga = "";
+                            if (bazkidea != null) {
+                                String izena = (bazkidea.getIzena() != null ? bazkidea.getIzena().trim() : "") + 
+                                               (bazkidea.getAbizena() != null && !bazkidea.getAbizena().trim().isEmpty() ? " " + bazkidea.getAbizena().trim() : "");
+                                helmuga = izena.isEmpty() ? (bazkidea.getNan() != null ? bazkidea.getNan() : "") : izena;
+                            } else if (komertziala != null) {
+                                String izena = (komertziala.getIzena() != null ? komertziala.getIzena().trim() : "") + 
+                                               (komertziala.getAbizena() != null && !komertziala.getAbizena().trim().isEmpty() ? " " + komertziala.getAbizena().trim() : "");
+                                helmuga = izena.isEmpty() ? (komertziala.getKodea() != null ? komertziala.getKodea() : "") : izena;
+                            }
+                            historial.setHelmuga(helmuga);
+                            historial.setData(dataBidalketa);
+                            historial.setAmaituta(true);
+                            historial.setProductoId(e.artikuluKodea);
+                            historial.setProductoIzena(e.izena);
+                            historial.setEskatuta(e.kopurua);
+                            historial.setBidalita(e.kopurua); // Erosketa egindakoan, bidalita = eskatuta
+                            historial.setPrezioUnit(e.salmentaPrezioa);
+                            historial.setArgazkia(e.irudiaIzena);
+                            db.historialCompraDao().txertatu(historial);
+                            
+                            // Stock eguneratu
+                            Katalogoa k = db.katalogoaDao().artikuluaBilatu(e.artikuluKodea);
+                            if (k != null) {
+                                int stockBerria = Math.max(0, k.getStock() - e.kopurua);
+                                db.katalogoaDao().stockaEguneratu(e.artikuluKodea, stockBerria);
+                            }
+                        }
+                        
+                        runOnUiThread(() -> {
+                            saskia.clear();
+                            adapter.notifyDataSetChanged();
+                            saskiaBadgeEguneratu(findViewById(R.id.tvSaskiaKopurua));
+                            dialog.dismiss();
+                            erakutsiInbentarioaEdukia();
+                            Toast.makeText(this, R.string.saskia_erosketa_eginda, Toast.LENGTH_SHORT).show();
+                        });
+                    }).start();
+                })
+                .setNegativeButton(R.string.ez, null)
+                .show();
     }
 
     /** Saskiaren elementu bat: kodea, izena, prezioa, kopurua, irudia, stock (gehienez). */

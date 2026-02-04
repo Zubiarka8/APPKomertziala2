@@ -60,6 +60,14 @@ public interface HistorialCompraDao {
     /** Historial guztiak ezabatu. */
     @Query("DELETE FROM historial_compras")
     void ezabatuGuztiak();
+
+    /** ID baten arabera historial bilatu. */
+    @Query("SELECT * FROM historial_compras WHERE id = :id LIMIT 1")
+    HistorialCompra idzBilatu(long id);
+
+    /** Bidalketa ID baten arabera amaituta egoera eguneratu (bidalketa guztiko lerro guztietan). */
+    @Query("UPDATE historial_compras SET amaituta = :amaituta WHERE bidalketaId = :bidalketaId")
+    int eguneratuAmaitutaBidalketaIdz(int bidalketaId, boolean amaituta);
 }
 
 
