@@ -138,8 +138,8 @@ public class AgendaEsportatzailea {
                 return false;
             }
             
-            // SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatu
-            List<Agenda> hilabetekoak = datuBasea.agendaDao().hilabetearenBisitak(komertzialKodea);
+            // SEGURTASUNA: Uneko komertzialaren bisitak bakarrik esportatu (GUZTIAK, ez bakarrik hilabetekoak)
+            List<Agenda> hilabetekoak = datuBasea.agendaDao().getVisitsByKomertzial(komertzialKodea);
             Log.d(ETIKETA_LOG, "Agenda TXT sortzen: " + hilabetekoak.size() + " bisita aurkitu dira komertzial kodea: " + komertzialKodea);
             
             // Fitxategiaren bidea lortu

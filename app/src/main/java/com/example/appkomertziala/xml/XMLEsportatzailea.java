@@ -289,17 +289,6 @@ public class XMLEsportatzailea {
         }
     }
 
-    /** Katalogoa katalogoa.txt fitxategian (testu laua). */
-    public void katalogoaEsportatuTxt() throws IOException {
-        List<Katalogoa> zerrenda = datuBasea.katalogoaDao().guztiak();
-        String fitxategiIzena = "katalogoa.txt";
-        try (Writer idazlea = new OutputStreamWriter(testuingurua.openFileOutput(fitxategiIzena, Context.MODE_PRIVATE), StandardCharsets.UTF_8)) {
-            idazlea.write("=== KATALOGOA ===\n\n");
-            for (Katalogoa k : zerrenda) {
-                idazlea.write("ArtikuluKodea: " + hutsaEz(k.getArtikuluKodea()) + " | Izena: " + hutsaEz(k.getIzena()) + " | Prezioa: " + k.getSalmentaPrezioa() + " | Stock: " + k.getStock() + "\n");
-            }
-        }
-    }
 
     /**
      * XML idazleari elementu bat idazten dio: startTag, testua, endTag.

@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     /** Gipuzkoa office contact intents (spec). */
     private static final String MAP_QUERY = "Gran+Via+kalea+1,+Donostia";
     private static final String PHONE_NUMBER = "943123456";
-    private static final String EMAIL_ADDRESS = "gipuzkoa@enpresa.eus";
+    private static final String EMAIL_ADDRESS = "technobasque@gmail.com";
 
     /** LoginActivity-k bidalitako komertzial hautatua (kredentzialik gabe sartu). */
     public static final String EXTRA_KOMMERTZIALA_KODEA = "komertziala_kodea";
@@ -844,11 +844,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void esportatuKatalogoa(DatuKudeatzailea datuKudeatzailea) {
         new Thread(() -> {
             boolean ondo = datuKudeatzailea.katalogoaEsportatu();
-            if (ondo) datuKudeatzailea.katalogoaEsportatuTxt();
             runOnUiThread(() -> {
                 if (ondo) {
                     Toast.makeText(this, R.string.esportatu_ondo, Toast.LENGTH_SHORT).show();
-                    bidaliPostazXmlTxt("katalogoa.xml", "katalogoa.txt", getString(R.string.postaz_gaia_katalogoa));
+                    bidaliPostaz("katalogoa.xml", getString(R.string.postaz_gaia_katalogoa), "application/xml");
                 } else {
                     Toast.makeText(this, R.string.esportatu_errorea_batzuetan, Toast.LENGTH_SHORT).show();
                 }

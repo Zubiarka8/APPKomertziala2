@@ -151,19 +151,6 @@ public class DatuKudeatzailea {
         }
     }
 
-    /** Katalogoa TXT formatuan esportatu (Gmail eranskin gisa). */
-    public boolean katalogoaEsportatuTxt() {
-        try {
-            esportatzailea.katalogoaEsportatuTxt();
-            return true;
-        } catch (IOException e) {
-            Log.e(ETIKETA, "Katalogoa TXT esportatzean akatsa.", e);
-            return false;
-        } catch (Exception e) {
-            Log.e(ETIKETA, "Katalogoa TXT esportatzean ustekabeko akatsa.", e);
-            return false;
-        }
-    }
 
     /**
      * Katalogoa eguneratu (astero).

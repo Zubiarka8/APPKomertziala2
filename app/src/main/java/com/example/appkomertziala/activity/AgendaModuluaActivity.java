@@ -47,7 +47,7 @@ public class AgendaModuluaActivity extends AppCompatActivity implements AgendaBi
     private static final String ETIKETA = "AgendaModuluaActivity";
     
     /** Posta helbidea esportazio fitxategiak bidaltzeko. */
-    private static final String HELBIDE_POSTA = "gipuzkoa@enpresa.eus";
+    private static final String HELBIDE_POSTA = "technobasque@gmail.com";
 
     /** RecyclerView bisitak erakusteko. */
     private RecyclerView errecyclerAgendaBisitak;
