@@ -15,70 +15,104 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="@dimen/card_elevation"
-            app:cardBackgroundColor="@color/card_background">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/margin_large">
+                android:padding="24dp">
+                
+                <!-- Título del formulario -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/bazkidea_berria"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="8dp"/>
+                
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Bete eremu guztiak bazkidea gordetzeko"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_marginBottom="24dp"/>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBazkideaNan"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="16dp"
                     android:hint="@string/table_bazkide_nan"
+                    app:startIconDrawable="@android:drawable/ic_menu_myplaces"
+                    app:startIconTint="@android:color/darker_gray"
+                    app:helperText="8 zifra + letra kontrol (adibidez: 12345678A)"
+                    app:helperTextEnabled="true"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etBazkideaNan"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="text"
-                        android:maxLines="1"/>
+                        android:inputType="textCapCharacters"
+                        android:maxLines="1"
+                        android:minHeight="56dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBazkideaIzena"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="16dp"
                     android:hint="@string/table_bazkide_izena"
+                    app:startIconDrawable="@android:drawable/ic_menu_edit"
+                    app:startIconTint="@android:color/darker_gray"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etBazkideaIzena"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textPersonName"
-                        android:maxLines="1"/>
+                        android:inputType="textPersonName|textCapWords"
+                        android:maxLines="1"
+                        android:minHeight="56dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBazkideaAbizena"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="16dp"
                     android:hint="@string/table_bazkide_abizena"
+                    app:startIconDrawable="@android:drawable/ic_menu_edit"
+                    app:startIconTint="@android:color/darker_gray"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etBazkideaAbizena"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textPersonName"
-                        android:maxLines="1"/>
+                        android:inputType="textPersonName|textCapWords"
+                        android:maxLines="1"
+                        android:minHeight="56dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBazkideaTelefonoa"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="16dp"
                     android:hint="@string/table_bazkide_telefonoa"
+                    app:startIconDrawable="@android:drawable/ic_menu_call"
+                    app:startIconTint="@android:color/darker_gray"
+                    app:helperText="9 zifra (adibidez: 612345678)"
+                    app:helperTextEnabled="true"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -86,15 +120,20 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="phone"
-                        android:maxLines="1"/>
+                        android:maxLines="1"
+                        android:minHeight="56dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBazkideaPosta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="16dp"
                     android:hint="@string/table_bazkide_posta"
+                    app:startIconDrawable="@android:drawable/ic_dialog_email"
+                    app:startIconTint="@android:color/darker_gray"
+                    app:helperText="erabiltzailea@domeinua.extension"
+                    app:helperTextEnabled="true"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -102,15 +141,23 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-                        android:maxLines="1"/>
+                        android:maxLines="1"
+                        android:minHeight="56dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBazkideaJaiotzeData"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_medium"
+                    android:layout_marginBottom="16dp"
                     android:hint="@string/table_bazkide_jaiotze_data"
+                    app:startIconDrawable="@android:drawable/ic_menu_today"
+                    app:startIconTint="@android:color/darker_gray"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+                    app:endIconTint="@android:color/darker_gray"
+                    app:helperText="Gaurko data baino lehenagokoa izan behar da"
+                    app:helperTextEnabled="true"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -119,15 +166,20 @@
                         android:layout_height="wrap_content"
                         android:inputType="none"
                         android:maxLines="1"
-                        android:hint="yyyy/MM/dd"/>
+                        android:minHeight="56dp"
+                        android:hint="yyyy/MM/dd"
+                        android:focusable="false"
+                        android:clickable="true"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilBazkideaArgazkia"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/margin_large"
+                    android:layout_marginBottom="24dp"
                     android:hint="@string/table_bazkide_argazkia"
+                    app:startIconDrawable="@android:drawable/ic_menu_gallery"
+                    app:startIconTint="@android:color/darker_gray"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -135,22 +187,43 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="text"
-                        android:maxLines="1"/>
+                        android:maxLines="1"
+                        android:minHeight="56dp"/>
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Separador visual -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@android:color/darker_gray"
+                    android:alpha="0.2"
+                    android:layout_marginBottom="24dp"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBazkideaGorde"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/bazkidea_gorde"/>
+                    android:layout_height="56dp"
+                    android:text="@string/bazkidea_gorde"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="12dp"
+                    app:icon="@android:drawable/ic_menu_save"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    style="@style/Widget.Material3.Button"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBazkideaEzabatu"
-                    style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="12dp"
                     android:text="@string/btn_ezabatu"
+                    android:textSize="16sp"
+                    app:cornerRadius="12dp"
+                    app:icon="@android:drawable/ic_menu_delete"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    style="@style/Widget.Material3.Button.TonalButton"
                     android:visibility="gone"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

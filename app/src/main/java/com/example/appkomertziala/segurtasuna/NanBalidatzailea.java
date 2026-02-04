@@ -29,7 +29,7 @@ public class NanBalidatzailea {
     /**
      * NAN/DNI balidatu: formatua eta letra kontrol egiaztatu.
      * 
-     * @param nan Balidatu behar den NAN/DNI (String)
+     * @param nan Balidatu behar den NAN/DNI
      * @return true baliozkoa bada, false bestela
      */
     public static boolean balidatuNan(String nan) {

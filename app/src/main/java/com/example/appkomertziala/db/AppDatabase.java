@@ -87,7 +87,7 @@ public abstract class AppDatabase extends RoomDatabase {
     private static final Migration MIGRAZIO_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
-            // Migración histórica - ya no aplica
+            // Migrazioa historikoa - jada ez da aplikatzen
         }
     };
 
@@ -105,12 +105,12 @@ public abstract class AppDatabase extends RoomDatabase {
     };
 
     /**
-     * 3 -> 4: Migración histórica (ya no aplica).
+     * 3 -> 4: Migrazioa historikoa (jada ez da aplikatzen).
      */
     private static final Migration MIGRAZIO_3_4 = new Migration(3, 4) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
-            // Migración histórica - ya no aplica
+            // Migrazioa historikoa - jada ez da aplikatzen
         }
     };
 
@@ -237,12 +237,12 @@ public abstract class AppDatabase extends RoomDatabase {
 
     /**
      * 12 -> 13: Actualizar agenda_bisitak y eskaera_goiburuak: asegurar que existen las columnas bazkideaKodea/bazkideaId.
-     * Agregar campos faltantes a bazkideak (kodea, helbidea, probintzia, komertzialKodea, sortutakoData).
+     * Eremu falta direnak gehitu bazkideak taulan (kodea, helbidea, probintzia, komertzialKodea, sortutakoData).
      */
     private static final Migration MIGRAZIO_12_13 = new Migration(12, 13) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
-            // Agregar campos faltantes a bazkideak si no existen
+            // Eremu falta direnak gehitu bazkideak taulan existitzen ez badira
             if (taulaExistitzenDa(db, "bazkideak")) {
                 if (!zutabeaExistitzenDa(db, "bazkideak", "kodea"))
                     db.execSQL("ALTER TABLE bazkideak ADD COLUMN kodea TEXT");
@@ -258,7 +258,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_bazkideak_komertzialKodea ON bazkideak(komertzialKodea)");
             }
 
-            // Asegurar que las columnas bazkideaKodea y bazkideaId existen
+            // Ziurtatu bazkideaKodea eta bazkideaId zutabeak existitzen direla
             if (taulaExistitzenDa(db, "agenda_bisitak")) {
                 if (!zutabeaExistitzenDa(db, "agenda_bisitak", "bazkideaKodea"))
                     db.execSQL("ALTER TABLE agenda_bisitak ADD COLUMN bazkideaKodea TEXT");
@@ -333,7 +333,7 @@ public abstract class AppDatabase extends RoomDatabase {
     private static final Migration MIGRAZIO_14_15 = new Migration(14, 15) {
         @Override
         public void migrate(SupportSQLiteDatabase db) {
-            // Migración histórica - ya no aplica
+            // Migrazioa historikoa - jada ez da aplikatzen
         }
     };
 

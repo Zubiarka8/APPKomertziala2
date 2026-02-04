@@ -28,7 +28,7 @@ public class DataBalidatzailea {
     /**
      * Data balidatu: formatua eta baliozkotasuna egiaztatu.
      * 
-     * @param data Balidatu behar den data (String)
+     * @param data Balidatu behar den data
      * @return true baliozkoa bada, false bestela
      */
     public static boolean balidatuData(String data) {

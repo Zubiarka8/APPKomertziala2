@@ -111,7 +111,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
         btnSartuKomertzialGisa.setOnClickListener(v -> sartuKomertzialGisa());
         btnSartuBazkideGisa.setOnClickListener(v -> sartuBazkideGisa());
 
-        // Al comienzo: cargar todos los komertzialak si la tabla está vacía (assets o barne-memoria)
+        // Hasieran: komertzial guztiak kargatu taula hutsik badago (assets edo barne-memoria)
         kargatuKomertzialakHasieran();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -194,7 +194,7 @@ public class LoginActivity extends AppCompatActivity implements OnMapReadyCallba
                 XMLKudeatzailea kud = new XMLKudeatzailea(this);
                 kud.komertzialakInportatuBakarrikHutsikBada();
             } catch (Exception ignored) {
-                // Si no existe komertzialak.xml, la lista seguirá vacía hasta que carguen XML
+                // komertzialak.xml ez badago, zerrenda hutsik egongo da XML kargatu arte
             }
         }).start();
     }

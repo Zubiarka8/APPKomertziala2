@@ -33,7 +33,7 @@ public class PostaBalidatzailea {
     /**
      * Posta elektronikoa balidatu: formatua egiaztatu.
      * 
-     * @param posta Balidatu behar den posta elektronikoa (String)
+     * @param posta Balidatu behar den posta elektronikoa
      * @return true baliozkoa bada, false bestela
      */
     public static boolean balidatuPosta(String posta) {

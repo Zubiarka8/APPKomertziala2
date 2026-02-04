@@ -38,7 +38,7 @@ public class TelefonoBalidatzailea {
     /**
      * Telefono zenbakia balidatu: formatua egiaztatu.
      * 
-     * @param telefono Balidatu behar den telefono zenbakia (String)
+     * @param telefono Balidatu behar den telefono zenbakia
      * @return true baliozkoa bada, false bestela
      */
     public static boolean balidatuTelefonoa(String telefono) {
